@@ -1,29 +1,62 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
+import { UserProvider } from "../utils/UserContext";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
+  useEffect(() => {
+    checkOnboardingStatus();
+  }, []);
+
+  const checkOnboardingStatus = async () => {
+    try {
+      const onboardingComplete = await AsyncStorage.getItem(
+        "@onboarding_completed"
+      );
+      setIsOnboardingComplete(onboardingComplete === "true");
+    } catch (error) {
+      console.error("Error checking onboarding status:", error);
+      setIsOnboardingComplete(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Show loading spinner while checking onboarding status
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#000",
+        }}
+      >
+        <ActivityIndicator size="large" color="#9ACD32" />
+      </View>
+    );
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
+    <UserProvider>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        {!isOnboardingComplete ? (
+          <Stack.Screen name="onboarding" />
+        ) : (
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        )}
       </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+      <StatusBar style="light" backgroundColor="#000" />
+    </UserProvider>
   );
 }
