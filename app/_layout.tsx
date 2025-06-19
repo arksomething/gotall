@@ -51,7 +51,7 @@ export default function RootLayout() {
         }}
       >
         {!isOnboardingComplete ? (
-          <Stack.Screen name="onboarding" />
+          <Stack.Screen name="(onboarding)" />
         ) : (
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         )}

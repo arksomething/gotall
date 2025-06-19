@@ -3,13 +3,12 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { convert } from "./heightUtils";
 
 export interface UserData {
-  name: string;
-  heightCm: number; // Height stored in cm
-  dateOfBirth: string; // ISO date string (YYYY-MM-DD)
-  sex: "1" | "2"; // 1 for male, 2 for female
-  weight: number; // Weight as number
-  motherHeightCm: number; // Mother's height in cm
-  fatherHeightCm: number; // Father's height in cm
+  heightCm: number;
+  dateOfBirth: string;
+  sex: "1" | "2";
+  weight: number;
+  motherHeightCm: number;
+  fatherHeightCm: number;
   ethnicity: string;
   preferredWeightUnit: "lbs" | "kg";
   preferredHeightUnit: "ft" | "cm";
@@ -27,14 +26,13 @@ interface UserContextType {
 }
 
 const defaultUserData: UserData = {
-  name: "Evan",
-  heightCm: 203, // 6'8" = 203 cm
-  dateOfBirth: "2004-01-01", // 20 years old
+  heightCm: 170,
+  dateOfBirth: "2004-01-01",
   sex: "1",
-  weight: 140,
-  motherHeightCm: 165, // ~5'5"
-  fatherHeightCm: 188, // ~6'2"
-  ethnicity: "Caucasian",
+  weight: 68,
+  motherHeightCm: 165,
+  fatherHeightCm: 178,
+  ethnicity: "caucasian",
   preferredWeightUnit: "lbs",
   preferredHeightUnit: "ft",
 };
@@ -123,18 +121,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const loadUserData = async () => {
     try {
       const [
-        name,
-        heightCm,
+        height,
         dateOfBirth,
         sex,
         weight,
-        motherHeightCm,
-        fatherHeightCm,
+        motherHeight,
+        fatherHeight,
         ethnicity,
         preferredWeightUnit,
         preferredHeightUnit,
       ] = await Promise.all([
-        AsyncStorage.getItem("@user_name"),
         AsyncStorage.getItem("@user_height_cm"),
         AsyncStorage.getItem("@user_date_of_birth"),
         AsyncStorage.getItem("@user_sex"),
@@ -146,18 +142,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         AsyncStorage.getItem("@user_preferred_height_unit"),
       ]);
 
-      const newUserData: UserData = {
-        name: name || defaultUserData.name,
-        heightCm: heightCm ? parseInt(heightCm) : defaultUserData.heightCm,
+      setUserData({
+        heightCm: parseFloat(height || "") || defaultUserData.heightCm,
         dateOfBirth: dateOfBirth || defaultUserData.dateOfBirth,
         sex: (sex as "1" | "2") || defaultUserData.sex,
-        weight: weight ? parseFloat(weight) : defaultUserData.weight,
-        motherHeightCm: motherHeightCm
-          ? parseInt(motherHeightCm)
-          : defaultUserData.motherHeightCm,
-        fatherHeightCm: fatherHeightCm
-          ? parseInt(fatherHeightCm)
-          : defaultUserData.fatherHeightCm,
+        weight: parseFloat(weight || "") || defaultUserData.weight,
+        motherHeightCm:
+          parseFloat(motherHeight || "") || defaultUserData.motherHeightCm,
+        fatherHeightCm:
+          parseFloat(fatherHeight || "") || defaultUserData.fatherHeightCm,
         ethnicity: ethnicity || defaultUserData.ethnicity,
         preferredWeightUnit:
           (preferredWeightUnit as "lbs" | "kg") ||
@@ -165,9 +158,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         preferredHeightUnit:
           (preferredHeightUnit as "ft" | "cm") ||
           defaultUserData.preferredHeightUnit,
-      };
-
-      setUserData(newUserData);
+      });
     } catch (error) {
       console.error("Error loading user data:", error);
     }
@@ -175,26 +166,26 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const updateUserData = async (updates: Partial<UserData>) => {
     try {
-      const newUserData = { ...userData, ...updates };
+      const promises: Promise<void>[] = [];
 
-      // Save to AsyncStorage
-      const promises = [];
-      if (updates.name !== undefined)
-        promises.push(AsyncStorage.setItem("@user_name", updates.name));
       if (updates.heightCm !== undefined)
         promises.push(
           AsyncStorage.setItem("@user_height_cm", updates.heightCm.toString())
         );
+
       if (updates.dateOfBirth !== undefined)
         promises.push(
           AsyncStorage.setItem("@user_date_of_birth", updates.dateOfBirth)
         );
+
       if (updates.sex !== undefined)
         promises.push(AsyncStorage.setItem("@user_sex", updates.sex));
+
       if (updates.weight !== undefined)
         promises.push(
           AsyncStorage.setItem("@user_weight", updates.weight.toString())
         );
+
       if (updates.motherHeightCm !== undefined)
         promises.push(
           AsyncStorage.setItem(
@@ -202,6 +193,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
             updates.motherHeightCm.toString()
           )
         );
+
       if (updates.fatherHeightCm !== undefined)
         promises.push(
           AsyncStorage.setItem(
@@ -209,10 +201,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
             updates.fatherHeightCm.toString()
           )
         );
+
       if (updates.ethnicity !== undefined)
         promises.push(
           AsyncStorage.setItem("@user_ethnicity", updates.ethnicity)
         );
+
       if (updates.preferredWeightUnit !== undefined)
         promises.push(
           AsyncStorage.setItem(
@@ -220,6 +214,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
             updates.preferredWeightUnit
           )
         );
+
       if (updates.preferredHeightUnit !== undefined)
         promises.push(
           AsyncStorage.setItem(
@@ -229,9 +224,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         );
 
       await Promise.all(promises);
-      setUserData(newUserData);
+
+      setUserData((prev) => ({
+        ...prev,
+        ...updates,
+      }));
     } catch (error) {
       console.error("Error updating user data:", error);
+      throw error;
     }
   };
 

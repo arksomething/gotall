@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Header } from "../../components/Header";
 
 // Configure notifications
 Notifications.setNotificationHandler({
@@ -24,14 +25,13 @@ Notifications.setNotificationHandler({
 
 export default function PostureScreen() {
   const [reminderActive, setReminderActive] = useState(false);
-  const [reminderInterval, setReminderInterval] = useState(30); // minutes
+  const [reminderInterval, setReminderInterval] = useState(20); // minutes
   const [notificationId, setNotificationId] = useState<string | null>(null);
 
   const intervalOptions = [
-    { value: 15, label: "15 min" },
-    { value: 30, label: "30 min" },
-    { value: 45, label: "45 min" },
+    { value: 20, label: "20 min" },
     { value: 60, label: "1 hour" },
+    { value: 180, label: "3 hours" },
   ];
 
   useEffect(() => {
@@ -72,7 +72,7 @@ export default function PostureScreen() {
       const id = await Notifications.scheduleNotificationAsync({
         content: {
           title: "Posture Check! 🧘‍♀️",
-          body: "Time to check your posture!\n• Shoulders back\n• Chin tucked\n• Spine straight",
+          body: "Time to check your posture and sit up straight!",
           sound: true,
           data: { type: "posture_reminder" },
         },
@@ -128,27 +128,33 @@ export default function PostureScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Posture Reminders</Text>
-        <TouchableOpacity>
-          <Ionicons name="settings-outline" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
+      <Header title="Posture" />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Main Section */}
-        <View style={styles.mainSection}>
-          <Text style={styles.sectionTitle}>Stay on top of your posture</Text>
-          <Text style={styles.sectionSubtitle}>
-            Get notified even when the app is closed
-          </Text>
+        {/* Status Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons
+              name={reminderActive ? "notifications" : "notifications-off"}
+              size={24}
+              color={reminderActive ? "#9ACD32" : "#666"}
+            />
+            <Text
+              style={[styles.cardTitle, reminderActive && styles.activeText]}
+            >
+              {reminderActive ? "Reminders Active" : "Reminders Disabled"}
+            </Text>
+          </View>
+          {reminderActive && (
+            <Text style={styles.cardSubtitle}>
+              Checking every {reminderInterval} minutes
+            </Text>
+          )}
         </View>
 
         {/* Interval Selection */}
-        <View style={styles.intervalContainer}>
-          <Text style={styles.intervalLabel}>Reminder every:</Text>
-          <View style={styles.intervalOptions}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Reminder Frequency</Text>
+          <View style={styles.intervalGrid}>
             {intervalOptions.map((option) => (
               <TouchableOpacity
                 key={option.value}
@@ -172,73 +178,26 @@ export default function PostureScreen() {
           </View>
         </View>
 
-        {/* Timer Status */}
-        <View style={styles.timerStatus}>
-          <View style={styles.statusRow}>
-            <Ionicons
-              name={reminderActive ? "notifications" : "notifications-off"}
-              size={24}
-              color={reminderActive ? "#9ACD32" : "#666"}
-            />
-            <Text
-              style={[
-                styles.statusText,
-                { color: reminderActive ? "#9ACD32" : "#666" },
-              ]}
-            >
-              {reminderActive ? "Reminders Active" : "Reminders Off"}
-            </Text>
-          </View>
-          {reminderActive && (
-            <Text style={styles.statusSubtext}>
-              Next reminder in {reminderInterval} minutes
-            </Text>
-          )}
-        </View>
-
-        {/* Timer Controls */}
-        <View style={styles.timerControls}>
-          {!reminderActive ? (
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={startReminder}
-            >
-              <Ionicons
-                name="play"
-                size={20}
-                color="#000"
-                style={styles.buttonIcon}
-              />
-              <Text style={styles.primaryButtonText}>Start Reminders</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.stopButton} onPress={stopReminder}>
-              <Ionicons
-                name="stop"
-                size={20}
-                color="#fff"
-                style={styles.buttonIcon}
-              />
-              <Text style={styles.stopButtonText}>Stop Reminders</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Info Card */}
-        <View style={styles.infoCard}>
+        {/* Control Button */}
+        <TouchableOpacity
+          style={[styles.controlButton, reminderActive && styles.stopButton]}
+          onPress={reminderActive ? stopReminder : startReminder}
+        >
           <Ionicons
-            name="information-circle-outline"
+            name={reminderActive ? "stop" : "play"}
             size={24}
-            color="#9ACD32"
+            color={reminderActive ? "#fff" : "#000"}
+            style={styles.buttonIcon}
           />
-          <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>Reminder Tips</Text>
-            <Text style={styles.infoText}>
-              • Shoulders back and down{"\n"}• Chin tucked slightly{"\n"}• Spine
-              straight{"\n"}• Feet flat on floor
-            </Text>
-          </View>
-        </View>
+          <Text
+            style={[
+              styles.controlButtonText,
+              reminderActive && styles.stopButtonText,
+            ]}
+          >
+            {reminderActive ? "Stop Reminders" : "Start Reminders"}
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -249,58 +208,55 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  headerTitle: {
-    color: "#9ACD32",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
-  mainSection: {
-    marginTop: 20,
-    marginBottom: 40,
+  card: {
+    backgroundColor: "#111",
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 32,
+  },
+  cardHeader: {
+    flexDirection: "row",
     alignItems: "center",
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#666",
+    marginLeft: 12,
+  },
+  activeText: {
+    color: "#9ACD32",
+  },
+  cardSubtitle: {
+    color: "#666",
+    fontSize: 16,
+    marginLeft: 36,
+  },
+  section: {
+    marginBottom: 32,
   },
   sectionTitle: {
     color: "#fff",
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  sectionSubtitle: {
-    color: "#666",
-    fontSize: 16,
-    textAlign: "center",
-  },
-  intervalContainer: {
-    marginBottom: 40,
-  },
-  intervalLabel: {
-    color: "#fff",
     fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 15,
+    fontWeight: "600",
+    marginBottom: 16,
   },
-  intervalOptions: {
+  intervalGrid: {
     flexDirection: "row",
+    justifyContent: "space-between",
     gap: 12,
-    flexWrap: "wrap",
   },
   intervalButton: {
+    flex: 1,
     backgroundColor: "#111",
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "center",
     borderWidth: 2,
     borderColor: "#333",
   },
@@ -311,84 +267,32 @@ const styles = StyleSheet.create({
   intervalButtonText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   selectedIntervalText: {
     color: "#000",
   },
-  timerStatus: {
-    marginBottom: 30,
-    backgroundColor: "#111",
-    borderRadius: 12,
-    padding: 20,
-  },
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  statusText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 12,
-  },
-  statusSubtext: {
-    color: "#666",
-    fontSize: 14,
-    marginLeft: 36,
-  },
-  timerControls: {
-    marginBottom: 40,
-  },
-  primaryButton: {
+  controlButton: {
     backgroundColor: "#9ACD32",
-    borderRadius: 25,
-    paddingVertical: 18,
+    borderRadius: 24,
+    padding: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-  },
-  primaryButtonText: {
-    color: "#000",
-    fontSize: 18,
-    fontWeight: "bold",
+    marginBottom: 32,
   },
   stopButton: {
     backgroundColor: "#FF6B6B",
-    borderRadius: 25,
-    paddingVertical: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stopButtonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
   },
   buttonIcon: {
     marginRight: 8,
   },
-  infoCard: {
-    backgroundColor: "#111",
-    borderRadius: 12,
-    padding: 20,
-    flexDirection: "row",
-    marginBottom: 30,
-  },
-  infoContent: {
-    flex: 1,
-    marginLeft: 15,
-  },
-  infoTitle: {
-    color: "#9ACD32",
-    fontSize: 16,
+  controlButtonText: {
+    color: "#000",
+    fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 8,
   },
-  infoText: {
+  stopButtonText: {
     color: "#fff",
-    fontSize: 14,
-    lineHeight: 20,
   },
 });

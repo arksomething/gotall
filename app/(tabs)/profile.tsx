@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Header } from "../../components/Header";
 import { useUserData } from "../../utils/UserContext";
 
 export default function ProfileScreen() {
@@ -43,7 +44,6 @@ export default function ProfileScreen() {
             try {
               await AsyncStorage.multiRemove([
                 "@onboarding_completed",
-                "@user_name",
                 "@user_height_cm",
                 "@user_date_of_birth",
                 "@user_sex",
@@ -54,7 +54,7 @@ export default function ProfileScreen() {
                 "@user_preferred_weight_unit",
                 "@user_preferred_height_unit",
               ]);
-              router.replace("/onboarding");
+              router.replace("/(onboarding)" as any);
             } catch (error) {
               Alert.alert("Error", "Failed to reset profile data");
             }
@@ -95,29 +95,47 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity>
-          <Ionicons name="settings-outline" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
+      <Header title="Profile" />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* User Info */}
         <View style={styles.userSection}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={40} color="#9ACD32" />
+          <View style={styles.userHeader}>
+            <View style={styles.avatarContainer}>
+              <Ionicons name="person" size={60} color="#9ACD32" />
+            </View>
+            <View style={styles.userDetails}>
+              <View style={styles.detailRow}>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Height</Text>
+                  <Text style={styles.detailValue}>{getDisplayHeight()}</Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Weight</Text>
+                  <Text style={styles.detailValue}>{getDisplayWeight()}</Text>
+                </View>
+              </View>
+              <View style={styles.detailRow}>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Age</Text>
+                  <Text style={styles.detailValue}>{getAge()}</Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Sex</Text>
+                  <Text style={styles.detailValue}>
+                    {userData.sex === "1" ? "Male" : "Female"}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.detailRow}>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Ethnicity</Text>
+                  <Text style={styles.detailValue}>{userData.ethnicity}</Text>
+                </View>
+              </View>
+            </View>
           </View>
-          <Text style={styles.userName}>{userData.name}</Text>
-          <Text style={styles.userDetails}>
-            {getDisplayHeight()} • Age: {getAge()} • {getDisplayWeight()}
-          </Text>
-          <Text style={styles.userSex}>
-            {userData.sex === "1" ? "Male" : "Female"} • {userData.ethnicity}
-          </Text>
           <TouchableOpacity style={styles.editButton} onPress={resetOnboarding}>
-            <Text style={styles.editButtonText}>Edit Profile</Text>
+            <Text style={styles.editButtonText}>Reset Profile</Text>
           </TouchableOpacity>
         </View>
 
@@ -220,53 +238,50 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  headerTitle: {
-    color: "#9ACD32",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   userSection: {
-    alignItems: "center",
-    marginBottom: 30,
-    paddingVertical: 20,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
     backgroundColor: "#111",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 30,
+  },
+  userHeader: {
+    flexDirection: "row",
+    marginBottom: 20,
+  },
+  avatarContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(154, 205, 50, 0.1)",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 15,
-  },
-  userName: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 5,
+    marginRight: 24,
   },
   userDetails: {
-    color: "#666",
-    fontSize: 16,
-    marginBottom: 5,
-    textAlign: "center",
+    flex: 1,
   },
-  userSex: {
-    color: "#9ACD32",
-    fontSize: 14,
+  detailRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  detailItem: {
+    flex: 1,
+    marginRight: 12,
+  },
+  detailLabel: {
+    color: "#666",
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  detailValue: {
+    color: "#fff",
+    fontSize: 16,
     fontWeight: "500",
-    marginBottom: 20,
   },
   editButton: {
     backgroundColor: "transparent",
@@ -275,6 +290,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 20,
     paddingVertical: 8,
+    alignSelf: "center",
   },
   editButtonText: {
     color: "#9ACD32",

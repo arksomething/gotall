@@ -33,7 +33,7 @@ const Graph: React.FC<GraphProps> = ({ sex, age, currentHeight }) => {
   const getAgeRangeData = () => {
     let startAge: number;
     const maxDataAge = 240.5; // Max age in the CDC data is 20 years (240.5 months)
-    const endAge = Math.min(age, maxDataAge); // End at user's age or max data age
+    const endAge = maxDataAge; // End at user's age or max data age
 
     if (age < 60) {
       // For children under 5 years old

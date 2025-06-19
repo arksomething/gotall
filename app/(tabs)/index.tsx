@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import Graph from "../../components/Graph";
+import { Header } from "../../components/Header";
 import { CalorieModal } from "../../components/modals/CalorieModal";
 import { HeightModal } from "../../components/modals/HeightModal";
 import { WeightModal } from "../../components/modals/WeightModal";
@@ -252,14 +253,7 @@ export default function Index() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.welcomeText}>Welcome {userData.name}</Text>
-          <TouchableOpacity onPress={debugGoals}>
-            <Ionicons name="settings-outline" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-
+        <Header title="Home" />
         {/* Stats Section */}
         <View style={styles.statsContainer}>
           <View style={styles.statsGrid}>
@@ -415,21 +409,9 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  welcomeText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
   statsContainer: {
-    paddingHorizontal: 20,
     marginTop: 20,
+    paddingHorizontal: 24,
   },
   statsGrid: {
     borderWidth: 2,

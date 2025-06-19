@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Header } from "../../components/Header";
 import { databaseManager } from "../../utils/database";
 
 interface Goal {
@@ -218,20 +219,13 @@ export default function StatsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{formatSelectedDate()}</Text>
-        <TouchableOpacity>
-          <Ionicons name="settings-outline" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Streak */}
-      <View style={styles.streakSection}>
-        <Text style={styles.streakText}>{currentStreak} day streak 🔥</Text>
-      </View>
-
+      <Header title={formatSelectedDate()} />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Streak */}
+        <View style={styles.streakSection}>
+          <Text style={styles.streakText}>{currentStreak} day streak 🔥</Text>
+        </View>
+
         {/* Week Days */}
         <View style={styles.weekSection}>
           {weekDays.map((day, index) => (
@@ -363,6 +357,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
   },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -372,30 +370,13 @@ const styles = StyleSheet.create({
     color: "#9ACD32",
     fontSize: 16,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  headerTitle: {
-    color: "#9ACD32",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
   streakSection: {
-    paddingHorizontal: 20,
     marginBottom: 20,
   },
   streakText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "500",
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
   },
   weekSection: {
     flexDirection: "row",

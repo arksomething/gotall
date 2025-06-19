@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { WebView } from "react-native-webview";
+import { Header } from "../../components/Header";
 import { Stretch, stretches } from "../../utils/stretches";
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -37,13 +38,7 @@ export default function HabitScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Posture +</Text>
-        <TouchableOpacity>
-          <Ionicons name="settings-outline" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
+      <Header title="Exercises" />
 
       {/* Exercise Selection */}
       <View style={styles.exerciseSection}>
@@ -135,20 +130,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  headerTitle: {
-    color: "#9ACD32",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
   exerciseSection: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     marginTop: 10,
   },
   exerciseDropdown: {
