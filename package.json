@@ -55,7 +55,8 @@
     "react-native-wheel-picker-expo": "^0.5.4",
     "react-native-wheely": "^0.6.0",
     "victory": "^36.6.8",
-    "victory-native": "^41.17.4"
+    "victory-native": "^41.17.4",
+    "expo-dev-client": "~5.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

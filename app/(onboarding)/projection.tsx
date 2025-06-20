@@ -80,17 +80,23 @@ const ProjectionScreen = () => {
           getAge(),
           userData.sex
         );
-        console.log("CDC projections calculated:", cdcProjections);
 
         // If CDC projection is available, use it as actual height
         if (cdcProjections.exact) {
           actualHeight = cdcProjections.exact;
         }
       } catch (cdcError) {
-        console.log(
-          "CDC projection failed, using genetic potential:",
-          cdcError
-        );
+        if (cdcError instanceof Error) {
+          console.log(
+            "CDC projection failed, using genetic potential:",
+            cdcError.message.split(".")[0] + "."
+          );
+        } else {
+          console.log(
+            "CDC projection failed, using genetic potential:",
+            cdcError
+          );
+        }
         // If CDC fails, we'll keep using the genetic potential as actual height
       }
 

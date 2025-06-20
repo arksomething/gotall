@@ -1,7 +1,7 @@
 import * as InAppPurchases from "expo-in-app-purchases";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Alert, Platform, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Image, Platform, StyleSheet, Text, View } from "react-native";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import {
   OnboardingScreenProps,
@@ -9,92 +9,61 @@ import {
 } from "../../components/withOnboarding";
 
 const LIFETIME_ACCESS_ID = Platform.select({
-  ios: "gotall.lifetime.access",
-  android: "gotall.lifetime.access",
-  default: "gotall.lifetime.access",
+  ios: "gotall.lifetime.access.nonc",
+  android: "gotall.lifetime.access.nonc",
+  default: "gotall.lifetime.access.nonc",
+});
+
+const productIds = Platform.select({
+  ios: [LIFETIME_ACCESS_ID],
+  android: [LIFETIME_ACCESS_ID],
+  default: [LIFETIME_ACCESS_ID],
 });
 
 function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
   const router = useRouter();
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [isStoreConnected, setIsStoreConnected] = useState(false);
+  const [products, setProducts] = useState<InAppPurchases.IAPItemDetails[]>([]);
 
-  React.useEffect(() => {
-    InAppPurchases.connectAsync();
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await InAppPurchases.connectAsync();
+        setIsStoreConnected(true);
+
+        const { responseCode, results } = await InAppPurchases.getProductsAsync(
+          productIds
+        );
+
+        if (responseCode === InAppPurchases.IAPResponseCode.OK && results) {
+          setProducts(results);
+        }
+      } catch (e) {
+        console.warn("Error connecting to store", e);
+      }
+    };
+
+    init();
+
     return () => {
       InAppPurchases.disconnectAsync();
     };
   }, []);
 
   const handlePurchase = async () => {
-    if (!LIFETIME_ACCESS_ID) {
-      Alert.alert("Error", "Product ID not configured for this platform");
-      return;
-    }
-
-    try {
-      setIsPurchasing(true);
-
-      const { responseCode, results } = await InAppPurchases.getProductsAsync([
-        LIFETIME_ACCESS_ID,
-      ]);
-
-      if (responseCode !== InAppPurchases.IAPResponseCode.OK) {
-        throw new Error("Failed to get product information");
+    if (product) {
+      try {
+        setIsPurchasing(true);
+        await InAppPurchases.purchaseItemAsync(product.productId);
+      } catch (e) {
+        console.warn("Error making purchase", e);
+        setIsPurchasing(false);
       }
-
-      if (!results || results.length === 0) {
-        throw new Error("Product not found");
-      }
-
-      // Start the purchase
-      await InAppPurchases.purchaseItemAsync(LIFETIME_ACCESS_ID);
-
-      // Listen for purchase updates
-      InAppPurchases.setPurchaseListener(
-        ({ responseCode, results: purchaseResults }) => {
-          if (responseCode === InAppPurchases.IAPResponseCode.USER_CANCELED) {
-            setIsPurchasing(false);
-            return;
-          }
-
-          if (responseCode !== InAppPurchases.IAPResponseCode.OK) {
-            setIsPurchasing(false);
-            Alert.alert(
-              "Error",
-              "There was an error processing your purchase. Please try again.",
-              [{ text: "OK" }]
-            );
-            return;
-          }
-
-          // Purchase was successful
-          Alert.alert(
-            "Success!",
-            "Your lifetime access has been activated. Welcome to the family!",
-            [
-              {
-                text: "Get Started",
-                onPress: () => {
-                  // Remove the purchase listener before navigation
-                  InAppPurchases.setPurchaseListener(() => {});
-                  router.replace("/(tabs)");
-                },
-              },
-            ]
-          );
-          setIsPurchasing(false);
-        }
-      );
-    } catch (error) {
-      Alert.alert(
-        "Error",
-        "There was an error processing your purchase. Please try again.",
-        [{ text: "OK" }]
-      );
-      console.error("Purchase error:", error);
-      setIsPurchasing(false);
     }
   };
+
+  const product = products[0];
 
   return (
     <OnboardingLayout
@@ -104,19 +73,22 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
       onBack={onBack}
       onNext={handlePurchase}
       nextButtonText={isPurchasing ? "Processing..." : "Continue"}
-      disableDefaultNext={isPurchasing}
+      disableDefaultNext={isPurchasing || !isStoreConnected || !product}
     >
       <View style={styles.container}>
         <View style={styles.generatingBox}>
-          <Text style={styles.generatingText}>
-            Something showing it generating tasks but the shit is blurred
-          </Text>
+          <Image
+            source={require("../../assets/images/image.png")}
+            style={styles.generatingImage}
+            resizeMode="contain"
+            blurRadius={5}
+          />
         </View>
 
         <View style={styles.subscriptionSection}>
           <Text style={styles.subscriptionText}>
             Do you wish to proceed with a lifetime access for{" "}
-            <Text style={styles.priceText}>$9.99</Text>?
+            <Text style={styles.priceText}>{product?.price ?? "$9.99"}</Text>?
           </Text>
         </View>
       </View>
@@ -141,10 +113,9 @@ const styles = StyleSheet.create({
     padding: 20,
     marginTop: 40,
   },
-  generatingText: {
-    color: "#fff",
-    fontSize: 18,
-    textAlign: "center",
+  generatingImage: {
+    width: "100%",
+    height: "100%",
   },
   subscriptionSection: {
     width: "100%",
