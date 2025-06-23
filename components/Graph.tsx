@@ -2,11 +2,21 @@ import React from "react";
 import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import heightData from "../utils/data.json";
+import { getHeightForInput } from "../utils/heightUtils";
 
 interface GraphProps {
   sex: "1" | "2"; // 1 for male, 2 for female
   age: number; // age in months
   currentHeight: number; // current height in cm
+  onPercentileCalculated?: (
+    percentile: {
+      range: string;
+      lowerBound: { name: string; value: number; display: string } | null;
+      upperBound: { name: string; value: number; display: string } | null;
+      lowerName: string;
+      upperName: string;
+    } | null
+  ) => void;
 }
 
 interface HeightDataPoint {
@@ -26,12 +36,23 @@ interface HeightDataPoint {
   P97: string;
 }
 
-const Graph: React.FC<GraphProps> = ({ sex, age, currentHeight }) => {
+const Graph: React.FC<GraphProps> = ({
+  sex,
+  age,
+  currentHeight,
+  onPercentileCalculated,
+}) => {
   const screenWidth = Dimensions.get("window").width;
+
+  const graphConfig = {
+    colors: {
+      lower: "#B9E45F",
+    },
+  };
 
   // Filter data for the specified sex and age range
   const getAgeRangeData = () => {
-    let startAge: number;
+    let startAge = 0;
     const maxDataAge = 240.5; // Max age in the CDC data is 20 years (240.5 months)
     const endAge = maxDataAge; // End at user's age or max data age
 
@@ -39,11 +60,9 @@ const Graph: React.FC<GraphProps> = ({ sex, age, currentHeight }) => {
       // For children under 5 years old
       startAge = Math.max(24, age - 12);
     } else if (age > maxDataAge) {
-      // If user is older than data, show the last 3 years of data
-      startAge = maxDataAge - 36;
+      startAge = maxDataAge - 60;
     } else {
-      // For older children/adults, use a 3-year range before their current age
-      startAge = Math.max(24, age - 36);
+      startAge = Math.max(24, age - 60);
     }
 
     return (heightData as HeightDataPoint[])
@@ -69,33 +88,39 @@ const Graph: React.FC<GraphProps> = ({ sex, age, currentHeight }) => {
 
     if (!closestDataPoint) return null;
 
+    const formatPercentile = (p: string) => {
+      const num = parseInt(p.substring(1));
+      if (num === 3) return "3rd";
+      return `${num}th`;
+    };
+
     const percentiles = [
-      { name: "P3", value: parseFloat(closestDataPoint.P3) },
-      { name: "P5", value: parseFloat(closestDataPoint.P5) },
-      { name: "P10", value: parseFloat(closestDataPoint.P10) },
-      { name: "P25", value: parseFloat(closestDataPoint.P25) },
-      { name: "P50", value: parseFloat(closestDataPoint.P50) },
-      { name: "P75", value: parseFloat(closestDataPoint.P75) },
-      { name: "P90", value: parseFloat(closestDataPoint.P90) },
-      { name: "P95", value: parseFloat(closestDataPoint.P95) },
-      { name: "P97", value: parseFloat(closestDataPoint.P97) },
+      { name: "P3", value: parseFloat(closestDataPoint.P3), display: "3rd" },
+      { name: "P5", value: parseFloat(closestDataPoint.P5), display: "5th" },
+      { name: "P10", value: parseFloat(closestDataPoint.P10), display: "10th" },
+      { name: "P25", value: parseFloat(closestDataPoint.P25), display: "25th" },
+      { name: "P50", value: parseFloat(closestDataPoint.P50), display: "50th" },
+      { name: "P75", value: parseFloat(closestDataPoint.P75), display: "75th" },
+      { name: "P90", value: parseFloat(closestDataPoint.P90), display: "90th" },
+      { name: "P95", value: parseFloat(closestDataPoint.P95), display: "95th" },
+      { name: "P97", value: parseFloat(closestDataPoint.P97), display: "97th" },
     ];
 
     if (currentHeight < percentiles[0].value) {
       return {
-        range: "Below P3",
+        range: "Below 3rd percentile",
         lowerBound: null,
         upperBound: percentiles[0],
         lowerName: "Below",
-        upperName: "P3",
+        upperName: "3rd percentile",
       };
     }
     if (currentHeight > percentiles[8].value) {
       return {
-        range: "Above P97",
+        range: "Above 97th percentile",
         lowerBound: percentiles[8],
         upperBound: null,
-        lowerName: "P97",
+        lowerName: "97th percentile",
         upperName: "Above",
       };
     }
@@ -106,31 +131,38 @@ const Graph: React.FC<GraphProps> = ({ sex, age, currentHeight }) => {
         currentHeight <= percentiles[i + 1].value
       ) {
         return {
-          range: `${percentiles[i].name} - ${percentiles[i + 1].name}`,
+          range: `${percentiles[i].display} - ${
+            percentiles[i + 1].display
+          } percentile`,
           lowerBound: percentiles[i],
           upperBound: percentiles[i + 1],
-          lowerName: percentiles[i].name,
-          upperName: percentiles[i + 1].name,
+          lowerName: `${percentiles[i].display} percentile`,
+          upperName: `${percentiles[i + 1].display} percentile`,
         };
       }
     }
 
     return {
-      range: "P50",
+      range: "50th percentile",
       lowerBound: percentiles[4],
       upperBound: percentiles[4],
-      lowerName: "P50",
-      upperName: "P50",
+      lowerName: "50th percentile",
+      upperName: "50th percentile",
     }; // Default to median
   };
 
   const ageRangeData = getAgeRangeData();
   const userPercentileInfo = calculatePercentile();
 
+  React.useEffect(() => {
+    if (onPercentileCalculated) {
+      onPercentileCalculated(userPercentileInfo);
+    }
+  }, [userPercentileInfo, onPercentileCalculated]);
+
   if (ageRangeData.length === 0) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Height Percentile Chart</Text>
         <Text style={styles.noData}>No data available for this age range</Text>
       </View>
     );
@@ -154,65 +186,55 @@ const Graph: React.FC<GraphProps> = ({ sex, age, currentHeight }) => {
   const datasets = [];
 
   if (userPercentileInfo) {
-    // Add lower bound line if it exists
+    // Find the closest percentile line
+    let closestBound = null;
+    let closestDistance = Infinity;
+
     if (userPercentileInfo.lowerBound) {
-      const lowerData = filteredData.map((item) =>
-        parseFloat(
-          item[
-            userPercentileInfo.lowerBound.name as keyof HeightDataPoint
-          ] as string
-        )
+      const lowerDistance = Math.abs(
+        userPercentileInfo.lowerBound.value - currentHeight
       );
-      datasets.push({
-        data: lowerData,
-        color: () => `rgba(0, 191, 255, 1)`, // Bright electric blue for lower bound - force full opacity
-        strokeWidth: 3,
-        withDots: false,
-      });
+      if (lowerDistance < closestDistance) {
+        closestBound = userPercentileInfo.lowerBound;
+        closestDistance = lowerDistance;
+      }
     }
 
-    // Add upper bound line if it exists and is different from lower bound
-    if (
-      userPercentileInfo.upperBound &&
-      userPercentileInfo.upperBound !== userPercentileInfo.lowerBound
-    ) {
-      const upperData = filteredData.map((item) =>
-        parseFloat(
-          item[
-            userPercentileInfo.upperBound.name as keyof HeightDataPoint
-          ] as string
-        )
+    if (userPercentileInfo.upperBound) {
+      const upperDistance = Math.abs(
+        userPercentileInfo.upperBound.value - currentHeight
+      );
+      if (upperDistance < closestDistance) {
+        closestBound = userPercentileInfo.upperBound;
+      }
+    }
+
+    // Add only the closest percentile line
+    if (closestBound) {
+      const percentileData = filteredData.map((item) =>
+        parseFloat(item[closestBound.name as keyof HeightDataPoint] as string)
       );
       datasets.push({
-        data: upperData,
-        color: () => `rgba(255, 69, 0, 1)`, // Bright orange-red for upper bound - force full opacity
+        data: percentileData,
+        color: () => graphConfig.colors.lower,
         strokeWidth: 3,
         withDots: false,
       });
     }
   }
 
-  // Always add the user's height line
-  datasets.push({
-    data: currentHeightLine,
-    color: () => `rgba(0, 255, 127, 1)`, // Bright spring green for current height - force full opacity
-    strokeWidth: 5,
-    withDots: false,
-    strokeDashArray: [8, 4], // More prominent dashed line
-  });
-
   const chartData = {
-    labels: labels.filter((_, index) => index % 4 === 0), // Show fewer labels to prevent crowding
+    labels: labels.filter((_, index) => index % 4 === 0),
     datasets: datasets,
   };
 
   const chartConfig = {
-    backgroundColor: "#0a0a0a",
-    backgroundGradientFrom: "#0a0a0a",
-    backgroundGradientTo: "#0a0a0a",
+    backgroundColor: "#000000",
+    backgroundGradientFrom: "#000000",
+    backgroundGradientTo: "#000000",
     decimalPlaces: 0,
-    color: () => `rgba(255, 255, 255, 0.1)`, // Very subtle horizontal grid lines
-    labelColor: () => `rgba(240, 240, 240, 1)`, // Force full opacity for labels
+    color: () => `rgba(255, 255, 255, 0.1)`,
+    labelColor: () => `rgba(240, 240, 240, 1)`,
     style: {
       borderRadius: 16,
       width: chartWidth,
@@ -222,15 +244,15 @@ const Graph: React.FC<GraphProps> = ({ sex, age, currentHeight }) => {
       strokeWidth: "2",
       stroke: "#00ffff",
     },
-    formatYLabel: (value: string) => `${Math.round(parseFloat(value))}`,
-    paddingTop: 20, // Add padding above chart
-    paddingBottom: 20, // Add padding below chart
-    strokeWidth: 3, // Ensure stroke width is applied
-    fillShadowGradient: "#000000", // Remove any shadow effects
-    fillShadowGradientOpacity: 0, // No shadow opacity
+    formatYLabel: (value: string) => getHeightForInput(parseFloat(value), "ft"),
+    paddingTop: 20,
+    paddingBottom: 20,
+    strokeWidth: 3,
+    fillShadowGradient: "#000000",
+    fillShadowGradientOpacity: 0,
     propsForBackgroundLines: {
-      strokeDasharray: "", // Solid lines
-      stroke: "rgba(255, 255, 255, 0.1)", // Very subtle horizontal lines
+      strokeDasharray: "",
+      stroke: "rgba(255, 255, 255, 0.1)",
       strokeWidth: 1,
     },
     propsForVerticalLabels: {
@@ -241,32 +263,28 @@ const Graph: React.FC<GraphProps> = ({ sex, age, currentHeight }) => {
       fontSize: 12,
       fill: "rgba(240, 240, 240, 1)",
     },
-    hidePointsAtIndex: [], // Don't hide any points, but we're not using dots anyway
-    withVerticalLines: false, // Remove vertical grid lines
-    withHorizontalLines: true, // Keep horizontal grid lines
+    hidePointsAtIndex: [],
+    withVerticalLines: false,
+    withHorizontalLines: true,
   };
+
+  // Calculate the percentile number once and reuse it
+  const getPercentileNumber = () => {
+    if (!userPercentileInfo) return null;
+
+    if (userPercentileInfo.lowerBound && userPercentileInfo.upperBound) {
+      return Math.abs(userPercentileInfo.lowerBound.value - currentHeight) <
+        Math.abs(userPercentileInfo.upperBound.value - currentHeight)
+        ? userPercentileInfo.lowerBound
+        : userPercentileInfo.upperBound;
+    }
+    return userPercentileInfo.lowerBound || userPercentileInfo.upperBound;
+  };
+
+  const percentileNumber = getPercentileNumber();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Height Percentile Chart</Text>
-      <Text style={styles.subtitle}>
-        {sex === "1" ? "Male" : "Female"} • Age: {Math.floor(age / 12)} years{" "}
-        {age % 12} months • Height: {currentHeight}cm
-      </Text>
-      <Text style={styles.rangeInfo}>
-        Showing ages{" "}
-        {Math.floor(
-          ageRangeData[0]?.Agemos ? parseFloat(ageRangeData[0].Agemos) / 12 : 0
-        )}{" "}
-        -{" "}
-        {Math.floor(
-          ageRangeData[ageRangeData.length - 1]?.Agemos
-            ? parseFloat(ageRangeData[ageRangeData.length - 1].Agemos) / 12
-            : 0
-        )}{" "}
-        years
-      </Text>
-
       <View style={styles.chartContainer}>
         <ScrollView
           horizontal
@@ -284,54 +302,37 @@ const Graph: React.FC<GraphProps> = ({ sex, age, currentHeight }) => {
         </ScrollView>
       </View>
 
-      <View style={styles.legendContainer}>
-        <View style={styles.legendRow}>
-          {userPercentileInfo && userPercentileInfo.lowerBound && (
-            <View style={styles.legendItem}>
-              <View
-                style={[styles.legendColor, { backgroundColor: "#00bfff" }]}
-              />
-              <Text style={styles.legendText}>
-                {userPercentileInfo.lowerName}
-              </Text>
-            </View>
-          )}
-          {userPercentileInfo &&
-            userPercentileInfo.upperBound &&
-            userPercentileInfo.upperBound !== userPercentileInfo.lowerBound && (
-              <View style={styles.legendItem}>
-                <View
-                  style={[styles.legendColor, { backgroundColor: "#ff4500" }]}
-                />
-                <Text style={styles.legendText}>
-                  {userPercentileInfo.upperName}
-                </Text>
-              </View>
-            )}
-          <View style={styles.legendItem}>
+      {/* Growth Stats */}
+      <View style={styles.growthStatsContainer}>
+        {/* Growth Completion */}
+        <View style={styles.growthStat}>
+          <View style={styles.growthProgressBar}>
             <View
-              style={[styles.legendColor, { backgroundColor: "#00ff7f" }]}
+              style={[
+                styles.growthProgressFill,
+                {
+                  width: `${Math.min(100, (Math.floor(age / 12) / 21) * 100)}%`,
+                },
+              ]}
             />
-            <Text style={styles.legendText}>Your Height</Text>
           </View>
-        </View>
-      </View>
-
-      {userPercentileInfo && (
-        <View style={styles.percentileContainer}>
-          <Text style={styles.percentileTitle}>Your Height Percentile:</Text>
-          <Text style={styles.percentileValue}>{userPercentileInfo.range}</Text>
-          <Text style={styles.percentileDescription}>
-            {userPercentileInfo.range.includes("P50")
-              ? "You're at the average height for your age and sex"
-              : userPercentileInfo.range.includes("Above P97")
-              ? "You're taller than 97% of people your age and sex"
-              : userPercentileInfo.range.includes("Below P3")
-              ? "You're shorter than 97% of people your age and sex"
-              : `You're within the ${userPercentileInfo.range} percentile range`}
+          <Text style={styles.growthText}>
+            {Math.min(100, Math.round((Math.floor(age / 12) / 21) * 100))}% Done
+            Growing
           </Text>
         </View>
-      )}
+
+        {/* Percentile Comparison */}
+        <View style={styles.growthStat}>
+          <Text style={styles.percentileText}>
+            Taller than{" "}
+            <Text style={styles.percentileHighlight}>
+              {percentileNumber ? parseInt(percentileNumber.display) : "--"}%
+            </Text>
+            {"\n"}of {Math.floor(age / 12)} year olds
+          </Text>
+        </View>
+      </View>
     </View>
   );
 };
@@ -339,39 +340,21 @@ const Graph: React.FC<GraphProps> = ({ sex, age, currentHeight }) => {
 const styles = StyleSheet.create({
   container: {
     padding: 8,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: "#000000",
     borderRadius: 12,
     marginHorizontal: 0,
     marginVertical: 4,
     borderWidth: 1,
     borderColor: "#1a1a2e",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#ffffff",
-    textAlign: "center",
-    marginBottom: 4,
-    textShadowColor: "#00bfff",
-    textShadowRadius: 2,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#e0e0e0",
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  rangeInfo: {
-    fontSize: 12,
-    color: "#888888",
-    textAlign: "center",
-    marginBottom: 8,
+    alignItems: "center",
   },
   chartContainer: {
-    marginVertical: 8,
+    marginVertical: 0,
     paddingVertical: 4,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: "#000000",
     borderRadius: 16,
+    alignItems: "center",
+    width: "100%",
   },
   scrollContent: {
     alignItems: "center",
@@ -380,53 +363,56 @@ const styles = StyleSheet.create({
   chart: {
     marginVertical: 0,
     borderRadius: 16,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: "#000000",
   },
-  legendContainer: {
-    marginTop: 8,
-  },
-  legendRow: {
+  growthStatsContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 16,
+    gap: 8,
+    width: "100%",
   },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: 8,
-  },
-  legendColor: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    marginRight: 8,
-  },
-  legendText: {
-    color: "#ffffff",
-    fontSize: 12,
-  },
-  percentileContainer: {
-    marginTop: 8,
+  growthStat: {
+    flex: 1,
+    backgroundColor: "#000000",
     padding: 12,
-    backgroundColor: "#2a2a2a",
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#1a1a2e",
+    alignItems: "center",
   },
-  percentileTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#ffffff",
-    marginBottom: 4,
-  },
-  percentileValue: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#4bc0c0",
+  growthProgressBar: {
+    width: "100%",
+    height: 4,
+    backgroundColor: "#1a1a2e",
+    borderRadius: 2,
     marginBottom: 8,
   },
-  percentileDescription: {
+  growthProgressFill: {
+    height: "100%",
+    backgroundColor: "#B9E45F",
+    borderRadius: 2,
+  },
+  growthText: {
+    color: "#B9E45F",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+    textShadowColor: "#B9E45F",
+    textShadowRadius: 2,
+  },
+  percentileText: {
+    color: "#ffffff",
     fontSize: 14,
-    color: "#cccccc",
+    textAlign: "center",
     lineHeight: 20,
+  },
+  percentileHighlight: {
+    color: "#B9E45F",
+    fontSize: 16,
+    fontWeight: "bold",
+    textShadowColor: "#B9E45F",
+    textShadowRadius: 2,
   },
   noData: {
     color: "#ffffff",

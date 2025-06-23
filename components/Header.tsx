@@ -1,41 +1,49 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-export interface HeaderProps {
+interface HeaderProps {
   title: string;
-  onSettingsPress?: () => void;
-  rightIcon?: React.ReactNode;
+  showBackButton?: boolean;
+  onBack?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  title,
-  onSettingsPress,
-  rightIcon,
-}) => {
+export function Header({ title, showBackButton, onBack }: HeaderProps) {
+  const router = useRouter();
+
   return (
     <View style={styles.header}>
-      <Text style={styles.headerTitle}>{title}</Text>
-      {rightIcon || (
-        <TouchableOpacity onPress={onSettingsPress}>
-          <Ionicons name="settings-outline" size={24} color="#fff" />
-        </TouchableOpacity>
+      {showBackButton ? (
+        <>
+          <TouchableOpacity onPress={onBack || router.back}>
+            <Ionicons name="chevron-back" size={24} color="#fff" />
+          </TouchableOpacity>
+        </>
+      ) : (
+        <Text style={styles.title}>{title}</Text>
       )}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#000",
   },
-  headerTitle: {
-    color: "#9ACD32",
+  title: {
+    color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+    flex: 1,
+    textAlign: "left",
+    marginLeft: 8,
+  },
+  leftPlaceholder: {
+    width: 24,
   },
 });

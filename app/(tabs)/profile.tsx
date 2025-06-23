@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import {
   Alert,
+  Linking,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -34,7 +35,7 @@ export default function ProfileScreen() {
   const resetOnboarding = async () => {
     Alert.alert(
       "Reset Profile",
-      "This will clear your profile data and restart the setup process. Are you sure?",
+      "This will clear your profile data and restart the setup process. When prompted to pay, just swipe away the app and restart it.",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -64,38 +65,53 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleHelpSupport = () => {
+    Alert.alert(
+      "Contact Us",
+      "DM and follow us on TikTok @gotallapp for support and updates!",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Open TikTok",
+          onPress: () => {
+            Linking.openURL("https://www.tiktok.com/@gotallapp").catch(() => {
+              // If TikTok app/URL fails, show another alert with the handle
+              Alert.alert("TikTok", "Find us on TikTok: @gotallapp", [
+                { text: "OK" },
+              ]);
+            });
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRestorePurchase = () => {
+    Alert.alert(
+      "Restore Purchase",
+      "Please close and restart the app after tapping OK.",
+      [{ text: "OK" }]
+    );
+  };
+
   const settingsOptions = [
-    {
-      icon: "notifications-outline",
-      title: "Notifications",
-      subtitle: "Manage your alerts",
-    },
-    {
-      icon: "time-outline",
-      title: "Reminders",
-      subtitle: "Set posture check times",
-    },
-    {
-      icon: "stats-chart-outline",
-      title: "Goals",
-      subtitle: "Customize your targets",
-    },
-    { icon: "color-palette-outline", title: "Theme", subtitle: "Dark mode" },
-    {
-      icon: "download-outline",
-      title: "Export Data",
-      subtitle: "Download your progress",
-    },
     {
       icon: "help-circle-outline",
       title: "Help & Support",
       subtitle: "Get assistance",
+      onPress: handleHelpSupport,
+    },
+    {
+      icon: "refresh-outline",
+      title: "Restore Purchase",
+      subtitle: "Restore your purchase",
+      onPress: handleRestorePurchase,
     },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="Profile" />
+      <Header title="Profile" showBackButton={false} />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* User Info */}
         <View style={styles.userSection}>
@@ -175,30 +191,15 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Quick Stats */}
-        <View style={styles.quickStatsSection}>
-          <Text style={styles.sectionTitle}>Quick Stats</Text>
-          <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>142</Text>
-              <Text style={styles.statLabel}>Days Active</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>89%</Text>
-              <Text style={styles.statLabel}>Avg Score</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>23</Text>
-              <Text style={styles.statLabel}>Streaks</Text>
-            </View>
-          </View>
-        </View>
-
         {/* Settings */}
         <View style={styles.settingsSection}>
           <Text style={styles.sectionTitle}>Settings</Text>
           {settingsOptions.map((option, index) => (
-            <TouchableOpacity key={index} style={styles.settingItem}>
+            <TouchableOpacity
+              key={index}
+              style={styles.settingItem}
+              onPress={option.onPress}
+            >
               <View style={styles.settingIcon}>
                 <Ionicons name={option.icon as any} size={22} color="#9ACD32" />
               </View>
@@ -217,14 +218,21 @@ export default function ProfileScreen() {
           <View style={styles.infoCard}>
             <Text style={styles.appName}>Posture Tracker</Text>
             <Text style={styles.appVersion}>Version 1.0.0</Text>
-            <TouchableOpacity style={styles.feedbackButton}>
-              <Text style={styles.feedbackText}>Send Feedback</Text>
+            <TouchableOpacity
+              style={styles.privacyLink}
+              onPress={() =>
+                Linking.openURL(
+                  "https://docs.google.com/document/d/16ZWdn9p2huxdIsVV51foFDPxCxMSuXofLxgY0A-BvTE/edit?usp=sharing"
+                )
+              }
+            >
+              <Text style={styles.privacyText}>Privacy Policy</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Logout */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={resetOnboarding}>
           <Ionicons name="log-out-outline" size={20} color="#FF6B6B" />
           <Text style={styles.logoutText}>Sign Out</Text>
         </TouchableOpacity>
@@ -419,20 +427,15 @@ const styles = StyleSheet.create({
   appVersion: {
     color: "#666",
     fontSize: 14,
-    marginBottom: 15,
+    marginBottom: 12,
   },
-  feedbackButton: {
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#9ACD32",
-    borderRadius: 15,
-    paddingHorizontal: 15,
-    paddingVertical: 6,
+  privacyLink: {
+    marginTop: 8,
   },
-  feedbackText: {
+  privacyText: {
     color: "#9ACD32",
-    fontSize: 12,
-    fontWeight: "500",
+    fontSize: 14,
+    textDecorationLine: "underline",
   },
   logoutButton: {
     flexDirection: "row",

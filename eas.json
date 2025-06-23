@@ -6,7 +6,17 @@
     },
     "production": {
       "ios": {
-        "buildConfiguration": "Release"
+        "buildConfiguration": "Release",
+        "distribution": "store" 
+      },
+      "channel": "production",
+      "developmentClient": false
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "michael1340404522@gmail.com"
       }
     }
   }

@@ -93,7 +93,6 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
         <View style={styles.progressBar}>
           <View style={styles.progressFill} />
         </View>
-        <Text style={styles.loadingSubtext}>This may take a while</Text>
       </View>
     </SafeAreaView>
   );

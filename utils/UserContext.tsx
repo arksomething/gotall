@@ -27,12 +27,12 @@ interface UserContextType {
 
 const defaultUserData: UserData = {
   heightCm: 170,
-  dateOfBirth: "2004-01-01",
+  dateOfBirth: "2008-01-01",
   sex: "1",
-  weight: 68,
+  weight: 150,
   motherHeightCm: 165,
   fatherHeightCm: 178,
-  ethnicity: "caucasian",
+  ethnicity: "Caucasian",
   preferredWeightUnit: "lbs",
   preferredHeightUnit: "ft",
 };

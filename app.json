@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "gotall",
+    "name": "GoTall",
     "slug": "gotall",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,18 +13,20 @@
       "bundleIdentifier": "app.gotall.ios",
       "buildNumber": "1",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserNotificationUsageDescription": "We use notifications to remind you to stretch and stay active."
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#C8FA43"
       },
       "edgeToEdgeEnabled": true,
       "package": "app.gotall.android",
       "versionCode": 1,
       "permissions": [
+        "BILLING",
         "BILLING"
       ]
     },
@@ -41,7 +43,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#C8FA43"
         }
       ],
       "expo-sqlite"
@@ -54,6 +56,12 @@
       "eas": {
         "projectId": "bb43a5e3-9cb1-4555-bab8-d7a323adf786"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/bb43a5e3-9cb1-4555-bab8-d7a323adf786"
     }
   }
 }

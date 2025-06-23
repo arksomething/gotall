@@ -1,12 +1,27 @@
-import * as InAppPurchases from "expo-in-app-purchases";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Image, Platform, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import {
+  getProducts,
+  getPurchaseHistory,
+  initConnection,
+  Product,
+  requestPurchase,
+} from "react-native-iap";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import {
   OnboardingScreenProps,
   withOnboarding,
 } from "../../components/withOnboarding";
+import { useUserData } from "../../utils/UserContext";
+import { calculateHeightProjection } from "../../utils/heightProjection";
 
 const LIFETIME_ACCESS_ID = Platform.select({
   ios: "gotall.lifetime.access.nonc",
@@ -14,66 +29,106 @@ const LIFETIME_ACCESS_ID = Platform.select({
   default: "gotall.lifetime.access.nonc",
 });
 
-const productIds = Platform.select({
-  ios: [LIFETIME_ACCESS_ID],
-  android: [LIFETIME_ACCESS_ID],
-  default: [LIFETIME_ACCESS_ID],
-});
-
 function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
   const router = useRouter();
+  const { userData, getAge } = useUserData();
   const [isPurchasing, setIsPurchasing] = useState(false);
-  const [isStoreConnected, setIsStoreConnected] = useState(false);
-  const [products, setProducts] = useState<InAppPurchases.IAPItemDetails[]>([]);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [heightDifference, setHeightDifference] = useState(2); // Default to 2 inches
 
   useEffect(() => {
-    const init = async () => {
+    // Calculate actual height difference
+    if (userData?.heightCm) {
       try {
-        await InAppPurchases.connectAsync();
-        setIsStoreConnected(true);
+        const projectionData = calculateHeightProjection({
+          heightCm: userData.heightCm,
+          age: getAge(),
+          sex: userData.sex,
+          motherHeightCm: userData.motherHeightCm,
+          fatherHeightCm: userData.fatherHeightCm,
+        });
 
-        const { responseCode, results } = await InAppPurchases.getProductsAsync(
-          productIds
-        );
+        // Convert heights to total inches for comparison
+        const [potentialFeet, potentialInches] = projectionData.potentialHeight
+          .split("'")
+          .map((v) => parseFloat(v));
+        const [actualFeet, actualInches] = projectionData.actualHeight
+          .split("'")
+          .map((v) => parseFloat(v));
 
-        if (responseCode === InAppPurchases.IAPResponseCode.OK && results) {
-          setProducts(results);
+        const potentialTotalInches = potentialFeet * 12 + potentialInches;
+        const actualTotalInches = actualFeet * 12 + actualInches;
+
+        // Calculate difference and round to nearest whole number
+        const difference = Math.round(potentialTotalInches - actualTotalInches);
+        setHeightDifference(difference);
+      } catch (error) {
+        console.error("Error calculating height difference:", error);
+      }
+    }
+  }, [userData, getAge]);
+
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        await initConnection();
+        const products = await getProducts({ skus: [LIFETIME_ACCESS_ID] });
+        if (products.length > 0) {
+          setProduct(products[0]);
+        } else {
+          setError("Product not available");
         }
       } catch (e) {
-        console.warn("Error connecting to store", e);
+        console.warn("Failed to load product");
+        setError("Failed to load product details");
       }
     };
 
-    init();
-
-    return () => {
-      InAppPurchases.disconnectAsync();
-    };
+    initialize();
   }, []);
 
-  const handlePurchase = async () => {
-    if (product) {
-      try {
-        setIsPurchasing(true);
-        await InAppPurchases.purchaseItemAsync(product.productId);
-      } catch (e) {
-        console.warn("Error making purchase", e);
-        setIsPurchasing(false);
-      }
+  const handleRestore = async () => {
+    try {
+      setIsRestoring(true);
+      setError(null);
+      await getPurchaseHistory();
+      // If restore is successful, user will be redirected by the purchase listener
+    } catch (e) {
+      console.warn("Restore failed", e);
+      setError("Failed to restore purchases. Please try again.");
+    } finally {
+      setIsRestoring(false);
     }
   };
 
-  const product = products[0];
+  const handlePurchase = async () => {
+    if (!product) return;
+
+    try {
+      setIsPurchasing(true);
+      setError(null);
+      await requestPurchase({ sku: product.productId });
+    } catch (e) {
+      console.warn("Purchase failed");
+      setError("Purchase failed. Please try again.");
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
 
   return (
     <OnboardingLayout
-      title="We've generated a plan for you to optimize for 4 extra inches"
-      currentStep={8}
+      title={`We've generated a plan for you to optimize for ${heightDifference} extra ${
+        heightDifference === 1 ? "inch" : "inches"
+      }`}
+      currentStep={7}
       showBackButton={true}
       onBack={onBack}
       onNext={handlePurchase}
-      nextButtonText={isPurchasing ? "Processing..." : "Continue"}
-      disableDefaultNext={isPurchasing || !isStoreConnected || !product}
+      nextButtonText={isPurchasing ? "Processing..." : "Unlock Full Access"}
+      disableDefaultNext={isPurchasing || isRestoring || !product}
     >
       <View style={styles.container}>
         <View style={styles.generatingBox}>
@@ -86,10 +141,32 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
         </View>
 
         <View style={styles.subscriptionSection}>
-          <Text style={styles.subscriptionText}>
-            Do you wish to proceed with a lifetime access for{" "}
-            <Text style={styles.priceText}>{product?.price ?? "$9.99"}</Text>?
-          </Text>
+          {error ? (
+            <Text style={[styles.subscriptionText, styles.errorText]}>
+              {error}
+            </Text>
+          ) : product ? (
+            <Text style={styles.subscriptionText}>
+              Do you wish to proceed with a lifetime access for{" "}
+              <Text style={styles.priceText}>{product.localizedPrice}</Text>?
+              {"\n\n"}
+              <Text style={styles.descriptionText}>{product.description}</Text>
+            </Text>
+          ) : (
+            <Text style={styles.subscriptionText}>
+              Loading product details...
+            </Text>
+          )}
+
+          <TouchableOpacity
+            style={styles.restoreButton}
+            onPress={handleRestore}
+            disabled={isRestoring}
+          >
+            <Text style={styles.restoreText}>
+              {isRestoring ? "Restoring..." : "Restore Purchases"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </OnboardingLayout>
@@ -99,19 +176,16 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
   },
   generatingBox: {
     width: "100%",
     aspectRatio: 1,
-    borderWidth: 2,
-    borderColor: "#0088ff",
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-    marginTop: 40,
+    borderRadius: 20,
+    overflow: "hidden",
+    marginBottom: 20,
   },
   generatingImage: {
     width: "100%",
@@ -120,16 +194,34 @@ const styles = StyleSheet.create({
   subscriptionSection: {
     width: "100%",
     alignItems: "center",
-    marginTop: 40,
+    marginTop: 20,
   },
   subscriptionText: {
+    fontSize: 18,
     color: "#fff",
-    fontSize: 16,
     textAlign: "center",
+    lineHeight: 24,
   },
   priceText: {
-    color: "#fff",
+    fontSize: 24,
     fontWeight: "bold",
+    color: "#9ACD32",
+  },
+  descriptionText: {
+    fontSize: 16,
+    color: "#ccc",
+  },
+  errorText: {
+    color: "#ff6b6b",
+  },
+  restoreButton: {
+    marginTop: 20,
+    padding: 10,
+  },
+  restoreText: {
+    color: "#9ACD32",
+    fontSize: 16,
+    textDecorationLine: "underline",
   },
 });
 

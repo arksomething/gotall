@@ -15,6 +15,8 @@ import { CalorieModal } from "../../components/modals/CalorieModal";
 import { HeightModal } from "../../components/modals/HeightModal";
 import { WeightModal } from "../../components/modals/WeightModal";
 import { databaseManager } from "../../utils/database";
+import { calculateHealthGoals } from "../../utils/healthGoals";
+import { calculateHeightProjection } from "../../utils/heightProjection";
 import { getHeightForInput } from "../../utils/heightUtils";
 import { useUserData } from "../../utils/UserContext";
 
@@ -45,10 +47,48 @@ export default function Index() {
   const [tempCalorieValue, setTempCalorieValue] = useState("");
   const [tempWeightValue, setTempWeightValue] = useState("");
   const [tempHeightValue, setTempHeightValue] = useState("");
+  const [heightData, setHeightData] = useState({
+    currentHeight: "",
+    actualHeight: "",
+    potentialHeight: "",
+  });
+  const [percentileInfo, setPercentileInfo] = useState<string | null>(null);
+  const [healthGoals, setHealthGoals] = useState<{
+    sleepHours: number;
+    calories: number;
+  }>({ sleepHours: 0, calories: 0 });
 
   // Get live data from UserContext
   const userAge = getAge();
   const userAgeInMonths = userAge * 12;
+
+  useEffect(() => {
+    if (userData?.heightCm) {
+      try {
+        const projectionData = calculateHeightProjection({
+          heightCm: userData.heightCm,
+          age: getAge(),
+          sex: userData.sex,
+          motherHeightCm: userData.motherHeightCm,
+          fatherHeightCm: userData.fatherHeightCm,
+        });
+        setHeightData({
+          currentHeight: projectionData.currentHeight,
+          actualHeight: projectionData.actualHeight,
+          potentialHeight: projectionData.potentialHeight,
+        });
+      } catch (error) {
+        console.error("Error calculating height projections:", error);
+      }
+    }
+  }, [userData, getAge]);
+
+  useEffect(() => {
+    if (userData) {
+      const goals = calculateHealthGoals(getAge(), userData.sex);
+      setHealthGoals(goals);
+    }
+  }, [userData, getAge]);
 
   const handleSleepChange = async (increment: boolean) => {
     let newSleepHours: number;
@@ -252,115 +292,27 @@ export default function Index() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Header title="Home" />
       <ScrollView style={styles.scrollView}>
-        <Header title="Home" />
-        {/* Stats Section */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statsGrid}>
-            {/* Sleep Card */}
-            <View style={styles.sleepCard}>
-              <Ionicons
-                name="moon"
-                size={20}
-                color="#fff"
-                style={styles.sleepIcon}
-              />
-              <View style={styles.sleepPicker}>
-                <TouchableOpacity
-                  style={styles.stepperButton}
-                  onPress={() => handleSleepChange(false)}
-                >
-                  <Ionicons name="remove" size={16} color="#9ACD32" />
-                </TouchableOpacity>
-
-                <Text style={styles.sleepLabel}>
-                  {sleepHours !== null ? `${sleepHours} hrs` : "N/A"}
-                </Text>
-
-                <TouchableOpacity
-                  style={styles.stepperButton}
-                  onPress={() => handleSleepChange(true)}
-                >
-                  <Ionicons name="add" size={16} color="#9ACD32" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Height/Weight Cards */}
-            <View style={styles.smallCardsColumn}>
-              <TouchableOpacity
-                style={styles.smallCard}
-                onPress={openHeightModal}
-              >
-                <Text style={styles.smallCardText}>{getDisplayHeight()}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.smallCard}
-                onPress={openWeightModal}
-              >
-                <Text style={styles.smallCardText}>{getDisplayWeight()}</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Daily Tasks Card */}
-            <View style={styles.statsCard}>
-              <Text style={styles.statsTitle}>Daily Tasks</Text>
-              <View style={styles.tasksContainer}>
-                {dailyTasks.map((task) => (
-                  <TouchableOpacity
-                    key={task.id}
-                    style={styles.taskRow}
-                    onPress={() => task.id && toggleTask(task.id)}
-                  >
-                    {task.type === "boolean" ? (
-                      // Boolean task with checkbox
-                      <>
-                        <View
-                          style={[
-                            styles.taskCheckbox,
-                            task.completed && styles.taskCompleted,
-                          ]}
-                        >
-                          {task.completed && (
-                            <Ionicons name="checkmark" size={14} color="#000" />
-                          )}
-                        </View>
-                        <Text
-                          style={[
-                            styles.taskText,
-                            task.completed && styles.taskTextCompleted,
-                          ]}
-                        >
-                          {task.title}
-                        </Text>
-                      </>
-                    ) : (
-                      // Numeric task with value display
-                      <>
-                        <Ionicons
-                          name="fitness"
-                          size={18}
-                          color="#000"
-                          style={styles.taskIcon}
-                        />
-                        <Text style={styles.taskText}>{task.title}</Text>
-                        <Text style={styles.taskValue}>
-                          {task.value || task.completionValue || "0"}{" "}
-                          {task.unit}
-                        </Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
+        <View style={styles.cardsContainer}>
+          <TouchableOpacity style={styles.card} onPress={openHeightModal}>
+            <Text style={styles.cardLabel}>Current Height</Text>
+            <Text style={styles.cardValue}>{heightData.currentHeight}</Text>
+          </TouchableOpacity>
+          <View style={[styles.card, styles.projectedCard]}>
+            <Text style={[styles.cardLabel, styles.projectedCardText]}>
+              Maximum Height
+            </Text>
+            <Text style={[styles.cardValue, styles.projectedCardText]}>
+              {heightData.potentialHeight}
+            </Text>
           </View>
         </View>
 
         {/* Progress Section with Graph */}
         <View style={styles.progressSection}>
           <View style={styles.progressHeader}>
-            <Text style={styles.progressTitle}>Height Progress</Text>
+            <Text style={styles.progressTitle}>Projected Height</Text>
             <Ionicons
               name="trending-up"
               size={16}
@@ -374,7 +326,124 @@ export default function Index() {
             sex={userData.sex}
             age={userAgeInMonths}
             currentHeight={userData.heightCm}
+            onPercentileCalculated={(info) => {
+              if (info?.lowerBound) {
+                const percentile = parseInt(info.lowerBound.name.substring(1));
+                setPercentileInfo(`${percentile}`);
+              }
+            }}
           />
+
+          
+        </View>
+
+        {/* Today's Goals Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Today's Goals</Text>
+          <View style={styles.statsContainer}>
+            <View style={styles.statsGrid}>
+              {/* Sleep Card */}
+              <View style={styles.sleepCard}>
+                <Ionicons
+                  name="moon"
+                  size={20}
+                  color="#fff"
+                  style={styles.sleepIcon}
+                />
+                <View style={styles.sleepPicker}>
+                  <TouchableOpacity
+                    style={styles.stepperButton}
+                    onPress={() => handleSleepChange(false)}
+                  >
+                    <Ionicons name="remove" size={16} color="#9ACD32" />
+                  </TouchableOpacity>
+
+                  <Text style={styles.sleepLabel}>
+                    {sleepHours !== null ? `${sleepHours} hrs` : "N/A"}
+                  </Text>
+
+                  <TouchableOpacity
+                    style={styles.stepperButton}
+                    onPress={() => handleSleepChange(true)}
+                  >
+                    <Ionicons name="add" size={16} color="#9ACD32" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Daily Tasks Card */}
+              <View style={styles.statsCard}>
+                <Text style={styles.statsTitle}>Daily Tasks</Text>
+                <View style={styles.tasksContainer}>
+                  {dailyTasks.map((task) => (
+                    <TouchableOpacity
+                      key={task.id}
+                      style={styles.taskRow}
+                      onPress={() => task.id && toggleTask(task.id)}
+                    >
+                      {task.type === "boolean" ? (
+                        // Boolean task with checkbox
+                        <>
+                          <View
+                            style={[
+                              styles.taskCheckbox,
+                              task.completed && styles.taskCompleted,
+                            ]}
+                          >
+                            {task.completed && (
+                              <Ionicons
+                                name="checkmark"
+                                size={14}
+                                color="#000"
+                              />
+                            )}
+                          </View>
+                          <Text
+                            style={[
+                              styles.taskText,
+                              task.completed && styles.taskTextCompleted,
+                            ]}
+                          >
+                            {task.title}
+                          </Text>
+                        </>
+                      ) : (
+                        // Numeric task with value display
+                        <>
+                          <Ionicons
+                            name="fitness"
+                            size={18}
+                            color="#000"
+                            style={styles.taskIcon}
+                          />
+                          <Text style={styles.taskText}>{task.title}</Text>
+                          <Text style={styles.taskValue}>
+                            {task.value || task.completionValue || "0"}{" "}
+                            {task.unit}
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Health Goals Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Health Goals</Text>
+          <View style={[styles.cardsContainer, styles.fullWidth]}>
+            <View style={styles.card}>
+              <Text style={styles.cardLabel}>Sleep Goal</Text>
+              <Text style={styles.cardValue}>{healthGoals.sleepHours} hrs</Text>
+            </View>
+            <View style={styles.card}>
+              <Text style={styles.cardLabel}>Daily Calories</Text>
+              <Text style={styles.cardValue}>{healthGoals.calories}</Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
 
@@ -409,24 +478,62 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  cardsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 24,
+  },
+  fullWidth: {
+    paddingHorizontal: 0,
+    marginHorizontal: -8, // Compensate for card margins
+  },
+  card: {
+    flex: 1,
+    backgroundColor: "rgba(154, 205, 50, 0.1)",
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 8,
+    alignItems: "center",
+  },
+  cardLabel: {
+    color: "#9ACD32",
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 8,
+  },
+  cardValue: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  section: {
+    paddingHorizontal: 24,
+    marginTop: 24,
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
   statsContainer: {
     marginTop: 20,
-    paddingHorizontal: 24,
   },
   statsGrid: {
-    borderWidth: 2,
-    borderColor: "#007AFF",
+    backgroundColor: "#333",
     borderRadius: 12,
     padding: 12,
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: "column",
     gap: 8,
+    width: "100%",
   },
   sleepCard: {
     backgroundColor: "#333",
     borderRadius: 8,
-    padding: 6,
-    flex: 1,
+    padding: 12,
     alignItems: "center",
     minHeight: 70,
     justifyContent: "center",
@@ -458,32 +565,11 @@ const styles = StyleSheet.create({
     minWidth: 50,
     textAlign: "center",
   },
-  smallCardsColumn: {
-    flex: 1,
-    gap: 8,
-    marginLeft: 8,
-  },
-  smallCard: {
-    backgroundColor: "#333",
-    borderRadius: 8,
-    padding: 6,
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-    minHeight: 30,
-  },
-  smallCardText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "500",
-    textAlign: "center",
-  },
   statsCard: {
     backgroundColor: "#9ACD32",
     borderRadius: 8,
     padding: 12,
     width: "100%",
-    marginTop: 8,
   },
   statsTitle: {
     color: "#000",
@@ -556,5 +642,75 @@ const styles = StyleSheet.create({
   progressSubtext: {
     color: "#666",
     fontSize: 14,
+  },
+  growthStatsContainer: {
+    marginTop: 24,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    paddingHorizontal: 16,
+  },
+  growthStat: {
+    flex: 1,
+    alignItems: "center",
+    marginHorizontal: 8,
+  },
+  growthProgressBar: {
+    width: "100%",
+    height: 8,
+    backgroundColor: "rgba(154, 205, 50, 0.3)",
+    borderRadius: 4,
+    overflow: "hidden",
+    marginBottom: 8,
+  },
+  growthProgressFill: {
+    height: "100%",
+    backgroundColor: "#9ACD32",
+    borderRadius: 4,
+  },
+  growthText: {
+    color: "#9ACD32",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  percentileText: {
+    color: "#fff",
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  percentileHighlight: {
+    color: "#9ACD32",
+    fontWeight: "600",
+  },
+  cardProgress: {
+    width: "100%",
+    marginTop: 8,
+  },
+  progressBar: {
+    width: "100%",
+    height: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: "#9ACD32",
+    borderRadius: 2,
+  },
+  progressText: {
+    color: "#fff",
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: "center",
+    opacity: 0.7,
+  },
+  projectedCard: {
+    backgroundColor: "#9ACD32",
+  },
+  projectedCardText: {
+    color: "#000",
   },
 });

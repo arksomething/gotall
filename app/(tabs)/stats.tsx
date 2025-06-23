@@ -219,7 +219,7 @@ export default function StatsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title={formatSelectedDate()} />
+      <Header title={formatSelectedDate()} showBackButton={false} />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Streak */}
         <View style={styles.streakSection}>
@@ -388,6 +388,10 @@ const styles = StyleSheet.create({
   },
   dayContainer: {
     alignItems: "center",
+    padding: 8,
+    minWidth: 40,
+    minHeight: 40,
+    justifyContent: "center",
   },
   dayText: {
     color: "#666",

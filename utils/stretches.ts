@@ -22,8 +22,8 @@ export const stretches: Stretch[] = [
     ],
     targets: "Spine, abs, chest",
     bodyParts: ["Lower back", "Abdominals", "Chest", "Hip flexors", "Shoulders"],
-    youtubeUrl: "https://www.youtube.com/watch?v=JDcdhTuycOI",
-    youtubeId: "JDcdhTuycOI",
+    youtubeUrl: "https://www.youtube.com/watch?v=jwoTJNgh8BY",
+    youtubeId: "jwoTJNgh8BY",
     duration: "20-30 seconds"
   },
   {
@@ -120,8 +120,8 @@ export const stretches: Stretch[] = [
     ],
     targets: "Hamstrings, spine",
     bodyParts: ["Hamstrings", "Calves", "Lower back", "Spine", "Shoulders"],
-    youtubeUrl: "https://www.youtube.com/watch?v=Xvr5N_Xf6QM",
-    youtubeId: "Xvr5N_Xf6QM",
+    youtubeUrl: "https://www.youtube.com/watch?v=SLIaql7h6RQ",
+    youtubeId: "SLIaql7h6RQ",
     duration: "20-30 seconds"
   },
   {
