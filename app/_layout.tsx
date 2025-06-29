@@ -1,150 +1,95 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  EmitterSubscription,
-  Platform,
-  View,
-} from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import {
   endConnection,
-  finishTransaction,
-  getProducts,
-  getPurchaseHistory,
+  getAvailablePurchases,
   initConnection,
-  PurchaseError,
   purchaseErrorListener,
   purchaseUpdatedListener,
 } from "react-native-iap";
+import { OnboardingProvider, useOnboarding } from "../utils/OnboardingContext";
+import { PRODUCTS } from "../utils/products";
 import { UserProvider } from "../utils/UserContext";
 
-const LIFETIME_ACCESS_ID = Platform.select({
-  ios: "gotall.lifetime.access.nonc",
-  android: "gotall.lifetime.access.nonc",
-  default: "gotall.lifetime.access.nonc",
-});
+const LIFETIME_ACCESS_ID = PRODUCTS.LIFETIME.id;
+const WEEKLY_ACCESS_ID = PRODUCTS.WEEKLY.id;
 
-export default function RootLayout() {
+function NavigationRoot() {
+  const [initialized, setInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
-  const [userHasLifetimeAccess, setUserHasLifetimeAccess] = useState(false);
+  const [hasValidAccess, setHasValidAccess] = useState(false);
+  const { isOnboardingComplete } = useOnboarding();
   const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
-    let purchaseUpdateSubscription: EmitterSubscription | null = null;
-    let purchaseErrorSubscription: EmitterSubscription | null = null;
-
-    const initialize = async () => {
+    const checkPurchaseStatus = async () => {
       try {
-        // 1. Initialize connection to store
-        await initConnection();
-
-        // 2. Get available products to validate our product ID
-        try {
-          const products = await getProducts({ skus: [LIFETIME_ACCESS_ID] });
-          if (products.length === 0) {
-            console.warn(`Product ${LIFETIME_ACCESS_ID} not found in store`);
-          }
-        } catch (e) {
-          console.warn("Error fetching products");
-        }
-
-        // 3. Set up purchase success listener
-        purchaseUpdateSubscription = purchaseUpdatedListener(
-          async (purchase) => {
-            const receipt = purchase.transactionReceipt;
-
-            if (receipt) {
-              try {
-                // Unlock content for the user
-                await AsyncStorage.setItem("@onboarding_completed", "true");
-                setIsOnboardingComplete(true);
-                setUserHasLifetimeAccess(true);
-
-                // Finish the transaction
-                await finishTransaction({ purchase });
-              } catch (ackErr) {
-                console.warn("Error acknowledging purchase");
-              }
-            }
-          }
-        );
-
-        // 4. Set up purchase error listener
-        purchaseErrorSubscription = purchaseErrorListener(
-          (error: PurchaseError) => {
-            if (error.code === "E_USER_CANCELLED") {
-              console.log("Purchase cancelled");
-            } else if (error.code === "E_DEVELOPER_ERROR") {
-              console.warn("Developer error - check store configuration");
-            } else {
-              console.warn("Purchase error:", error.code);
-            }
-          }
-        );
-
-        // 5. Check current onboarding status
-        await checkOnboardingStatus();
-
-        // 6. Check if user already owns the product
-        try {
-          const purchases = await getPurchaseHistory();
-          const hasAccess = purchases.some(
-            (purchase) => purchase.productId === LIFETIME_ACCESS_ID
-          );
-
-          setUserHasLifetimeAccess(hasAccess);
-
-          if (hasAccess && !isOnboardingComplete) {
-            await AsyncStorage.setItem("@onboarding_completed", "true");
-            setIsOnboardingComplete(true);
-          }
-        } catch (e) {
-          console.warn("Error checking purchase history");
-        }
-      } catch (e) {
-        console.warn("Error setting up in-app purchases");
-      } finally {
-        setIsLoading(false);
+        const purchases = await getAvailablePurchases();
+        setHasValidAccess(purchases.length > 0);
+      } catch (error) {
+        console.error("Error checking purchase status:", error);
       }
     };
 
-    initialize();
+    const initializeApp = async () => {
+      if (!initialized) {
+        try {
+          await initConnection();
+          await checkPurchaseStatus();
+          setInitialized(true);
+        } catch (error: any) {
+          console.error("Error initializing app:", error);
+          // If billing is unavailable, still let the app proceed
+          if (error.message?.includes("Billing is unavailable")) {
+            setInitialized(true);
+            setHasValidAccess(false); // Assume no valid access if billing is unavailable
+          }
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initializeApp();
+
+    const purchaseUpdate = purchaseUpdatedListener(async () => {
+      await checkPurchaseStatus();
+    });
+
+    const purchaseError = purchaseErrorListener((error) => {
+      console.warn("Purchase error:", error);
+    });
 
     return () => {
-      if (purchaseUpdateSubscription) {
-        purchaseUpdateSubscription.remove();
+      purchaseUpdate.remove();
+      purchaseError.remove();
+      if (initialized) {
+        endConnection();
       }
-      if (purchaseErrorSubscription) {
-        purchaseErrorSubscription.remove();
-      }
-      endConnection();
     };
-  }, []);
+  }, [initialized]);
 
   useEffect(() => {
-    if (!isLoading) {
-      if (isOnboardingComplete && userHasLifetimeAccess) {
-        router.replace("/(tabs)");
-      } else {
+    if (isLoading) return;
+
+    const inTabsGroup = segments[0] === "(tabs)";
+    const inOnboardingGroup = segments[0] === "(onboarding)";
+
+    if (!isOnboardingComplete || !hasValidAccess) {
+      // If onboarding is not complete or no valid purchase, ensure we're in onboarding
+      if (!inOnboardingGroup) {
         router.replace("/(onboarding)");
       }
+    } else {
+      // If everything is complete, ensure we're in tabs
+      if (!inTabsGroup) {
+        router.replace("/(tabs)");
+      }
     }
-  }, [isLoading, isOnboardingComplete, router, userHasLifetimeAccess]);
-
-  const checkOnboardingStatus = async () => {
-    try {
-      const onboardingComplete = await AsyncStorage.getItem(
-        "@onboarding_completed"
-      );
-      setIsOnboardingComplete(onboardingComplete === "true");
-    } catch (error) {
-      console.error("Error checking onboarding status:", error);
-      setIsOnboardingComplete(false);
-    }
-  };
+  }, [isLoading, isOnboardingComplete, hasValidAccess, segments]);
 
   if (isLoading) {
     return (
@@ -162,16 +107,24 @@ export default function RootLayout() {
   }
 
   return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <UserProvider>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-      <StatusBar style="light" backgroundColor="#000" />
+      <OnboardingProvider>
+        <NavigationRoot />
+        <StatusBar style="light" backgroundColor="#000" />
+      </OnboardingProvider>
     </UserProvider>
   );
 }

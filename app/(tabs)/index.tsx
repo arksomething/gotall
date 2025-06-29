@@ -137,7 +137,7 @@ export default function Index() {
   const loadTodaysData = async () => {
     try {
       // Initialize database first
-      await databaseManager.initializeDatabase();
+      await databaseManager.initialize();
 
       // Load goals for today (this will automatically generate random daily goals if needed)
       const todaysGoals = await databaseManager.getGoalsForToday();
@@ -333,8 +333,6 @@ export default function Index() {
               }
             }}
           />
-
-          
         </View>
 
         {/* Today's Goals Section */}

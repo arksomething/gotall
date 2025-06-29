@@ -133,6 +133,16 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
         >
           <Text style={styles.privacyText}>Privacy Policy</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.privacyLink}
+          onPress={() =>
+            Linking.openURL(
+              "https://docs.google.com/document/d/1rg1W0ZepiwV48UTvXhDkiysV1bEg7u8TofQrQAJl1-Q/edit?usp=sharing"
+            )
+          }
+        >
+          <Text style={styles.privacyText}>Terms of Use</Text>
+        </TouchableOpacity>
       </View>
     </OnboardingLayout>
   );

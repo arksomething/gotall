@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import {
@@ -13,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { Header } from "../../components/Header";
+import { useOnboarding } from "../../utils/OnboardingContext";
 import { useUserData } from "../../utils/UserContext";
 
 export default function ProfileScreen() {
@@ -25,6 +27,7 @@ export default function ProfileScreen() {
     getDisplayMotherHeight,
     getDisplayFatherHeight,
   } = useUserData();
+  const { setIsOnboardingComplete } = useOnboarding();
   const router = useRouter();
 
   useEffect(() => {
@@ -34,8 +37,8 @@ export default function ProfileScreen() {
 
   const resetOnboarding = async () => {
     Alert.alert(
-      "Reset Profile",
-      "This will clear your profile data and restart the setup process. When prompted to pay, just swipe away the app and restart it.",
+      "Delete Account",
+      "This will clear your profile data and restart the setup process. When prompted to pay, scroll down and click restore purchases.",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -44,7 +47,6 @@ export default function ProfileScreen() {
           onPress: async () => {
             try {
               await AsyncStorage.multiRemove([
-                "@onboarding_completed",
                 "@user_height_cm",
                 "@user_date_of_birth",
                 "@user_sex",
@@ -55,6 +57,7 @@ export default function ProfileScreen() {
                 "@user_preferred_weight_unit",
                 "@user_preferred_height_unit",
               ]);
+              await setIsOnboardingComplete(false);
               router.replace("/(onboarding)" as any);
             } catch (error) {
               Alert.alert("Error", "Failed to reset profile data");
@@ -216,8 +219,10 @@ export default function ProfileScreen() {
         <View style={styles.appInfoSection}>
           <Text style={styles.sectionTitle}>About</Text>
           <View style={styles.infoCard}>
-            <Text style={styles.appName}>Posture Tracker</Text>
-            <Text style={styles.appVersion}>Version 1.0.0</Text>
+            <Text style={styles.appName}>GoTall</Text>
+            <Text style={styles.appVersion}>
+              Version {Constants.expoConfig?.version || "1.0.2"}
+            </Text>
             <TouchableOpacity
               style={styles.privacyLink}
               onPress={() =>
@@ -228,13 +233,23 @@ export default function ProfileScreen() {
             >
               <Text style={styles.privacyText}>Privacy Policy</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.privacyLink}
+              onPress={() =>
+                Linking.openURL(
+                  "https://docs.google.com/document/d/1rg1W0ZepiwV48UTvXhDkiysV1bEg7u8TofQrQAJl1-Q/edit?usp=sharing"
+                )
+              }
+            >
+              <Text style={styles.privacyText}>Terms of Use</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* Logout */}
         <TouchableOpacity style={styles.logoutButton} onPress={resetOnboarding}>
           <Ionicons name="log-out-outline" size={20} color="#FF6B6B" />
-          <Text style={styles.logoutText}>Sign Out</Text>
+          <Text style={styles.logoutText}>Delete Account</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

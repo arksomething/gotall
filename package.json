@@ -4,11 +4,20 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "build:android": "eas build --platform android",
+    "build:ios": "eas build --platform ios"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": ["react-native-chart-kit", "react-native-iap"],
+        "listUnknownPackages": false
+      }
+    }
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -31,7 +40,6 @@
     "expo-font": "~13.3.1",
     "expo-haptics": "~14.1.4",
     "expo-image": "~2.3.0",
-    "expo-in-app-purchases": "^14.5.0",
     "expo-linking": "~7.1.5",
     "expo-notifications": "~0.31.3",
     "expo-router": "~5.1.0",
@@ -41,6 +49,7 @@
     "expo-store-review": "~8.1.5",
     "expo-symbols": "~0.4.5",
     "expo-system-ui": "~5.0.8",
+    "expo-updates": "~0.28.15",
     "expo-web-browser": "~14.1.6",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -57,8 +66,7 @@
     "react-native-wheel-picker-expo": "^0.5.4",
     "react-native-wheely": "^0.6.0",
     "victory": "^36.6.8",
-    "victory-native": "^41.17.4",
-    "expo-updates": "~0.28.15"
+    "victory-native": "^41.17.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

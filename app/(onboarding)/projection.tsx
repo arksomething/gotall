@@ -1,9 +1,11 @@
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
+import { getAvailablePurchases } from "react-native-iap";
 import { HeightGraph } from "../../components/HeightGraph";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { withOnboarding } from "../../components/withOnboarding";
+import { useOnboarding } from "../../utils/OnboardingContext";
 import { useUserData } from "../../utils/UserContext";
 import { calculateHeightProjection } from "../../utils/heightProjection";
 
@@ -18,6 +20,7 @@ interface HeightData {
 const ProjectionScreen = () => {
   const router = useRouter();
   const { userData, getAge } = useUserData();
+  const { setIsOnboardingComplete } = useOnboarding();
   const [heightData, setHeightData] = useState<HeightData>({
     currentHeight: "4'10\"",
     potentialHeight: "5'11\"",
@@ -73,11 +76,26 @@ const ProjectionScreen = () => {
     calculateProjections();
   }, [calculateProjections]);
 
+  const handleNext = async () => {
+    try {
+      const purchases = await getAvailablePurchases();
+      if (purchases.length === 0) {
+        router.push("/(onboarding)/subscription" as any);
+      } else {
+        await setIsOnboardingComplete(true);
+        router.replace("/(tabs)");
+      }
+    } catch (e) {
+      console.warn("Error checking purchases before subscription");
+      router.push("/(onboarding)/subscription" as any);
+    }
+  };
+
   return (
     <OnboardingLayout
       title="Your Height Projection"
       currentStep={6}
-      onNext={() => router.push("/(onboarding)/subscription" as any)}
+      onNext={handleNext}
       onBack={() => router.push("/(onboarding)/parents" as any)}
       nextButtonText="Continue"
     >

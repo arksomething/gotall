@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface HeaderProps {
   title: string;
@@ -11,12 +12,16 @@ interface HeaderProps {
 
 export function Header({ title, showBackButton, onBack }: HeaderProps) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top }]}>
       {showBackButton ? (
         <>
-          <TouchableOpacity onPress={onBack || router.back}>
+          <TouchableOpacity
+            onPress={onBack || router.back}
+            style={styles.backButton}
+          >
             <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
         </>
@@ -32,7 +37,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingBottom: 12,
     backgroundColor: "#000",
   },
   title: {
@@ -42,6 +47,9 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "left",
     marginLeft: 8,
+  },
+  backButton: {
+    padding: 4,
   },
   leftPlaceholder: {
     width: 24,

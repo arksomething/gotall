@@ -74,7 +74,7 @@ export default function StatsScreen() {
       setIsLoading(true);
 
       // Initialize database
-      await databaseManager.initializeDatabase();
+      await databaseManager.initialize();
 
       // Load goals for the selected date
       const dateGoals = await databaseManager.getGoalsForDate(selectedDate);

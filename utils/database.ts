@@ -1,4 +1,6 @@
+import * as FileSystem from 'expo-file-system';
 import * as SQLite from 'expo-sqlite';
+import { Platform } from 'react-native';
 import { stretches } from './stretches';
 import { dailyTasks } from './tasks';
 
@@ -39,13 +41,93 @@ export interface DailyGoal {
   createdAt: string;
 }
 
-class DatabaseManager {
+export class DatabaseManager {
   private db: SQLite.SQLiteDatabase | null = null;
+  private isInitializing = false;
+  private initializationPromise: Promise<void> | null = null;
 
-  async initializeDatabase(): Promise<void> {
+  async initialize(): Promise<void> {
+    // If already initialized, return immediately
+    if (this.db) return;
+
+    // If initialization is in progress, wait for it
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
+    // Start new initialization
+    this.initializationPromise = this._initialize();
     try {
-      this.db = await SQLite.openDatabaseAsync('gotall.db');
+      await this.initializationPromise;
+    } finally {
+      this.initializationPromise = null;
+    }
+  }
+
+  private async _initialize(): Promise<void> {
+    if (this.isInitializing) {
+      // Wait a bit and try again
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return this.initialize();
+    }
+
+    try {
+      this.isInitializing = true;
       
+      if (Platform.OS === 'android') {
+        const dbDirectory = `${FileSystem.documentDirectory}SQLite`;
+        
+        // Ensure directory exists with proper permissions
+        try {
+          const dirInfo = await FileSystem.getInfoAsync(dbDirectory);
+          if (!dirInfo.exists) {
+            await FileSystem.makeDirectoryAsync(dbDirectory, { intermediates: true });
+          }
+        } catch (error) {
+          console.error('Error creating database directory:', error);
+          throw new Error('Failed to create database directory');
+        }
+
+        // Ensure we have write permissions
+        try {
+          const testFile = `${dbDirectory}/test.txt`;
+          await FileSystem.writeAsStringAsync(testFile, 'test');
+          await FileSystem.deleteAsync(testFile, { idempotent: true });
+        } catch (error) {
+          console.error('Error testing directory permissions:', error);
+          throw new Error('No write permission for database directory');
+        }
+      }
+
+      // Close any existing connection
+      if (this.db) {
+        try {
+          await this.db.closeAsync();
+        } catch (error) {
+          console.warn('Error closing existing database connection:', error);
+        }
+        this.db = null;
+      }
+
+      // Open database with retries
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          this.db = await SQLite.openDatabaseAsync('gotall.db');
+          break;
+        } catch (error) {
+          console.warn(`Failed to open database, retries left: ${retries - 1}`, error);
+          retries--;
+          if (retries === 0) throw error;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+
+      if (!this.db) {
+        throw new Error('Failed to open database after retries');
+      }
+
+      // Create tables
       await this.db.execAsync(`
         CREATE TABLE IF NOT EXISTS daily_logs (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,7 +169,9 @@ class DatabaseManager {
           FOREIGN KEY (goal_id) REFERENCES goals (id),
           UNIQUE(date, goal_id)
         );
-        
+      `);
+
+      await this.db.execAsync(`
         CREATE INDEX IF NOT EXISTS idx_date ON daily_logs(date);
         CREATE INDEX IF NOT EXISTS idx_goal_completions_date ON goal_completions(date);
         CREATE INDEX IF NOT EXISTS idx_goal_completions_goal_id ON goal_completions(goal_id);
@@ -96,20 +180,34 @@ class DatabaseManager {
 
       // Insert default goals if none exist
       await this.insertDefaultGoals();
+      
     } catch (error) {
       console.error('Error initializing database:', error);
+      this.db = null;
       throw error;
+    } finally {
+      this.isInitializing = false;
     }
   }
 
+  private async getDb(): Promise<SQLite.SQLiteDatabase> {
+    if (!this.db) {
+      await this.initialize();
+      if (!this.db) {
+        throw new Error('Database not initialized');
+      }
+    }
+    return this.db;
+  }
+
   async insertDefaultGoals(): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     try {
       const now = new Date().toISOString();
       
       // Only insert static goals that appear every day
-      const existingStaticGoals = await this.db!.getAllAsync('SELECT COUNT(*) as count FROM goals WHERE active = 1') as any[];
+      const existingStaticGoals = await db.getAllAsync('SELECT COUNT(*) as count FROM goals WHERE active = 1') as any[];
       
       if (existingStaticGoals[0].count === 0) {
         const staticGoals = [
@@ -118,7 +216,7 @@ class DatabaseManager {
         ];
 
         for (const goal of staticGoals) {
-          await this.db!.runAsync(
+          await db.runAsync(
             `INSERT INTO goals (title, icon, type, unit, active, created_at, updated_at)
              VALUES (?, ?, ?, ?, 1, ?, ?)`,
             [goal.title, goal.icon, goal.type, goal.unit || null, now, now]
@@ -128,16 +226,17 @@ class DatabaseManager {
       }
     } catch (error) {
       console.error('Error inserting default goals:', error);
+      throw error;
     }
   }
 
   // Method to clean up duplicate goals
   async cleanupDuplicateGoals(): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     try {
       // Remove duplicate goals, keeping only the first occurrence of each title
-      await this.db!.runAsync(`
+      await db.runAsync(`
         DELETE FROM goals 
         WHERE id NOT IN (
           SELECT MIN(id) 
@@ -154,12 +253,12 @@ class DatabaseManager {
 
   // Method to clear all static goals (active = 1)
   async clearStaticGoals(): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     try {
       // Delete all static goals and their completions
-      await this.db!.runAsync('DELETE FROM goal_completions WHERE goal_id IN (SELECT id FROM goals WHERE active = 1)');
-      await this.db!.runAsync('DELETE FROM goals WHERE active = 1');
+      await db.runAsync('DELETE FROM goal_completions WHERE goal_id IN (SELECT id FROM goals WHERE active = 1)');
+      await db.runAsync('DELETE FROM goals WHERE active = 1');
       
       console.log('Cleared all static goals');
     } catch (error) {
@@ -169,13 +268,13 @@ class DatabaseManager {
 
   // Method to completely purge all goals and start fresh
   async purgeAllGoals(): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     try {
       // Delete everything - all goals, completions, and daily goals
-      await this.db!.runAsync('DELETE FROM goal_completions');
-      await this.db!.runAsync('DELETE FROM daily_goals');
-      await this.db!.runAsync('DELETE FROM goals');
+      await db.runAsync('DELETE FROM goal_completions');
+      await db.runAsync('DELETE FROM daily_goals');
+      await db.runAsync('DELETE FROM goals');
       
       console.log('Purged all goals, completions, and daily goals');
     } catch (error) {
@@ -184,13 +283,13 @@ class DatabaseManager {
   }
 
   async generateDailyGoals(date: string): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     try {
       const now = new Date().toISOString();
       
       // Check if daily goals already exist for this date
-      const existingDailyGoals = await this.db!.getAllAsync(
+      const existingDailyGoals = await db.getAllAsync(
         'SELECT COUNT(*) as count FROM daily_goals WHERE date = ?',
         [date]
       ) as any[];
@@ -207,26 +306,26 @@ class DatabaseManager {
         console.log(`Selected task: ${randomTask.name}`);
         
         // Insert stretch as a goal
-        const stretchResult = await this.db!.runAsync(
+        const stretchResult = await db.runAsync(
           `INSERT INTO goals (title, icon, type, unit, active, created_at, updated_at)
            VALUES (?, ?, ?, ?, 0, ?, ?)`,
           [randomStretch.name, randomStretch.emoji, 'boolean', null, now, now]
         );
         
         // Insert task as a goal
-        const taskResult = await this.db!.runAsync(
+        const taskResult = await db.runAsync(
           `INSERT INTO goals (title, icon, type, unit, active, created_at, updated_at)
            VALUES (?, ?, ?, ?, 0, ?, ?)`,
           [randomTask.name, randomTask.emoji, 'boolean', randomTask.duration, now, now]
         );
         
         // Link them to this specific date
-        await this.db!.runAsync(
+        await db.runAsync(
           'INSERT INTO daily_goals (date, goal_id, created_at) VALUES (?, ?, ?)',
           [date, stretchResult.lastInsertRowId, now]
         );
         
-        await this.db!.runAsync(
+        await db.runAsync(
           'INSERT INTO daily_goals (date, goal_id, created_at) VALUES (?, ?, ?)',
           [date, taskResult.lastInsertRowId, now]
         );
@@ -241,7 +340,7 @@ class DatabaseManager {
   }
 
   async getGoalsForToday(): Promise<(Goal & { completed: boolean; completionValue?: string })[]> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     const today = new Date().toISOString().split('T')[0];
     
@@ -250,7 +349,7 @@ class DatabaseManager {
       await this.generateDailyGoals(today);
       
       // Get static goals (always active) and daily goals for today
-      const results = await this.db!.getAllAsync(`
+      const results = await db.getAllAsync(`
         SELECT 
           g.*,
           COALESCE(gc.completed, 0) as completed,
@@ -282,13 +381,13 @@ class DatabaseManager {
   }
 
   async updateGoalCompletion(goalId: number, completed: boolean, value?: string): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     const today = new Date().toISOString().split('T')[0];
     const now = new Date().toISOString();
     
     try {
-      await this.db!.runAsync(
+      await db.runAsync(
         `INSERT OR REPLACE INTO goal_completions (goal_id, date, completed, value, created_at)
          VALUES (?, ?, ?, ?, ?)`,
         [goalId, today, completed ? 1 : 0, value || null, now]
@@ -300,14 +399,14 @@ class DatabaseManager {
   }
 
   async getGoalsForDate(date: string): Promise<(Goal & { completed: boolean; completionValue?: string })[]> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     try {
       // Generate daily goals for the specified date if they don't exist
       await this.generateDailyGoals(date);
       
       // Get static goals (always active) and daily goals for the specified date
-      const results = await this.db!.getAllAsync(`
+      const results = await db.getAllAsync(`
         SELECT 
           g.*,
           COALESCE(gc.completed, 0) as completed,
@@ -339,12 +438,12 @@ class DatabaseManager {
   }
 
   async updateGoalCompletionForDate(goalId: number, date: string, completed: boolean, value?: string): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     const now = new Date().toISOString();
     
     try {
-      await this.db!.runAsync(
+      await db.runAsync(
         `INSERT OR REPLACE INTO goal_completions (goal_id, date, completed, value, created_at)
          VALUES (?, ?, ?, ?, ?)`,
         [goalId, date, completed ? 1 : 0, value || null, now]
@@ -357,10 +456,10 @@ class DatabaseManager {
 
   // Testing method to clear daily goals for a specific date
   async clearDailyGoalsForDate(date: string): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     try {
-      await this.db!.runAsync('DELETE FROM daily_goals WHERE date = ?', [date]);
+      await db.runAsync('DELETE FROM daily_goals WHERE date = ?', [date]);
       console.log(`Cleared daily goals for ${date}`);
     } catch (error) {
       console.error('Error clearing daily goals:', error);
@@ -369,28 +468,28 @@ class DatabaseManager {
 
   // Testing method to check what goals exist in database
   async debugGoalsInDatabase(): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     try {
-      const allGoals = await this.db!.getAllAsync('SELECT id, title, active FROM goals ORDER BY active DESC, title') as any[];
+      const allGoals = await db.getAllAsync('SELECT id, title, active FROM goals ORDER BY active DESC, title') as any[];
       console.log('All goals in database:');
       allGoals.forEach(goal => {
         console.log(`  ${goal.id}: ${goal.title} (active: ${goal.active})`);
       });
       
-      const dailyGoalsToday = await this.db!.getAllAsync('SELECT * FROM daily_goals WHERE date = ?', [new Date().toISOString().split('T')[0]]) as any[];
+      const dailyGoalsToday = await db.getAllAsync('SELECT * FROM daily_goals WHERE date = ?', [new Date().toISOString().split('T')[0]]) as any[];
       console.log('Daily goals for today:', dailyGoalsToday);
       
       // Check stretch count vs database
       console.log(`Stretches in data: ${stretches.length}`);
       console.log(`Tasks in data: ${dailyTasks.length}`);
       
-      const stretchesInDb = await this.db!.getAllAsync(
+      const stretchesInDb = await db.getAllAsync(
         `SELECT COUNT(*) as count FROM goals WHERE title IN (${stretches.map(() => '?').join(',')})`,
         stretches.map(s => s.name)
       ) as any[];
       
-      const tasksInDb = await this.db!.getAllAsync(
+      const tasksInDb = await db.getAllAsync(
         `SELECT COUNT(*) as count FROM goals WHERE title IN (${dailyTasks.map(() => '?').join(',')})`,
         dailyTasks.map(t => t.name)
       ) as any[];
@@ -405,11 +504,11 @@ class DatabaseManager {
 
   // Force regenerate daily goals for testing
   async forceRegenerateDailyGoals(date: string): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     try {
       // Clear existing daily goals for this date
-      await this.db!.runAsync('DELETE FROM daily_goals WHERE date = ?', [date]);
+      await db.runAsync('DELETE FROM daily_goals WHERE date = ?', [date]);
       console.log(`Cleared existing daily goals for ${date}`);
       
       // Force regenerate
@@ -422,11 +521,11 @@ class DatabaseManager {
   }
 
   async getStreakCount(): Promise<number> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     try {
       // Get all completion dates ordered by date descending
-      const results = await this.db!.getAllAsync(`
+      const results = await db.getAllAsync(`
         SELECT DISTINCT date 
         FROM goal_completions 
         WHERE completed = 1
@@ -459,12 +558,12 @@ class DatabaseManager {
   }
 
   async getTodaysLog(): Promise<DailyLog | null> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     
     try {
-      const result = await this.db!.getFirstAsync(
+      const result = await db.getFirstAsync(
         'SELECT * FROM daily_logs WHERE date = ?',
         [today]
       ) as any;
@@ -487,14 +586,14 @@ class DatabaseManager {
   }
 
   async updateSleepHours(sleepHours: number): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     const today = new Date().toISOString().split('T')[0];
     const now = new Date().toISOString();
     
     try {
       // Try to update existing record first
-      const result = await this.db!.runAsync(
+      const result = await db.runAsync(
         `UPDATE daily_logs 
          SET sleep_hours = ?, updated_at = ?
          WHERE date = ?`,
@@ -503,7 +602,7 @@ class DatabaseManager {
 
       // If no record was updated, create a new one
       if (result.changes === 0) {
-        await this.db!.runAsync(
+        await db.runAsync(
           `INSERT INTO daily_logs (date, sleep_hours, tasks_completed, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?)`,
           [today, sleepHours, '[]', now, now]
@@ -516,7 +615,7 @@ class DatabaseManager {
   }
 
   async updateTasksCompleted(tasksCompleted: boolean[]): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     const today = new Date().toISOString().split('T')[0];
     const now = new Date().toISOString();
@@ -524,7 +623,7 @@ class DatabaseManager {
     
     try {
       // Try to update existing record first
-      const result = await this.db!.runAsync(
+      const result = await db.runAsync(
         `UPDATE daily_logs 
          SET tasks_completed = ?, updated_at = ?
          WHERE date = ?`,
@@ -533,7 +632,7 @@ class DatabaseManager {
 
       // If no record was updated, create a new one
       if (result.changes === 0) {
-        await this.db!.runAsync(
+        await db.runAsync(
           `INSERT INTO daily_logs (date, sleep_hours, tasks_completed, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?)`,
           [today, null, tasksJson, now, now]
@@ -546,7 +645,7 @@ class DatabaseManager {
   }
 
   async updateBothSleepAndTasks(sleepHours: number, tasksCompleted: boolean[]): Promise<void> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     const today = new Date().toISOString().split('T')[0];
     const now = new Date().toISOString();
@@ -554,7 +653,7 @@ class DatabaseManager {
     
     try {
       // Try to update existing record first
-      const result = await this.db!.runAsync(
+      const result = await db.runAsync(
         `UPDATE daily_logs 
          SET sleep_hours = ?, tasks_completed = ?, updated_at = ?
          WHERE date = ?`,
@@ -563,7 +662,7 @@ class DatabaseManager {
 
       // If no record was updated, create a new one
       if (result.changes === 0) {
-        await this.db!.runAsync(
+        await db.runAsync(
           `INSERT INTO daily_logs (date, sleep_hours, tasks_completed, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?)`,
           [today, sleepHours, tasksJson, now, now]
@@ -576,10 +675,10 @@ class DatabaseManager {
   }
 
   async getAllLogs(): Promise<DailyLog[]> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     try {
-      const results = await this.db!.getAllAsync(
+      const results = await db.getAllAsync(
         'SELECT * FROM daily_logs ORDER BY date DESC'
       ) as any[];
 
@@ -598,10 +697,10 @@ class DatabaseManager {
   }
 
   async getLogsByDateRange(startDate: string, endDate: string): Promise<DailyLog[]> {
-    if (!this.db) await this.initializeDatabase();
+    const db = await this.getDb();
     
     try {
-      const results = await this.db!.getAllAsync(
+      const results = await db.getAllAsync(
         'SELECT * FROM daily_logs WHERE date BETWEEN ? AND ? ORDER BY date DESC',
         [startDate, endDate]
       ) as any[];
@@ -621,5 +720,10 @@ class DatabaseManager {
   }
 }
 
-// Export singleton instance
-export const databaseManager = new DatabaseManager(); 
+// Create and export a singleton instance
+export const databaseManager = new DatabaseManager();
+
+// Initialize the database when this module is imported
+databaseManager.initialize().catch(error => {
+  console.error('Failed to initialize database:', error);
+}); 

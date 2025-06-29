@@ -3,13 +3,13 @@ import React from "react";
 import {
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TOTAL_STEPS = 8;
 
@@ -38,13 +38,15 @@ export function OnboardingLayout({
   disableDefaultNext = false,
   nextButtonStyle,
 }: OnboardingLayoutProps) {
+  const insets = useSafeAreaInsets();
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
-      <SafeAreaView style={styles.safeArea}>
+      <View style={[styles.safeArea, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           {showBackButton && onBack && (
             <TouchableOpacity style={styles.backArrow} onPress={onBack}>
@@ -81,7 +83,16 @@ export function OnboardingLayout({
           {children}
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View
+          style={[
+            styles.footer,
+            {
+              paddingBottom:
+                Math.max(insets.bottom, 16) +
+                (Platform.OS === "android" ? 12 : 0),
+            },
+          ]}
+        >
           <View style={styles.buttonContainer}>
             {showBackButton && onBack && (
               <TouchableOpacity style={styles.backButton} onPress={onBack}>
@@ -103,7 +114,7 @@ export function OnboardingLayout({
             </TouchableOpacity>
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -166,7 +177,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: 24,
-    paddingBottom: Platform.OS === "ios" ? 24 : 16,
     paddingTop: 16,
     backgroundColor: "#000",
     borderTopWidth: 1,
