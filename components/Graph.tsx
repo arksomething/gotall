@@ -325,9 +325,12 @@ const Graph: React.FC<GraphProps> = ({
         {/* Percentile Comparison */}
         <View style={styles.growthStat}>
           <Text style={styles.percentileText}>
-            Taller than{" "}
+            Shorter than{" "}
             <Text style={styles.percentileHighlight}>
-              {percentileNumber ? parseInt(percentileNumber.display) : "--"}%
+              {percentileNumber
+                ? 100 - parseInt(percentileNumber.display)
+                : "--"}
+              %
             </Text>
             {"\n"}of {Math.floor(age / 12)} year olds
           </Text>

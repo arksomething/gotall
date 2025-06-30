@@ -6,13 +6,13 @@ import React, { useEffect } from "react";
 import {
   Alert,
   Linking,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "../../components/Header";
 import { useOnboarding } from "../../utils/OnboardingContext";
 import { useUserData } from "../../utils/UserContext";
@@ -29,6 +29,7 @@ export default function ProfileScreen() {
   } = useUserData();
   const { setIsOnboardingComplete } = useOnboarding();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     // Reload user data when profile screen is loaded
@@ -113,7 +114,7 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container]}>
       <Header title="Profile" showBackButton={false} />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* User Info */}
@@ -252,7 +253,7 @@ export default function ProfileScreen() {
           <Text style={styles.logoutText}>Delete Account</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

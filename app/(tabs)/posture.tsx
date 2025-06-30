@@ -3,13 +3,13 @@ import * as Notifications from "expo-notifications";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "../../components/Header";
 
 // Configure notifications
@@ -27,6 +27,7 @@ export default function PostureScreen() {
   const [reminderActive, setReminderActive] = useState(false);
   const [reminderInterval, setReminderInterval] = useState(20); // minutes
   const [notificationId, setNotificationId] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
 
   const intervalOptions = [
     { value: 20, label: "20 min" },
@@ -127,7 +128,7 @@ export default function PostureScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container]}>
       <Header title="Posture" />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Status Card */}
@@ -199,7 +200,7 @@ export default function PostureScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

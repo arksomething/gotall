@@ -9,6 +9,7 @@ import {
   purchaseErrorListener,
   purchaseUpdatedListener,
 } from "react-native-iap";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingProvider, useOnboarding } from "../utils/OnboardingContext";
 import { PRODUCTS } from "../utils/products";
 import { UserProvider } from "../utils/UserContext";
@@ -23,6 +24,7 @@ function NavigationRoot() {
   const { isOnboardingComplete } = useOnboarding();
   const router = useRouter();
   const segments = useSegments();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     const checkPurchaseStatus = async () => {
@@ -107,14 +109,27 @@ function NavigationRoot() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: insets.top,
+          backgroundColor: "#000",
+          zIndex: 999,
+        }}
+      />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </>
   );
 }
 

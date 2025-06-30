@@ -2,13 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Graph from "../../components/Graph";
 import { Header } from "../../components/Header";
 import { CalorieModal } from "../../components/modals/CalorieModal";
@@ -57,6 +57,7 @@ export default function Index() {
     sleepHours: number;
     calories: number;
   }>({ sleepHours: 0, calories: 0 });
+  const insets = useSafeAreaInsets();
 
   // Get live data from UserContext
   const userAge = getAge();
@@ -291,7 +292,7 @@ export default function Index() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container]}>
       <Header title="Home" />
       <ScrollView style={styles.scrollView}>
         <View style={styles.cardsContainer}>
@@ -464,7 +465,7 @@ export default function Index() {
         onClose={() => setHeightModalVisible(false)}
         initialValue={tempHeightValue}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "../../components/Header";
 import { databaseManager } from "../../utils/database";
 
@@ -37,6 +38,7 @@ export default function StatsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [tempValue, setTempValue] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const insets = useSafeAreaInsets();
 
   const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
   const currentDay = new Date().getDay();
@@ -218,7 +220,7 @@ export default function StatsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container]}>
       <Header title={formatSelectedDate()} showBackButton={false} />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Streak */}
@@ -348,7 +350,7 @@ export default function StatsScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 

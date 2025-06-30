@@ -3,13 +3,13 @@ import React, { useState } from "react";
 import {
   Dimensions,
   Modal,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
 import { Header } from "../../components/Header";
 import { Stretch, stretches } from "../../utils/stretches";
@@ -20,6 +20,7 @@ export default function HabitScreen() {
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [selectedStretch, setSelectedStretch] = useState<Stretch>(stretches[4]); // Default to "Forward Bend"
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const toggleCard = (index: number) => {
     setSelectedCards((prev) =>
@@ -37,7 +38,7 @@ export default function HabitScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container]}>
       <Header title="Exercises" />
 
       {/* Exercise Selection */}
@@ -121,7 +122,7 @@ export default function HabitScreen() {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
