@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.gotall.ios",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSUserNotificationUsageDescription": "We use notifications to remind you to stretch and stay active."
@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "app.gotall.android",
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": [
         "BILLING"
       ]
@@ -51,8 +51,24 @@
           "backgroundColor": "#C8FA43"
         }
       ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static",
+            "modularHeaders": true,
+            "googleServicesFile": "./GoogleService-Info.plist"
+          },
+          "android": {
+            "googleServicesFile": "./google-services.json"
+          }
+        }
+      ],
       "expo-sqlite",
-      "expo-web-browser"
+      "expo-web-browser",
+      "@react-native-firebase/app",
+      "@react-native-firebase/analytics",
+      "@react-native-firebase/remote-config"
     ],
     "experiments": {
       "typedRoutes": true

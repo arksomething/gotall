@@ -60,8 +60,8 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
           preferredHeightUnit: preferredHeightUnit as "ft" | "cm",
         });
 
-        // Move to projection screen
-        if (onNext) onNext();
+        // Move to projection screen without invoking onNext (avoids haptic)
+        router.push("/(onboarding)/projection" as any);
       } catch (error) {
         setIsGenerating(false);
         router.back();

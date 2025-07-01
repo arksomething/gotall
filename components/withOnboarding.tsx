@@ -4,6 +4,8 @@ import { Alert } from "react-native";
 import { useOnboarding } from "../app/(onboarding)/_layout";
 import { validateHeightInput } from "../utils/heightUtils";
 import { useUserData } from "../utils/UserContext";
+import * as Haptics from "expo-haptics";
+
 
 export const ROUTES = [
   "index",
@@ -51,6 +53,7 @@ export function withOnboarding<P extends OnboardingScreenProps>(
 
     const handleNext = async () => {
       // Validation logic based on current step
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       if (route === "parents") {
         const motherHeightValidation = validateHeightInput(
           motherHeight,
@@ -107,7 +110,8 @@ export function withOnboarding<P extends OnboardingScreenProps>(
       }
     };
 
-    const handleBack = () => {
+    const handleBack = async () => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       if (currentStep > 0) {
         const prevRoute = ROUTES[ROUTES.indexOf(route) - 1];
         if (prevRoute) {

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "233930163486",
+    "project_id": "gotall",
+    "storage_bucket": "gotall.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:233930163486:android:2787966bd5f1df0483750f",
+        "android_client_info": {
+          "package_name": "app.gotall.android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATBGbGQdZRSPFgJyCAJcBdnaFflMnWzmw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
