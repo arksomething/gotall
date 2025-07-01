@@ -1,11 +1,11 @@
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import { Alert } from "react-native";
 import { useOnboarding } from "../app/(onboarding)/_layout";
+import { logScreenView } from "../utils/FirebaseAnalytics";
 import { validateHeightInput } from "../utils/heightUtils";
 import { useUserData } from "../utils/UserContext";
-import * as Haptics from "expo-haptics";
-
 
 export const ROUTES = [
   "index",
@@ -50,6 +50,11 @@ export function withOnboarding<P extends OnboardingScreenProps>(
       preferredHeightUnit,
       preferredWeightUnit,
     } = useOnboarding();
+
+    // Log screen view when component mounts
+    useEffect(() => {
+      logScreenView(route);
+    }, []);
 
     const handleNext = async () => {
       // Validation logic based on current step

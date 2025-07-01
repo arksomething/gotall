@@ -7,6 +7,7 @@ import {
   OnboardingScreenProps,
   withOnboarding,
 } from "../../components/withOnboarding";
+import { logEvent } from "../../utils/FirebaseAnalytics";
 import { useUserData } from "../../utils/UserContext";
 import { calculateHeightProjection } from "../../utils/heightProjection";
 import { PRODUCTS, useIAP } from "../../utils/products";
@@ -58,6 +59,10 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
     if (selectedIndex === null || !products[selectedIndex]) return;
 
     try {
+      logEvent("purchase_button_click", {
+        productId: products[selectedIndex].productId,
+      });
+
       await handlePurchase(products[selectedIndex].productId);
       // Check if the purchase was actually completed
       const purchases = await checkAvailablePurchases();
@@ -71,6 +76,7 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
   };
 
   const onRestore = async () => {
+    logEvent("restore_purchases_click");
     const hasValidPurchase = await handleRestore();
     if (hasValidPurchase) {
       await AsyncStorage.setItem("@onboarding_completed", "true");
@@ -122,7 +128,12 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
                 styles.optionButton,
                 selectedIndex === idx && styles.optionButtonSelected,
               ]}
-              onPress={() => setSelectedIndex(idx)}
+              onPress={() => {
+                logEvent("subscription_option_select", {
+                  productId: p.productId,
+                });
+                setSelectedIndex(idx);
+              }}
             >
               <Text
                 style={[
