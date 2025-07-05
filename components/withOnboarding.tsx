@@ -14,7 +14,14 @@ export const ROUTES = [
   "ethnicity",
   "measurements",
   "parents",
+  "shoe",
+  "dream",
+  "product",
+  "trust",
+  "reviews",
+  "short",
   "generating",
+  "results",
   "projection",
   "subscription",
 ] as const;
@@ -49,6 +56,8 @@ export function withOnboarding<P extends OnboardingScreenProps>(
       ethnicity,
       preferredHeightUnit,
       preferredWeightUnit,
+      usShoeSize,
+      euShoeSize,
     } = useOnboarding();
 
     // Log screen view when component mounts
@@ -96,6 +105,10 @@ export function withOnboarding<P extends OnboardingScreenProps>(
             break;
           case "sex":
             partialUserData.sex = sex;
+            break;
+          case "shoe":
+            partialUserData.usShoeSize = usShoeSize;
+            partialUserData.euShoeSize = euShoeSize;
             break;
         }
 

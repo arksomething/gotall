@@ -14,6 +14,9 @@ interface HeightData {
   currentHeight: string;
   potentialHeight: string;
   actualHeight: string;
+  percentileRank?: number;
+  growthComplete?: number;
+  heightGainPotential?: number;
   lowerBoundHeight?: string;
   upperBoundHeight?: string;
 }
@@ -22,8 +25,9 @@ const ProjectionScreen = () => {
   const router = useRouter();
   const { userData, getAge } = useUserData();
   const { setIsOnboardingComplete } = useOnboarding();
+  const [hasPaid, setHasPaid] = useState(false);
   const [heightData, setHeightData] = useState<HeightData>({
-    currentHeight: "4'10\"",
+    currentHeight: "5'7\"",
     potentialHeight: "5'11\"",
     actualHeight: "5'7\"",
   });
@@ -78,6 +82,19 @@ const ProjectionScreen = () => {
     calculateProjections();
   }, [calculateProjections]);
 
+  useEffect(() => {
+    const checkPurchases = async () => {
+      try {
+        const purchases = await getAvailablePurchases();
+        setHasPaid(purchases.length > 0);
+      } catch (e) {
+        console.warn("Error checking purchases:", e);
+        setHasPaid(false);
+      }
+    };
+    checkPurchases();
+  }, []);
+
   const handleNext = async () => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -96,13 +113,13 @@ const ProjectionScreen = () => {
 
   const handleBack = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push("/(onboarding)/parents" as any);
+    router.push("/(onboarding)/short" as any);
   };
 
   return (
     <OnboardingLayout
       title="Your Height Projection"
-      currentStep={6}
+      currentStep={13}
       onNext={handleNext}
       onBack={handleBack}
       nextButtonText="Continue"
@@ -117,69 +134,98 @@ const ProjectionScreen = () => {
           </View>
         ) : (
           <>
-            <View style={styles.graphContainer}>
-              <View style={styles.headerContainer}>
-                <Text style={styles.headerText}>
-                  <Text>GoTall is powered by the </Text>
-                  <Text style={styles.highlight}>CDC</Text>
-                  <Text> dataset, creating </Text>
-                  <Text style={styles.highlight}>useful</Text>
-                  <Text> and </Text>
-                  <Text style={styles.highlight}>accurate</Text>
-                  <Text> predictions.</Text>
-                </Text>
-                <View style={styles.heightRow}>
-                  <Text style={[styles.heightLabel, styles.potentialLabel]}>
-                    Your true potential is:
-                  </Text>
-                  <View style={styles.heightBoxContainer}>
-                    <View style={styles.heightBox}>
-                      <Text style={styles.heightText}>
-                        {heightData.potentialHeight}
-                      </Text>
-                      <BlurView
-                        intensity={10}
-                        tint="default"
-                        style={[StyleSheet.absoluteFillObject, styles.blurView]}
-                      />
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.trackRow}>
-                  <Text style={styles.heightLabel}>
-                    But you're on track to be
-                  </Text>
-                  <Text style={[styles.heightText, styles.trackHeight]}>
+            <View style={styles.metricsContainer}>
+              <View style={styles.metricBox}>
+                <Text style={styles.metricLabel}>On track to be:</Text>
+                <View style={styles.heightBox}>
+                  <Text style={[styles.metricValue, styles.heightValue]}>
                     {heightData.actualHeight}
                   </Text>
                 </View>
               </View>
-              <Image
-                source={require("../../assets/images/Frame 8.png")}
-                style={[styles.image, { width: windowWidth - 32 }]}
-                resizeMode="contain"
-              />
 
-              {/* Legend */}
-              <View style={styles.legend}>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendDot, styles.currentDot]} />
-                  <Text style={[styles.legendText, styles.currentText]}>
-                    Current Height: {heightData.currentHeight}
+              <View style={styles.metricBox}>
+                <Text style={styles.metricLabel}>True potential:</Text>
+                <View style={styles.lockedMetric}>
+                  {!hasPaid && (
+                    <BlurView
+                      intensity={10}
+                      tint="dark"
+                      style={StyleSheet.absoluteFillObject}
+                    />
+                  )}
+                  <Text style={[styles.metricValue, styles.potentialValue]}>
+                    {hasPaid ? heightData.potentialHeight : "🔒"}
                   </Text>
                 </View>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendDot, styles.actualDot]} />
-                  <Text style={[styles.legendText, styles.actualText]}>
-                    Projected Height: {heightData.actualHeight}
-                  </Text>
+              </View>
+            </View>
+
+            <View style={styles.optimizeContainer}>
+              <Text style={styles.optimizeText}>
+                {hasPaid ? (
+                  <>
+                    Optimize up to{" "}
+                    <Text style={styles.highlight}>
+                      {heightData.heightGainPotential || 2}
+                    </Text>{" "}
+                    inch(es)
+                  </>
+                ) : (
+                  "Optimize up to 🔒 inch(es)"
+                )}
+              </Text>
+            </View>
+
+            <Image
+              source={require("../../assets/images/Frame 8.png")}
+              style={styles.image}
+              resizeMode="contain"
+            />
+
+            <View style={styles.optimizeContainer}>
+              <Text style={styles.optimizeText}>
+                {hasPaid ? (
+                  <>
+                    Taller than{" "}
+                    <Text style={styles.highlight}>
+                      {heightData.percentileRank || 50}%
+                    </Text>{" "}
+                    of your age
+                  </>
+                ) : (
+                  "Taller than 🔒 of your age"
+                )}
+              </Text>
+            </View>
+
+            <View style={styles.optimizeContainer}>
+              <Text style={styles.metricLabel}>
+                {hasPaid ? (
+                  <>
+                    Growth complete:{" "}
+                    <Text style={styles.highlight}>
+                      {heightData.growthComplete || 85}%
+                    </Text>
+                  </>
+                ) : (
+                  "Growth complete: 🔒%"
+                )}
+              </Text>
+              <View style={styles.progressBarContainer}>
+                <View style={styles.progressBackground}>
+                  <View
+                    style={[
+                      styles.progressBar,
+                      {
+                        width: hasPaid
+                          ? `${heightData.growthComplete || 85}%`
+                          : "60%",
+                      },
+                    ]}
+                  />
                 </View>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendDot, styles.potentialDot]} />
-                  <Text style={[styles.legendText, styles.potentialLegendText]}>
-                    True Potential: {heightData.potentialHeight}
-                  </Text>
-                </View>
+                <View style={styles.progressContent} />
               </View>
             </View>
           </>
@@ -192,112 +238,54 @@ const ProjectionScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
     width: "100%",
+    paddingHorizontal: 16,
   },
-  graphContainer: {
-    width: "100%",
-    alignItems: "center",
-    backgroundColor: "#000",
-    paddingBottom: 16,
+  metricsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+    marginHorizontal: -4,
   },
-  headerContainer: {
-    width: "100%",
+  metricBox: {
+    flex: 1,
+    backgroundColor: "#111",
+    borderRadius: 16,
     padding: 16,
+    marginHorizontal: 4,
   },
-  headerText: {
+  metricLabel: {
+    color: "#FFF",
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  metricValue: {
     color: "#FFF",
     fontSize: 24,
     fontWeight: "bold",
-    lineHeight: 32,
-    marginBottom: 24,
   },
-  highlight: {
-    color: "#9ACD32",
-  },
-  heightRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  heightLabel: {
-    color: "#FFF",
-    fontSize: 24,
-    fontWeight: "500",
-  },
-  potentialLabel: {
-    color: "#FFF",
-  },
-  heightBoxContainer: {
-    position: "relative",
-  },
-  heightBox: {
+  lockedMetric: {
     backgroundColor: "#9ACD32",
     borderRadius: 12,
     padding: 16,
-    minWidth: 80,
     alignItems: "center",
-    marginLeft: 12,
+    justifyContent: "center",
     overflow: "hidden",
-    position: "relative",
   },
-  heightText: {
-    color: "#000",
-    fontSize: 28,
-    fontWeight: "bold",
-  },
-  trackRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  optimizeContainer: {
+    backgroundColor: "#111",
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 16,
   },
-  trackHeight: {
-    color: "#9ACD32",
-    marginLeft: 12,
+  optimizeText: {
+    color: "#FFF",
+    fontSize: 16,
   },
   image: {
-    height: 300,
-  },
-  legend: {
     width: "100%",
-    paddingHorizontal: 16,
-    paddingTop: 4,
-  },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 2,
-  },
-  legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 8,
-  },
-  legendText: {
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  currentDot: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#666",
-  },
-  currentText: {
-    color: "#FFFFFF",
-  },
-  actualDot: {
-    backgroundColor: "#9ACD32",
-  },
-  actualText: {
-    color: "#9ACD32",
-  },
-  potentialDot: {
-    backgroundColor: "#96437B",
-  },
-  potentialLegendText: {
-    color: "#96437B",
+    height: 200,
+    marginBottom: 16,
   },
   errorContainer: {
     padding: 20,
@@ -315,23 +303,60 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
   },
-  rangeContainer: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: "rgba(154, 205, 50, 0.1)",
+  heightBox: {
+    backgroundColor: "#222",
     borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#333",
   },
-  rangeText: {
-    color: "#fff",
-    fontSize: 16,
-    textAlign: "center",
-  },
-  rangeValue: {
+  highlight: {
     color: "#9ACD32",
     fontWeight: "bold",
   },
-  blurView: {
-    borderRadius: 12,
+  heightValue: {
+    color: "#9ACD32",
+  },
+  potentialValue: {
+    color: "#000",
+  },
+  progressBarContainer: {
+    height: 4,
+    backgroundColor: "#222",
+    borderRadius: 2,
+    overflow: "hidden",
+    position: "relative",
+    marginTop: 8,
+  },
+  progressBackground: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: "100%",
+  },
+  progressBar: {
+    backgroundColor: "#9ACD32",
+    height: "100%",
+    width: "60%",
+    borderRadius: 2,
+  },
+  progressContent: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  progressText: {
+    color: "#FFF",
+    fontSize: 12,
+    fontWeight: "bold",
   },
 });
 

@@ -8,26 +8,32 @@ interface HeaderProps {
   title: string;
   showBackButton?: boolean;
   onBack?: () => void;
+  rightElement?: React.ReactNode;
 }
 
-export function Header({ title, showBackButton, onBack }: HeaderProps) {
+export function Header({
+  title,
+  showBackButton,
+  onBack,
+  rightElement,
+}: HeaderProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.header, { paddingTop: insets.top }]}>
       {showBackButton ? (
-        <>
-          <TouchableOpacity
-            onPress={onBack || router.back}
-            style={styles.backButton}
-          >
-            <Ionicons name="chevron-back" size={24} color="#fff" />
-          </TouchableOpacity>
-        </>
+        <TouchableOpacity
+          onPress={onBack || router.back}
+          style={styles.backButton}
+        >
+          <Ionicons name="chevron-back" size={24} color="#fff" />
+        </TouchableOpacity>
       ) : (
-        <Text style={styles.title}>{title}</Text>
+        <View style={styles.leftPlaceholder} />
       )}
+      <Text style={styles.title}>{title}</Text>
+      {rightElement ? rightElement : <View style={styles.rightPlaceholder} />}
     </View>
   );
 }
@@ -45,13 +51,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     flex: 1,
-    textAlign: "left",
-    marginLeft: 8,
+    textAlign: "center",
   },
   backButton: {
     padding: 4,
   },
   leftPlaceholder: {
-    width: 24,
+    width: 32,
+  },
+  rightPlaceholder: {
+    width: 32,
   },
 });

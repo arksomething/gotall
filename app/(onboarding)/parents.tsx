@@ -54,4 +54,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(ParentsScreen, 5, "parents", "generating");
+export default withOnboarding(ParentsScreen, 5, "parents", "shoe");

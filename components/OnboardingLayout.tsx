@@ -1,8 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
+  Animated,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,7 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 15;
 
 interface OnboardingLayoutProps {
   children: React.ReactNode;
@@ -39,6 +41,16 @@ export function OnboardingLayout({
   nextButtonStyle,
 }: OnboardingLayoutProps) {
   const insets = useSafeAreaInsets();
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  const animateScale = (toValue: number) => {
+    Animated.spring(scaleAnim, {
+      toValue,
+      useNativeDriver: true,
+      tension: 100,
+      friction: 10,
+    }).start();
+  };
 
   return (
     <KeyboardAvoidingView
@@ -49,21 +61,32 @@ export function OnboardingLayout({
       <View style={[styles.safeArea, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           {showBackButton && onBack && (
-            <TouchableOpacity style={styles.backArrow} onPress={onBack}>
-              <Ionicons name="arrow-back" size={24} color="#fff" />
-            </TouchableOpacity>
+            <Pressable
+              style={styles.backButton}
+              onPressIn={() => animateScale(0.9)}
+              onPressOut={() => animateScale(1)}
+              onPress={onBack}
+            >
+              <Animated.View
+                style={[
+                  styles.backButtonCircle,
+                  { transform: [{ scale: scaleAnim }] },
+                ]}
+              >
+                <Ionicons name="arrow-back" size={24} color="#fff" />
+              </Animated.View>
+            </Pressable>
           )}
 
           <View style={styles.progressContainer}>
-            {Array.from({ length: TOTAL_STEPS }).map((_, index) => (
+            <View style={styles.progressBar}>
               <View
-                key={index}
                 style={[
-                  styles.progressDot,
-                  index <= currentStep && styles.progressDotActive,
+                  styles.progressFill,
+                  { width: `${((currentStep + 1) / TOTAL_STEPS) * 100}%` },
                 ]}
               />
-            ))}
+            </View>
           </View>
         </View>
 
@@ -95,7 +118,10 @@ export function OnboardingLayout({
         >
           <View style={styles.buttonContainer}>
             {showBackButton && onBack && (
-              <TouchableOpacity style={styles.backButton} onPress={onBack}>
+              <TouchableOpacity
+                style={styles.bottomBackButton}
+                onPress={onBack}
+              >
                 <Ionicons name="chevron-back" size={20} color="#666" />
                 <Text style={styles.backButtonText}>Back</Text>
               </TouchableOpacity>
@@ -128,31 +154,38 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 24,
     paddingTop: Platform.OS === "ios" ? 12 : 16,
-  },
-  backArrow: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 12 : 16,
-    left: 24,
-    zIndex: 1,
-    padding: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 12,
   },
   progressContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flex: 1,
     paddingVertical: 24,
   },
-  progressDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#333",
-    marginHorizontal: 4,
+  backButton: {
+    alignSelf: "center",
   },
-  progressDotActive: {
+  backButtonCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#111",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  progressBar: {
+    width: "100%",
+    height: 4,
+    backgroundColor: "#333",
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
     backgroundColor: "#9ACD32",
+    borderRadius: 2,
   },
   titleContainer: {
     paddingHorizontal: 24,
@@ -187,7 +220,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 16,
   },
-  backButton: {
+  bottomBackButton: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 16,

@@ -1,19 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
-  Platform,
+  Animated,
+  Easing,
+  Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { withOnboarding } from "../../components/withOnboarding";
 import { parseHeightToCm } from "../../utils/heightUtils";
 import { useOnboarding } from "./_layout";
 
-export default withOnboarding(GeneratingScreen, 6, "generating", "projection");
+export default withOnboarding(GeneratingScreen, 11, "generating", "projection");
 
 function GeneratingScreen({ onNext }: { onNext?: () => void }) {
   const router = useRouter();
@@ -31,7 +33,71 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
     updateUserData,
   } = useOnboarding();
 
+  const progressAnim = React.useRef(new Animated.Value(0)).current;
+  const [displayText, setDisplayText] = useState("");
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const typingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const messageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const messages = [
+    "Now, let's change your life...",
+    "Analyzing the CDC data...",
+    "Creating your custom profile...",
+  ];
+
   useEffect(() => {
+    if (currentMessageIndex >= messages.length) return;
+
+    const message = messages[currentMessageIndex];
+    let currentCharIndex = 0;
+
+    typingIntervalRef.current = setInterval(async () => {
+      if (currentCharIndex <= message.length) {
+        setDisplayText((prev) => {
+          const lines = prev.split("\n");
+          lines[currentMessageIndex] = message.slice(0, currentCharIndex);
+          return lines.join("\n");
+        });
+
+        if (currentCharIndex > 0) {
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+        currentCharIndex++;
+      } else {
+        if (typingIntervalRef.current) {
+          clearInterval(typingIntervalRef.current);
+        }
+        messageTimeoutRef.current = setTimeout(() => {
+          if (currentMessageIndex < messages.length - 1) {
+            setCurrentMessageIndex((prev) => prev + 1);
+          }
+        }, 1000);
+      }
+    }, 30);
+
+    return () => {
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current);
+      }
+      if (messageTimeoutRef.current) {
+        clearTimeout(messageTimeoutRef.current);
+      }
+    };
+  }, [currentMessageIndex]);
+
+  useEffect(() => {
+    const LOADING_DURATION = 6000;
+
+    // Start progress bar animation
+    const animation = Animated.timing(progressAnim, {
+      toValue: 1,
+      duration: LOADING_DURATION,
+      easing: Easing.linear,
+      useNativeDriver: false,
+    });
+    animation.start();
+
     const completeOnboarding = async () => {
       try {
         const heightInCm = parseHeightToCm(
@@ -39,29 +105,29 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
           preferredHeightUnit as "ft" | "cm"
         );
 
-        // Simulate profile generation
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        // Wait for the exact same duration as the progress bar
+        loadingTimeoutRef.current = setTimeout(async () => {
+          await updateUserData({
+            heightCm: heightInCm,
+            dateOfBirth: dateOfBirth.toISOString().split("T")[0],
+            sex,
+            weight: parseFloat(weight) || 0,
+            motherHeightCm: parseHeightToCm(
+              motherHeight,
+              preferredHeightUnit as "ft" | "cm"
+            ),
+            fatherHeightCm: parseHeightToCm(
+              fatherHeight,
+              preferredHeightUnit as "ft" | "cm"
+            ),
+            ethnicity,
+            preferredWeightUnit: preferredWeightUnit as "lbs" | "kg",
+            preferredHeightUnit: preferredHeightUnit as "ft" | "cm",
+          });
 
-        await updateUserData({
-          heightCm: heightInCm,
-          dateOfBirth: dateOfBirth.toISOString().split("T")[0],
-          sex,
-          weight: parseFloat(weight) || 0,
-          motherHeightCm: parseHeightToCm(
-            motherHeight,
-            preferredHeightUnit as "ft" | "cm"
-          ),
-          fatherHeightCm: parseHeightToCm(
-            fatherHeight,
-            preferredHeightUnit as "ft" | "cm"
-          ),
-          ethnicity,
-          preferredWeightUnit: preferredWeightUnit as "lbs" | "kg",
-          preferredHeightUnit: preferredHeightUnit as "ft" | "cm",
-        });
-
-        // Move to projection screen without invoking onNext (avoids haptic)
-        router.push("/(onboarding)/projection" as any);
+          // Move to projection screen without invoking onNext (avoids haptic)
+          router.push("/(onboarding)/results" as any);
+        }, LOADING_DURATION);
       } catch (error) {
         setIsGenerating(false);
         router.back();
@@ -70,9 +136,28 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
     };
 
     completeOnboarding();
+
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+      animation.stop();
+    };
   }, []);
 
   const handleBack = () => {
+    // Clear all timeouts and intervals
+    if (typingIntervalRef.current) {
+      clearInterval(typingIntervalRef.current);
+    }
+    if (messageTimeoutRef.current) {
+      clearTimeout(messageTimeoutRef.current);
+    }
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+    }
+    // Stop the animation
+    progressAnim.stopAnimation();
     setIsGenerating(false);
     router.back();
   };
@@ -80,18 +165,30 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.loadingContainer}>
-        <TouchableOpacity style={styles.backArrow} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
+        <Pressable style={styles.backButton} onPress={handleBack}>
+          <View style={styles.backButtonCircle}>
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </View>
+        </Pressable>
         <Text style={styles.loadingTitle}>
-          Generating your custom{"\n"}profile based on data{"\n"}you've
-          provided...
+          {displayText}
+          <Text style={styles.cursor}>|</Text>
         </Text>
         <View style={styles.loadingIconContainer}>
           <Ionicons name="trending-up" size={48} color="#9ACD32" />
         </View>
         <View style={styles.progressBar}>
-          <View style={styles.progressFill} />
+          <Animated.View
+            style={[
+              styles.progressFill,
+              {
+                width: progressAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ["0%", "100%"],
+                }),
+              },
+            ]}
+          />
         </View>
       </View>
     </SafeAreaView>
@@ -109,12 +206,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 24,
   },
-  backArrow: {
+  backButton: {
     position: "absolute",
-    top: Platform.OS === "ios" ? 12 : 16,
-    left: 24,
+    left: 12,
+    top: 12,
     zIndex: 1,
-    padding: 8,
+  },
+  backButtonCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#111",
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingTitle: {
     color: "#fff",
@@ -123,6 +227,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 48,
     lineHeight: 36,
+  },
+  cursor: {
+    opacity: 1,
+    color: "#9ACD32",
   },
   loadingIconContainer: {
     width: 96,
@@ -142,7 +250,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   progressFill: {
-    width: "60%",
     height: "100%",
     backgroundColor: "#9ACD32",
     borderRadius: 3,

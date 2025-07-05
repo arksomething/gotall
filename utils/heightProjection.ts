@@ -77,7 +77,7 @@ function cmToFeetInches(cm: number): string {
 /**
  * Find the surrounding percentiles for a given height at a specific age
  */
-function findSurroundingPercentiles(heightCm: number, ageYears: number, sex: '1' | '2'): PercentileResult {
+export function findSurroundingPercentiles(heightCm: number, ageYears: number, sex: '1' | '2'): PercentileResult {
   const data = cdcData.filter(d => d.Sex === sex);
   if (data.length === 0) {
     throw new Error(`No data found for sex ${sex}. Available data: ${JSON.stringify(cdcData.map(d => d.Sex))}`);
@@ -271,8 +271,8 @@ export function calculateHeightProjection(userData: UserData): HeightData {
         lower: cdcProjections.lower,
         upper: cdcProjections.upper
       });
-      // Use the upper value for a more optimistic projection
-      cdcHeight = cdcProjections.upper || cdcProjections.lower || "";
+      // Use the lower value for a more optimistic projection
+      cdcHeight = cdcProjections.lower || cdcProjections.upper || "";
     } else {
       console.log("No CDC projections available");
     }

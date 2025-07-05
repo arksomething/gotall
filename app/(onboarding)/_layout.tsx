@@ -30,6 +30,10 @@ interface OnboardingContextType {
   setFatherHeight: (height: string) => void;
   ethnicity: string;
   setEthnicity: (ethnicity: string) => void;
+  usShoeSize: string;
+  setUsShoeSize: (size: string) => void;
+  euShoeSize: string;
+  setEuShoeSize: (size: string) => void;
   units: "imperial" | "metric";
   setUnits: (units: "imperial" | "metric") => void;
   motherHeightFocused: boolean;
@@ -46,11 +50,13 @@ interface OnboardingContextType {
   preferredHeightUnit: string;
   preferredWeightUnit: string;
   updateUserData: (data: Partial<UserData>) => Promise<void>;
+  dreamHeightCm: number | null;
+  setDreamHeightCm: (value: number) => void;
 }
 
-export const OnboardingContext = createContext<
-  OnboardingContextType | undefined
->(undefined);
+const OnboardingContext = createContext<OnboardingContextType | undefined>(
+  undefined
+);
 
 export function useOnboarding() {
   const context = useContext(OnboardingContext);
@@ -69,6 +75,8 @@ export default function OnboardingLayout() {
   const [motherHeight, setMotherHeight] = useState("5 ft 7 in");
   const [fatherHeight, setFatherHeight] = useState("5 ft 10 in");
   const [ethnicity, setEthnicity] = useState("");
+  const [usShoeSize, setUsShoeSize] = useState("9");
+  const [euShoeSize, setEuShoeSize] = useState("42");
   const [units, setUnits] = useState<"imperial" | "metric">("imperial");
 
   // Focus states
@@ -106,6 +114,8 @@ export default function OnboardingLayout() {
     }
   };
 
+  const [dreamHeightCm, setDreamHeightCm] = useState<number | null>(null);
+
   return (
     <OnboardingContext.Provider
       value={{
@@ -123,6 +133,10 @@ export default function OnboardingLayout() {
         setFatherHeight,
         ethnicity,
         setEthnicity,
+        usShoeSize,
+        setUsShoeSize,
+        euShoeSize,
+        setEuShoeSize,
         units,
         setUnits,
         motherHeightFocused,
@@ -139,12 +153,15 @@ export default function OnboardingLayout() {
         preferredHeightUnit,
         preferredWeightUnit,
         updateUserData,
+        dreamHeightCm,
+        setDreamHeightCm,
       }}
     >
       <Stack
         screenOptions={{
           headerShown: false,
           animation: "fade",
+          animationDuration: 150,
         }}
       >
         <Stack.Screen name="index" />
@@ -153,7 +170,13 @@ export default function OnboardingLayout() {
         <Stack.Screen name="ethnicity" />
         <Stack.Screen name="measurements" />
         <Stack.Screen name="parents" />
+        <Stack.Screen name="shoe" />
+        <Stack.Screen name="dream" />
+        <Stack.Screen name="product" />
+        <Stack.Screen name="reviews" />
+        <Stack.Screen name="short" />
         <Stack.Screen name="generating" />
+        <Stack.Screen name="results" />
         <Stack.Screen name="projection" />
         <Stack.Screen name="subscription" />
       </Stack>
