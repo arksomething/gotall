@@ -1,12 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useEffect, useState } from "react";
+import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
   Modal,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -15,6 +17,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "../../components/Header";
 import { databaseManager } from "../../utils/database";
+import { calculateHealthGoals } from "../../utils/healthGoals";
+import { useUserData } from "../../utils/UserContext";
 
 interface Goal {
   id?: number;
@@ -35,13 +39,46 @@ export default function StatsScreen() {
   );
   const [goals, setGoals] = useState<Goal[]>([]);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editGoalTitle, setEditGoalTitle] = useState("");
+  const [editGoalType, setEditGoalType] = useState<"boolean" | "numeric">(
+    "boolean"
+  );
+  const [editGoalUnit, setEditGoalUnit] = useState("");
+  const [editGoalValue, setEditGoalValue] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [tempValue, setTempValue] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { userData, getAge } = useUserData();
+  const [addGoalModalVisible, setAddGoalModalVisible] = useState(false);
+  const [newGoalTitle, setNewGoalTitle] = useState("");
+  const [newGoalType, setNewGoalType] = useState<"boolean" | "numeric">(
+    "boolean"
+  );
+  const [newGoalUnit, setNewGoalUnit] = useState("");
+  const [newGoalValue, setNewGoalValue] = useState("");
 
   const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
   const currentDay = new Date().getDay();
+
+  const fadeOut = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const fadeIn = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
 
   useEffect(() => {
     loadData();
@@ -73,23 +110,40 @@ export default function StatsScreen() {
 
   const loadData = async () => {
     try {
+      fadeOut();
       setIsLoading(true);
 
       // Initialize database
       await databaseManager.initialize();
 
+      // Calculate current health goals
+      const { sleepHours: targetSleep, calories: targetCalories } =
+        calculateHealthGoals(getAge(), userData.sex);
+
       // Load goals for the selected date
       const dateGoals = await databaseManager.getGoalsForDate(selectedDate);
-      const formattedGoals = dateGoals.map((goal: any) => ({
-        id: goal.id,
-        title: goal.title,
-        icon: goal.icon,
-        value: goal.completionValue || goal.value,
-        unit: goal.unit,
-        completed: goal.completed,
-        type: goal.type,
-        completionValue: goal.completionValue,
-      }));
+      const formattedGoals = dateGoals.map((goal: any) => {
+        let value = goal.completionValue || goal.value;
+        let displayTitle = goal.title;
+
+        // Update values based on latest calculations
+        if (goal.title === "Sleep Goal") {
+          value = value || targetSleep.toString();
+        } else if (goal.title === "Calorie Goal") {
+          value = value || targetCalories.toString();
+        }
+
+        return {
+          id: goal.id,
+          title: displayTitle,
+          icon: goal.icon,
+          value,
+          unit: goal.unit,
+          completed: goal.completed,
+          type: goal.type,
+          completionValue: goal.completionValue,
+        };
+      });
 
       setGoals(formattedGoals);
 
@@ -101,6 +155,7 @@ export default function StatsScreen() {
       Alert.alert("Error", "Failed to load goals data");
     } finally {
       setIsLoading(false);
+      fadeIn();
     }
   };
 
@@ -136,50 +191,109 @@ export default function StatsScreen() {
   };
 
   const openEditModal = (goal: Goal) => {
-    if (goal.type === "numeric") {
-      setEditingGoal(goal);
-      setTempValue(goal.value || "");
-      setModalVisible(true);
+    setEditingGoal(goal);
+    setEditGoalTitle(goal.title);
+    setEditGoalType(goal.type);
+    setEditGoalUnit(goal.unit || "");
+    setEditGoalValue(goal.value || "");
+    setEditModalVisible(true);
+  };
+
+  const saveEditedGoal = async () => {
+    if (!editingGoal || !editingGoal.id) return;
+
+    if (!editGoalTitle.trim()) {
+      Alert.alert("Validation", "Please enter a goal title");
+      return;
+    }
+
+    if (
+      editGoalType === "numeric" &&
+      (!editGoalValue.trim() || !editGoalUnit.trim())
+    ) {
+      Alert.alert(
+        "Validation",
+        "Please enter both a target value and unit for numeric goals"
+      );
+      return;
+    }
+
+    try {
+      await databaseManager.updateGoal(
+        editingGoal.id!,
+        editGoalTitle.trim(),
+        editGoalType,
+        editGoalType === "numeric" ? editGoalUnit.trim() : undefined,
+        editGoalType === "numeric" ? editGoalValue.trim() : undefined
+      );
+
+      setEditModalVisible(false);
+      await loadData();
+    } catch (error) {
+      console.error("Error updating goal:", error);
+      Alert.alert("Error", "Failed to update goal");
     }
   };
 
-  const saveGoalValue = async () => {
+  const handleDeleteGoal = async () => {
     if (!editingGoal || !editingGoal.id) return;
+    Alert.alert("Delete Goal", "Are you sure you want to delete this goal?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await databaseManager.deleteGoal(editingGoal.id!);
+            setEditModalVisible(false);
+            await loadData();
+          } catch (error) {
+            console.error("Error deleting goal:", error);
+            Alert.alert("Error", "Failed to delete goal");
+          }
+        },
+      },
+    ]);
+  };
 
-    try {
-      // Update in database for the selected date
-      await databaseManager.updateGoalCompletionForDate(
-        editingGoal.id,
-        selectedDate,
-        true,
-        tempValue
-      );
+  const openAddGoalModal = () => {
+    setNewGoalTitle("");
+    setNewGoalType("boolean");
+    setNewGoalUnit("");
+    setNewGoalValue("");
+    setAddGoalModalVisible(true);
+  };
 
-      // Update local state
-      setGoals((prev) =>
-        prev.map((goal) =>
-          goal.id === editingGoal.id
-            ? {
-                ...goal,
-                value: tempValue,
-                completed: true,
-                completionValue: tempValue,
-              }
-            : goal
-        )
-      );
-
-      // Reload streak count
-      const newStreak = await databaseManager.getStreakCount();
-      setCurrentStreak(newStreak);
-    } catch (error) {
-      console.error("Error saving goal value:", error);
-      Alert.alert("Error", "Failed to save goal value");
+  const saveNewGoal = async () => {
+    if (!newGoalTitle.trim()) {
+      Alert.alert("Validation", "Please enter a goal title");
+      return;
     }
 
-    setModalVisible(false);
-    setEditingGoal(null);
-    setTempValue("");
+    if (
+      newGoalType === "numeric" &&
+      (!newGoalValue.trim() || !newGoalUnit.trim())
+    ) {
+      Alert.alert(
+        "Validation",
+        "Please enter both a target value and unit for numeric goals"
+      );
+      return;
+    }
+    try {
+      await databaseManager.createGoal(
+        newGoalTitle.trim(),
+        "checkmark",
+        newGoalType,
+        newGoalType === "numeric" ? newGoalUnit.trim() : undefined,
+        newGoalType === "numeric" ? newGoalValue.trim() : undefined
+      );
+      setAddGoalModalVisible(false);
+      await loadData();
+    } catch (error) {
+      console.error("Error creating goal:", error);
+      Alert.alert("Error", "Failed to create goal");
+    }
   };
 
   const getGoalIcon = (iconName: string) => {
@@ -209,7 +323,7 @@ export default function StatsScreen() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && goals.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
@@ -221,8 +335,27 @@ export default function StatsScreen() {
 
   return (
     <View style={[styles.container]}>
-      <Header title={formatSelectedDate()} showBackButton={false} />
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <Header
+        title={formatSelectedDate()}
+        showBackButton={false}
+        rightElement={
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/profile")}
+            style={{
+              width: 32,
+              height: 32,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons name="settings-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+        }
+      />
+      <Animated.ScrollView
+        style={[styles.content, { opacity: fadeAnim }]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Streak */}
         <View style={styles.streakSection}>
           <Text style={styles.streakText}>{currentStreak} day streak 🔥</Text>
@@ -276,14 +409,12 @@ export default function StatsScreen() {
                 <Text style={styles.goalTitle}>{goal.title}</Text>
               </TouchableOpacity>
 
-              {goal.type === "numeric" && (
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => openEditModal(goal)}
-                >
-                  <Ionicons name="create-outline" size={20} color="#9ACD32" />
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => openEditModal(goal)}
+              >
+                <Ionicons name="create-outline" size={20} color="#9ACD32" />
+              </TouchableOpacity>
 
               {goal.type === "numeric" && goal.value && (
                 <>
@@ -300,51 +431,162 @@ export default function StatsScreen() {
                 </>
               )}
 
-              {goal.type === "boolean" && (
-                <TouchableOpacity style={styles.editButton}>
-                  <Ionicons name="create-outline" size={20} color="#9ACD32" />
-                </TouchableOpacity>
-              )}
+              {goal.type === "boolean" && <></>}
             </View>
           ))}
         </View>
 
         {/* Add Task Button */}
-        <TouchableOpacity style={styles.addTaskButton}>
-          <Text style={styles.addTaskText}>Add Task</Text>
+        <TouchableOpacity
+          style={styles.addTaskButton}
+          onPress={openAddGoalModal}
+        >
+          <Text style={styles.addTaskText}>Add Goal</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </Animated.ScrollView>
 
-      {/* Edit Modal */}
+      {/* Edit Goal Modal */}
       <Modal
-        visible={modalVisible}
+        visible={editModalVisible}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={() => setEditModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit {editingGoal?.title}</Text>
+            {/* Delete icon */}
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={handleDeleteGoal}
+            >
+              <Ionicons name="trash-outline" size={20} color="#FF6666" />
+            </TouchableOpacity>
+
+            <Text style={styles.modalTitle}>Edit Goal</Text>
+
             <TextInput
               style={styles.modalInput}
-              value={tempValue}
-              onChangeText={setTempValue}
-              placeholder="Enter value"
+              value={editGoalTitle}
+              onChangeText={setEditGoalTitle}
+              placeholder="Goal title"
               placeholderTextColor="#666"
-              keyboardType="numeric"
             />
+
+            {/* Numeric extras */}
+            {editGoalType === "numeric" && (
+              <View style={styles.compactInputRow}>
+                <TextInput
+                  style={[styles.modalInputCompact, { flex: 1 }]}
+                  value={editGoalValue}
+                  onChangeText={setEditGoalValue}
+                  placeholder="Target"
+                  placeholderTextColor="#666"
+                  keyboardType="numeric"
+                />
+                <TextInput
+                  style={[styles.modalInputCompact, { width: 80 }]}
+                  value={editGoalUnit}
+                  onChangeText={setEditGoalUnit}
+                  placeholder="Unit"
+                  placeholderTextColor="#666"
+                />
+              </View>
+            )}
+
+            {/* Type Switch */}
+            <View style={styles.switchRow}>
+              <Text style={styles.switchLabel}>Numeric goal</Text>
+              <Switch
+                value={editGoalType === "numeric"}
+                onValueChange={(val) =>
+                  setEditGoalType(val ? "numeric" : "boolean")
+                }
+                trackColor={{ false: "#666", true: "#9ACD32" }}
+                thumbColor={editGoalType === "numeric" ? "#000" : "#fff"}
+              />
+            </View>
+
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.modalButton}
-                onPress={() => setModalVisible(false)}
+                onPress={() => setEditModalVisible(false)}
               >
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonPrimary]}
-                onPress={saveGoalValue}
+                onPress={saveEditedGoal}
               >
                 <Text style={styles.modalButtonTextPrimary}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add Goal Modal */}
+      <Modal
+        visible={addGoalModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setAddGoalModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>New Goal</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={newGoalTitle}
+              onChangeText={setNewGoalTitle}
+              placeholder="Goal title"
+              placeholderTextColor="#666"
+            />
+
+            {/* Numeric goal extra fields */}
+            {newGoalType === "numeric" && (
+              <View style={styles.compactInputRow}>
+                <TextInput
+                  style={[styles.modalInputCompact, { flex: 1 }]}
+                  value={newGoalValue}
+                  onChangeText={setNewGoalValue}
+                  placeholder="Target"
+                  placeholderTextColor="#666"
+                  keyboardType="numeric"
+                />
+                <TextInput
+                  style={[styles.modalInputCompact, { width: 80 }]}
+                  value={newGoalUnit}
+                  onChangeText={setNewGoalUnit}
+                  placeholder="Unit"
+                  placeholderTextColor="#666"
+                />
+              </View>
+            )}
+
+            {/* Goal Type Switch */}
+            <View style={styles.switchRow}>
+              <Text style={styles.switchLabel}>Numeric goal</Text>
+              <Switch
+                value={newGoalType === "numeric"}
+                onValueChange={(val) =>
+                  setNewGoalType(val ? "numeric" : "boolean")
+                }
+                trackColor={{ false: "#666", true: "#9ACD32" }}
+                thumbColor={newGoalType === "numeric" ? "#000" : "#fff"}
+              />
+            </View>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => setAddGoalModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonPrimary]}
+                onPress={saveNewGoal}
+              >
+                <Text style={styles.modalButtonTextPrimary}>Add</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -382,23 +624,26 @@ const styles = StyleSheet.create({
   },
   weekSection: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-evenly",
+    alignItems: "center",
     paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
+    borderBottomWidth: 2,
+    borderBottomColor: "#111",
     marginBottom: 30,
+    width: "100%",
   },
   dayContainer: {
     alignItems: "center",
-    padding: 8,
-    minWidth: 40,
-    minHeight: 40,
     justifyContent: "center",
+    width: 45,
+    height: 45,
+    paddingVertical: 8,
   },
   dayText: {
     color: "#666",
     fontSize: 16,
     fontWeight: "500",
+    textAlign: "center",
   },
   currentDayText: {
     color: "#9ACD32",
@@ -409,10 +654,10 @@ const styles = StyleSheet.create({
   },
   selectedDayIndicator: {
     width: 20,
-    height: 2,
+    height: 3,
     backgroundColor: "#9ACD32",
     borderRadius: 1,
-    marginTop: 5,
+    marginTop: 4,
   },
   goalsSection: {
     marginBottom: 30,
@@ -421,8 +666,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
+    borderBottomWidth: 2,
+    borderBottomColor: "#111",
   },
   goalCheckbox: {
     marginRight: 15,
@@ -482,7 +727,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#111",
     borderRadius: 12,
     padding: 20,
     width: "80%",
@@ -495,7 +740,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   modalInput: {
-    backgroundColor: "#333",
+    backgroundColor: "#111",
     borderRadius: 8,
     padding: 12,
     color: "#fff",
@@ -511,7 +756,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
-    backgroundColor: "#333",
+    backgroundColor: "#111",
   },
   modalButtonPrimary: {
     backgroundColor: "#9ACD32",
@@ -525,5 +770,59 @@ const styles = StyleSheet.create({
     color: "#000",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  typeSelection: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 20,
+  },
+  typeButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    backgroundColor: "#111",
+  },
+  typeButtonSelected: {
+    backgroundColor: "#9ACD32",
+  },
+  typeButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  typeButtonTextSelected: {
+    color: "#000",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  switchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  switchLabel: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  compactInputRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 20,
+  },
+  modalInputCompact: {
+    backgroundColor: "#111",
+    borderRadius: 8,
+    padding: 12,
+    color: "#fff",
+    fontSize: 16,
+  },
+  deleteButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    padding: 6,
   },
 });

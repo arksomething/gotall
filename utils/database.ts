@@ -210,16 +210,18 @@ export class DatabaseManager {
       const existingStaticGoals = await db.getAllAsync('SELECT COUNT(*) as count FROM goals WHERE active = 1') as any[];
       
       if (existingStaticGoals[0].count === 0) {
+        // Use default values for initial goals
+        // These will be updated dynamically when displayed
         const staticGoals = [
-          { title: 'Hours slept', icon: 'moon', type: 'numeric', unit: 'hrs' },
-          { title: 'Calorie Goal', icon: 'fitness', type: 'numeric', unit: 'kcals' }
+          { title: 'Sleep Goal', icon: 'moon', type: 'numeric', unit: 'hrs', value: '8' },
+          { title: 'Calorie Goal', icon: 'fitness', type: 'numeric', unit: 'kcals', value: '2000' }
         ];
 
         for (const goal of staticGoals) {
           await db.runAsync(
-            `INSERT INTO goals (title, icon, type, unit, active, created_at, updated_at)
-             VALUES (?, ?, ?, ?, 1, ?, ?)`,
-            [goal.title, goal.icon, goal.type, goal.unit || null, now, now]
+            `INSERT INTO goals (title, icon, type, unit, value, active, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
+            [goal.title, goal.icon, goal.type, goal.unit, goal.value, now, now]
           );
         }
         console.log('Inserted static goals');
@@ -284,56 +286,56 @@ export class DatabaseManager {
 
   async generateDailyGoals(date: string): Promise<void> {
     const db = await this.getDb();
-    
+    const now = new Date().toISOString();
+
     try {
-      const now = new Date().toISOString();
-      
-      // Check if daily goals already exist for this date
-      const existingDailyGoals = await db.getAllAsync(
+      // First check if we already have ANY goals for this date
+      const existingGoals = await db.getAllAsync(
         'SELECT COUNT(*) as count FROM daily_goals WHERE date = ?',
         [date]
       ) as any[];
-      
-      // Only generate if no daily goals exist for this date
-      if (existingDailyGoals[0].count === 0) {
-        // Pick one random stretch
-        const randomStretch = stretches[Math.floor(Math.random() * stretches.length)];
-        
-        // Pick one random task
-        const randomTask = dailyTasks[Math.floor(Math.random() * dailyTasks.length)];
-        
-        console.log(`Selected stretch: ${randomStretch.name}`);
-        console.log(`Selected task: ${randomTask.name}`);
-        
-        // Insert stretch as a goal
-        const stretchResult = await db.runAsync(
-          `INSERT INTO goals (title, icon, type, unit, active, created_at, updated_at)
-           VALUES (?, ?, ?, ?, 0, ?, ?)`,
-          [randomStretch.name, randomStretch.emoji, 'boolean', null, now, now]
-        );
-        
-        // Insert task as a goal
-        const taskResult = await db.runAsync(
-          `INSERT INTO goals (title, icon, type, unit, active, created_at, updated_at)
-           VALUES (?, ?, ?, ?, 0, ?, ?)`,
-          [randomTask.name, randomTask.emoji, 'boolean', randomTask.duration, now, now]
-        );
-        
-        // Link them to this specific date
-        await db.runAsync(
-          'INSERT INTO daily_goals (date, goal_id, created_at) VALUES (?, ?, ?)',
-          [date, stretchResult.lastInsertRowId, now]
-        );
-        
-        await db.runAsync(
-          'INSERT INTO daily_goals (date, goal_id, created_at) VALUES (?, ?, ?)',
-          [date, taskResult.lastInsertRowId, now]
-        );
-        
-        console.log(`Daily goals generated for ${date}: ${randomStretch.name} + ${randomTask.name}`);
-      } else {
-        console.log(`Daily goals already exist for ${date}`);
+
+      // If we already have goals for this date, don't generate more
+      if (existingGoals[0].count > 0) {
+        console.log(`Daily goals already exist for ${date}, skipping generation`);
+        return;
       }
+
+      // Pick one random stretch
+      const randomStretch = stretches[Math.floor(Math.random() * stretches.length)];
+      
+      // Pick one random task
+      const randomTask = dailyTasks[Math.floor(Math.random() * dailyTasks.length)];
+      
+      console.log(`Selected stretch: ${randomStretch.name}`);
+      console.log(`Selected task: ${randomTask.name}`);
+      
+      // Insert stretch as a goal
+      const stretchResult = await db.runAsync(
+        `INSERT INTO goals (title, icon, type, unit, active, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 0, ?, ?)`,
+        [randomStretch.name, randomStretch.emoji, 'boolean', null, now, now]
+      );
+      
+      // Insert task as a goal
+      const taskResult = await db.runAsync(
+        `INSERT INTO goals (title, icon, type, unit, active, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 0, ?, ?)`,
+        [randomTask.name, randomTask.emoji, 'boolean', randomTask.duration, now, now]
+      );
+      
+      // Link them to this specific date
+      await db.runAsync(
+        'INSERT INTO daily_goals (date, goal_id, created_at) VALUES (?, ?, ?)',
+        [date, stretchResult.lastInsertRowId, now]
+      );
+      
+      await db.runAsync(
+        'INSERT INTO daily_goals (date, goal_id, created_at) VALUES (?, ?, ?)',
+        [date, taskResult.lastInsertRowId, now]
+      );
+      
+      console.log(`Daily goals generated for ${date}: ${randomStretch.name} + ${randomTask.name}`);
     } catch (error) {
       console.error('Error generating daily goals:', error);
     }
@@ -341,18 +343,33 @@ export class DatabaseManager {
 
   async getGoalsForToday(): Promise<(Goal & { completed: boolean; completionValue?: string })[]> {
     const db = await this.getDb();
-    
     const today = new Date().toISOString().split('T')[0];
     
     try {
-      // Generate daily goals for today if they don't exist
-      await this.generateDailyGoals(today);
-      
-      // Get static goals (always active) and daily goals for today
+      // Ensure static goals exist
+      const staticCountResult = await db.getFirstAsync(
+        'SELECT COUNT(*) as count FROM goals WHERE active = 1'
+      ) as any;
+      if (staticCountResult.count === 0) {
+        await this.insertDefaultGoals();
+      }
+
+      // First check if we have any goals for today
+      const existingGoals = await db.getAllAsync(
+        'SELECT COUNT(*) as count FROM daily_goals WHERE date = ?',
+        [today]
+      ) as any[];
+
+      // Only generate if we have no goals at all for today
+      if (existingGoals[0].count === 0) {
+        await this.generateDailyGoals(today);
+      }
+
+      // Get all goals for today (both static and daily)
       const results = await db.getAllAsync(`
         SELECT 
           g.*,
-          COALESCE(gc.completed, 0) as completed,
+          gc.completed,
           gc.value as completion_value
         FROM goals g
         LEFT JOIN goal_completions gc ON g.id = gc.goal_id AND gc.date = ?
@@ -402,14 +419,28 @@ export class DatabaseManager {
     const db = await this.getDb();
     
     try {
-      // Generate daily goals for the specified date if they don't exist
-      await this.generateDailyGoals(date);
-      
-      // Get static goals (always active) and daily goals for the specified date
+      // Ensure static goals exist
+      const staticCountResult = await db.getFirstAsync(
+        'SELECT COUNT(*) as count FROM goals WHERE active = 1'
+      ) as any;
+      if (staticCountResult.count === 0) {
+        await this.insertDefaultGoals();
+      }
+
+      // Generate daily goals for the requested date if missing
+      const dailyCountResult = await db.getFirstAsync(
+        'SELECT COUNT(*) as count FROM daily_goals WHERE date = ?',
+        [date]
+      ) as any;
+      if (dailyCountResult.count === 0) {
+        await this.generateDailyGoals(date);
+      }
+
+      // Get all goals for the specified date (both static and daily)
       const results = await db.getAllAsync(`
         SELECT 
           g.*,
-          COALESCE(gc.completed, 0) as completed,
+          gc.completed,
           gc.value as completion_value
         FROM goals g
         LEFT JOIN goal_completions gc ON g.id = gc.goal_id AND gc.date = ?
@@ -422,7 +453,7 @@ export class DatabaseManager {
         id: result.id,
         title: result.title,
         icon: result.icon,
-        value: result.value,
+        value: result.completionValue || result.value,
         unit: result.unit,
         type: result.type as 'boolean' | 'numeric',
         active: result.active,
@@ -716,6 +747,96 @@ export class DatabaseManager {
     } catch (error) {
       console.error('Error getting logs by date range:', error);
       return [];
+    }
+  }
+
+  async getUserData(): Promise<any> {
+    const db = await this.getDb();
+    try {
+      const result = await db.getFirstAsync(
+        'SELECT * FROM user_data WHERE id = 1'
+      ) as any;
+      return result || {};
+    } catch (error) {
+      console.error('Error getting user data:', error);
+      return {};
+    }
+  }
+
+  async getHeightPredictions(): Promise<any> {
+    const db = await this.getDb();
+    try {
+      const result = await db.getFirstAsync(
+        'SELECT * FROM height_predictions WHERE id = 1'
+      ) as any;
+      return result || {};
+    } catch (error) {
+      console.error('Error getting height predictions:', error);
+      return {};
+    }
+  }
+
+  async getCalorieData(date: string): Promise<any> {
+    const db = await this.getDb();
+    try {
+      const result = await db.getFirstAsync(
+        'SELECT * FROM calorie_data WHERE date = ?',
+        [date]
+      ) as any;
+      return result || {};
+    } catch (error) {
+      console.error('Error getting calorie data:', error);
+      return {};
+    }
+  }
+
+  async createGoal(title: string, icon: string, type: 'boolean' | 'numeric', unit?: string, value?: string): Promise<number> {
+    const db = await this.getDb();
+
+    const now = new Date().toISOString();
+
+    try {
+      const result = await db.runAsync(
+        `INSERT INTO goals (title, icon, type, unit, value, active, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
+        [title, icon, type, unit || null, value || null, now, now]
+      );
+      return result.lastInsertRowId as number;
+    } catch (error) {
+      console.error('Error creating goal:', error);
+      throw error;
+    }
+  }
+
+  // Update an existing goal's metadata
+  async updateGoal(goalId: number, title: string, type: 'boolean' | 'numeric', unit?: string, value?: string): Promise<void> {
+    const db = await this.getDb();
+
+    const now = new Date().toISOString();
+
+    try {
+      await db.runAsync(
+        `UPDATE goals SET title = ?, type = ?, unit = ?, value = ?, updated_at = ? WHERE id = ?`,
+        [title, type, unit || null, value || null, now, goalId]
+      );
+    } catch (error) {
+      console.error('Error updating goal:', error);
+      throw error;
+    }
+  }
+
+  // Delete a goal and associated records
+  async deleteGoal(goalId: number): Promise<void> {
+    const db = await this.getDb();
+
+    try {
+      // Remove dependent records first because of FK constraints
+      await db.runAsync('DELETE FROM goal_completions WHERE goal_id = ?', [goalId]);
+      await db.runAsync('DELETE FROM daily_goals WHERE goal_id = ?', [goalId]);
+      await db.runAsync('DELETE FROM goals WHERE id = ?', [goalId]);
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      throw error;
     }
   }
 }

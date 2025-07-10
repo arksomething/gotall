@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Dimensions,
@@ -21,6 +22,7 @@ export default function HabitScreen() {
   const [selectedStretch, setSelectedStretch] = useState<Stretch>(stretches[4]); // Default to "Forward Bend"
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const toggleCard = (index: number) => {
     setSelectedCards((prev) =>
@@ -39,7 +41,22 @@ export default function HabitScreen() {
 
   return (
     <View style={[styles.container]}>
-      <Header title="Exercises" />
+      <Header
+        title="Exercises"
+        rightElement={
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/profile")}
+            style={{
+              width: 32,
+              height: 32,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons name="settings-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+        }
+      />
 
       {/* Exercise Selection */}
       <View style={styles.exerciseSection}>
@@ -136,13 +153,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   exerciseDropdown: {
-    backgroundColor: "#333",
+    backgroundColor: "#111",
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: "#555",
+    borderColor: "#111",
   },
   dropdownContent: {
     flexDirection: "row",
@@ -186,14 +203,14 @@ const styles = StyleSheet.create({
   smallCard: {
     flex: 1,
     height: 80,
-    backgroundColor: "#333",
+    backgroundColor: "#111",
     borderRadius: 12,
   },
   greenCard: {
     backgroundColor: "#9ACD32",
   },
   selectedCard: {
-    backgroundColor: "#555",
+    backgroundColor: "#111",
     borderWidth: 2,
     borderColor: "#9ACD32",
   },
@@ -222,7 +239,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   dropdownModal: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#111",
     borderRadius: 12,
     width: "90%",
     height: "70%",
@@ -240,8 +257,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
+    borderBottomWidth: 2,
+    borderBottomColor: "#111",
   },
   dropdownEmoji: {
     fontSize: 24,
@@ -264,7 +281,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 6,
     paddingHorizontal: 12,
-    backgroundColor: "#333",
+    backgroundColor: "#111",
     borderRadius: 6,
     alignSelf: "flex-start",
   },
@@ -280,7 +297,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   detailModal: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#111",
     borderRadius: 12,
     width: "95%",
     maxHeight: "90%",
@@ -320,7 +337,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   instructionsContainer: {
-    backgroundColor: "#2a2a2a",
+    backgroundColor: "#111",
     margin: 20,
     padding: 15,
     borderRadius: 8,
@@ -337,7 +354,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   targetTag: {
-    backgroundColor: "#333",
+    backgroundColor: "#111",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 15,
@@ -350,7 +367,7 @@ const styles = StyleSheet.create({
   durationDetail: {
     color: "#fff",
     fontSize: 16,
-    backgroundColor: "#2a2a2a",
+    backgroundColor: "#111",
     padding: 10,
     borderRadius: 8,
   },

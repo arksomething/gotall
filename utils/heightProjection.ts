@@ -32,6 +32,23 @@ interface CDCDataPoint {
   P97: string;
 }
 
+interface HeightDataPoint {
+  Sex: string;
+  Agemos: string;
+  L: string;
+  M: string;
+  S: string;
+  P3: string;
+  P5: string;
+  P10: string;
+  P25: string;
+  P50: string;
+  P75: string;
+  P90: string;
+  P95: string;
+  P97: string;
+}
+
 type PercentileKey = 'P3' | 'P5' | 'P10' | 'P25' | 'P50' | 'P75' | 'P90' | 'P95' | 'P97';
 const PERCENTILES = [3, 5, 10, 25, 50, 75, 90, 95, 97];
 
@@ -340,4 +357,77 @@ export function compareHeights(height1: string, height2: string): string {
   const totalInches2 = feet2 * 12 + inches2;
 
   return totalInches1 >= totalInches2 ? height1 : height2;
+}
+
+export function calculatePercentile(sex: string, age: number, currentHeight: number) {
+  // Find the closest age data point
+  const closestDataPoint = (cdcData as HeightDataPoint[])
+    .filter((item) => item.Sex === sex)
+    .reduce((prev, curr) => {
+      const prevDiff = Math.abs(parseFloat(prev.Agemos) - age);
+      const currDiff = Math.abs(parseFloat(curr.Agemos) - age);
+      return currDiff < prevDiff ? curr : prev;
+    });
+
+  if (!closestDataPoint) return null;
+
+  const formatPercentile = (p: string) => {
+    const num = parseInt(p.substring(1));
+    if (num === 3) return "3rd";
+    return `${num}th`;
+  };
+
+  const percentiles = [
+    { name: "P3", value: parseFloat(closestDataPoint.P3), display: "3rd" },
+    { name: "P5", value: parseFloat(closestDataPoint.P5), display: "5th" },
+    { name: "P10", value: parseFloat(closestDataPoint.P10), display: "10th" },
+    { name: "P25", value: parseFloat(closestDataPoint.P25), display: "25th" },
+    { name: "P50", value: parseFloat(closestDataPoint.P50), display: "50th" },
+    { name: "P75", value: parseFloat(closestDataPoint.P75), display: "75th" },
+    { name: "P90", value: parseFloat(closestDataPoint.P90), display: "90th" },
+    { name: "P95", value: parseFloat(closestDataPoint.P95), display: "95th" },
+    { name: "P97", value: parseFloat(closestDataPoint.P97), display: "97th" },
+  ];
+
+  if (currentHeight < percentiles[0].value) {
+    return {
+      range: "Below 3rd percentile",
+      lowerBound: null,
+      upperBound: percentiles[0],
+      lowerName: "Below",
+      upperName: "3rd percentile",
+    };
+  }
+  if (currentHeight > percentiles[8].value) {
+    return {
+      range: "Above 97th percentile",
+      lowerBound: percentiles[8],
+      upperBound: null,
+      lowerName: "97th percentile",
+      upperName: "Above",
+    };
+  }
+
+  for (let i = 0; i < percentiles.length - 1; i++) {
+    if (
+      currentHeight >= percentiles[i].value &&
+      currentHeight <= percentiles[i + 1].value
+    ) {
+      return {
+        range: `${percentiles[i].display} - ${percentiles[i + 1].display} percentile`,
+        lowerBound: percentiles[i],
+        upperBound: percentiles[i + 1],
+        lowerName: `${percentiles[i].display} percentile`,
+        upperName: `${percentiles[i + 1].display} percentile`,
+      };
+    }
+  }
+
+  return {
+    range: "50th percentile",
+    lowerBound: percentiles[4],
+    upperBound: percentiles[4],
+    lowerName: "50th percentile",
+    upperName: "50th percentile",
+  }; // Default to median
 } 

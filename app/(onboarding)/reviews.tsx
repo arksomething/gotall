@@ -23,13 +23,16 @@ function ReviewsScreen({
       <View style={styles.container}>
         <View style={styles.statsBanner}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>140+</Text>
-            <Text style={styles.statLabel}>Users</Text>
+            <Text style={styles.statNumber}>10,000+</Text>
+            <Text style={styles.statLabel}>Community</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>5</Text>
-            <Text style={styles.statLabel}>⭐ Rating</Text>
+            <Image
+              source={require("../../assets/images/starlaurel.png")}
+              style={styles.laurelImage}
+              resizeMode="contain"
+            />
           </View>
         </View>
 
@@ -39,8 +42,11 @@ function ReviewsScreen({
               <Text style={styles.avatarText}>IN</Text>
             </View>
             <View style={styles.reviewMeta}>
-              <Text style={styles.reviewName}>Ian N.</Text>
-              <Text style={styles.reviewStats}>Age 16 • +1.3 inches</Text>
+              <View style={styles.reviewTopLine}>
+                <Text style={styles.reviewName}>Ian N.</Text>
+                <Text style={styles.reviewInches}>+1.3 inches</Text>
+              </View>
+              <Text style={styles.reviewAge}>Age 16</Text>
             </View>
           </View>
           <Text style={styles.reviewText}>
@@ -58,8 +64,11 @@ function ReviewsScreen({
               />
             </View>
             <View style={styles.reviewMeta}>
-              <Text style={styles.reviewName}>Daniil K.</Text>
-              <Text style={styles.reviewStats}>Age 15 • +1.8 inches</Text>
+              <View style={styles.reviewTopLine}>
+                <Text style={styles.reviewName}>Daniil K.</Text>
+                <Text style={styles.reviewInches}>+1.8 inches</Text>
+              </View>
+              <Text style={styles.reviewAge}>Age 15</Text>
             </View>
           </View>
           <Text style={styles.reviewText}>
@@ -72,14 +81,17 @@ function ReviewsScreen({
         <View style={styles.reviewCard}>
           <View style={styles.reviewHeader}>
             <View style={styles.avatarContainer}>
-            <Image
+              <Image
                 source={require("../../assets/images/pfp3.jpg")}
                 style={styles.avatarImage}
               />
             </View>
             <View style={styles.reviewMeta}>
-              <Text style={styles.reviewName}>Bagkar N.</Text>
-              <Text style={styles.reviewStats}>Age 17 • +1.5 inches</Text>
+              <View style={styles.reviewTopLine}>
+                <Text style={styles.reviewName}>Bagkar N.</Text>
+                <Text style={styles.reviewInches}>+1.5 inches</Text>
+              </View>
+              <Text style={styles.reviewAge}>Age 17</Text>
             </View>
           </View>
           <Text style={styles.reviewText}>
@@ -108,6 +120,7 @@ const styles = StyleSheet.create({
   statItem: {
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
   },
   statNumber: {
     color: "#fff",
@@ -122,6 +135,7 @@ const styles = StyleSheet.create({
     width: 1,
     height: "100%",
     backgroundColor: "#9ACD32",
+    marginHorizontal: 16,
   },
   reviewCard: {
     backgroundColor: "#111",
@@ -150,13 +164,23 @@ const styles = StyleSheet.create({
   reviewMeta: {
     flex: 1,
   },
+  reviewTopLine: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 2,
+  },
   reviewName: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-    marginBottom: 2,
   },
-  reviewStats: {
+  reviewInches: {
+    color: "#9ACD32",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  reviewAge: {
     color: "#9ACD32",
     fontSize: 14,
   },
@@ -170,5 +194,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+  },
+  laurelImage: {
+    width: "100%",
+    height: undefined,
+    aspectRatio: 2.5,
   },
 });

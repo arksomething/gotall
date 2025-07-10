@@ -1,5 +1,5 @@
 import { Picker } from "@react-native-picker/picker";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Platform, StyleSheet, Switch, Text, View } from "react-native";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import {
@@ -46,6 +46,13 @@ function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
     dreamHeightCm || DEFAULT_HEIGHT
   );
   const [isMetric, setIsMetric] = useState(false);
+
+  // Set default dream height if not already set
+  useEffect(() => {
+    if (!dreamHeightCm) {
+      setDreamHeightCm(DEFAULT_HEIGHT);
+    }
+  }, [dreamHeightCm, setDreamHeightCm]);
 
   const heightOptions = generateHeightOptions(isMetric);
 

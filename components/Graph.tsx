@@ -233,7 +233,7 @@ const Graph: React.FC<GraphProps> = ({
     backgroundGradientFrom: "#000000",
     backgroundGradientTo: "#000000",
     decimalPlaces: 0,
-    color: () => `rgba(255, 255, 255, 0.1)`,
+    color: () => "#111",
     labelColor: () => `rgba(240, 240, 240, 1)`,
     style: {
       borderRadius: 16,
@@ -252,7 +252,7 @@ const Graph: React.FC<GraphProps> = ({
     fillShadowGradientOpacity: 0,
     propsForBackgroundLines: {
       strokeDasharray: "",
-      stroke: "rgba(255, 255, 255, 0.1)",
+      stroke: "#111",
       strokeWidth: 1,
     },
     propsForVerticalLabels: {
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 0,
     marginVertical: 4,
     borderWidth: 1,
-    borderColor: "#1a1a2e",
+    borderColor: "#111",
     alignItems: "center",
   },
   chartContainer: {
@@ -381,13 +381,15 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#1a1a2e",
+    borderColor: "#111",
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 56, // Match height of the progress bar card
   },
   growthProgressBar: {
     width: "100%",
     height: 4,
-    backgroundColor: "#1a1a2e",
+    backgroundColor: "#111",
     borderRadius: 2,
     marginBottom: 8,
   },

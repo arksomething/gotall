@@ -2,7 +2,7 @@
   "expo": {
     "name": "GoTall",
     "slug": "gotall",
-    "version": "1.1.0",
+    "version": "1.2.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "gotall",
@@ -24,7 +24,7 @@
         "backgroundColor": "#C8FA43"
       },
       "edgeToEdgeEnabled": true,
-      "package": "app.gotall.android",
+      "package": "app.gotall.play",
       "versionCode": 1,
       "googleServicesFile": "./google-services.json",
       "permissions": [
@@ -59,16 +59,19 @@
           "ios": {
             "useFrameworks": "static",
             "modularHeaders": true,
+            "deploymentTarget": "15.4",
             "googleServicesFile": "./GoogleService-Info.plist"
           },
           "android": {
-            "googleServicesFile": "./google-services.json"
+            "googleServicesFile": "./google-services.json",
+            "minSdkVersion": 26
           }
         }
       ],
       "expo-sqlite",
       "expo-web-browser",
-      "@react-native-firebase/app"
+      "@react-native-firebase/app",
+      ["./withTikTokAppEvents.js", { "appId": "7524706160773890066" }]
     ],
     "experiments": {
       "typedRoutes": true
@@ -77,7 +80,9 @@
       "router": {},
       "eas": {
         "projectId": "bb43a5e3-9cb1-4555-bab8-d7a323adf786"
-      }
+      },
+      "tiktokAppId": "7524706160773890066",
+      "superwallApiKey": "pk_68548f664dc96cb56802ef3333e141d1be13d6ce620cf190"
     },
     "runtimeVersion": "1.0.1",
     "updates": {

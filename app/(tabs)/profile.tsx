@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "../../components/Header";
 import { useOnboarding } from "../../utils/OnboardingContext";
 import { useUserData } from "../../utils/UserContext";
+import { databaseManager } from "../../utils/database";
 
 export default function ProfileScreen() {
   const {
@@ -98,12 +99,44 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleResetGoals = () => {
+    Alert.alert(
+      "Reset Goals",
+      "This will delete ALL goals and recreate the default ones. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Reset",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // Delete all goals
+              await databaseManager.purgeAllGoals();
+              // Recreate default goals
+              await databaseManager.insertDefaultGoals();
+              Alert.alert("Success", "All goals have been reset to defaults");
+            } catch (error) {
+              console.error("Error resetting goals:", error);
+              Alert.alert("Error", "Failed to reset goals");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const settingsOptions = [
     {
       icon: "help-circle-outline",
       title: "Help & Support",
       subtitle: "Get assistance",
       onPress: handleHelpSupport,
+    },
+    {
+      icon: "trash-outline",
+      title: "Reset Goals",
+      subtitle: "Reset all goals to defaults",
+      onPress: handleResetGoals,
     },
     {
       icon: "refresh-outline",
@@ -115,7 +148,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.container]}>
-      <Header title="Profile" showBackButton={false} />
+      <Header title="Profile" showBackButton />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* User Info */}
         <View style={styles.userSection}>

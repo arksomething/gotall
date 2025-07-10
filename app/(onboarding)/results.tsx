@@ -1,7 +1,7 @@
 import convert from "convert-units";
 import * as Haptics from "expo-haptics";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import {
   OnboardingScreenProps,
@@ -11,25 +11,14 @@ import { findSurroundingPercentiles } from "../../utils/heightProjection";
 import { useOnboarding } from "./_layout";
 
 function ResultsScreen({ onNext, onBack }: OnboardingScreenProps) {
-  const { height, dateOfBirth, sex, units } = useOnboarding();
+  const { height, dateOfBirth, sex, units, ethnicity } = useOnboarding();
   const [displayText, setDisplayText] = useState("");
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [isSkipped, setIsSkipped] = useState(false);
   const [messages, setMessages] = useState<string[]>([
     "Analyzing your data...",
   ]);
-
-  useEffect(() => {
-    // Check for completion after messages are done
-    const checkComplete = setInterval(() => {
-      if (currentMessageIndex === messages.length - 1) {
-        setIsComplete(true);
-        clearInterval(checkComplete);
-      }
-    }, 100);
-
-    return () => clearInterval(checkComplete);
-  }, [messages.length, currentMessageIndex]);
 
   useEffect(() => {
     if (height && sex && dateOfBirth) {
@@ -62,10 +51,10 @@ function ResultsScreen({ onNext, onBack }: OnboardingScreenProps) {
         ) {
           resultMessages = [
             "Your results are in!",
-            "Let's see how you did!",
             "It turns out...",
-            "You're short.",
+            "You're not growing at your potential.",
             "But that's about to change.",
+            "We've found Andy, your personal height coach.",
           ];
         } else if (
           (result.exactPercentile && result.exactPercentile > 90) ||
@@ -73,42 +62,77 @@ function ResultsScreen({ onNext, onBack }: OnboardingScreenProps) {
         ) {
           resultMessages = [
             "Your results are in!",
-            "Let's see how you did!",
             "It turns out...",
-            "You're tall!",
-            "Now, let's see how you can grow even more.",
+            "You're growing well!",
+            "We've found Andy, your personal height coach.",
           ];
         } else {
           resultMessages = [
             "Your results are in!",
-            "Let's see how you did!",
             "It turns out...",
             "You're right where you need to be.",
-            "Now, let's see how you can grow even more.",
+            "We've found Andy, your personal height coach.",
           ];
         }
+
+        // Personalised final line
+        const ageInt = Math.floor(ageYears);
+        const sexText = sex === "1" ? "males" : "females";
+        const normalizeEthnicity = (val: string): string => {
+          switch (val.toLowerCase()) {
+            case "caucasian":
+              return "caucasians";
+            case "african american":
+              return "african americans";
+            case "hispanic/latino":
+              return "latinos";
+            case "asian":
+              return "asians";
+            case "native american":
+              return "native americans";
+            case "pacific islander":
+              return "pacific islanders";
+            case "mixed/other":
+              return "mixed backgrounds";
+            default:
+              return val.toLowerCase();
+          }
+        };
+
+        const ethnicitySegment = ethnicity
+          ? normalizeEthnicity(ethnicity)
+          : sexText;
+        resultMessages.push(
+          `Andy has helped other ${ageInt} year old ${ethnicitySegment} maximize their height.`
+        );
 
         setMessages(resultMessages);
       } catch (error) {
         console.error("Error calculating percentile:", error);
         setMessages([
           "Your results are in!",
-          "Let's see how you did!",
           "It turns out...",
-          "You're short.",
+          "You're not growing at your potential.",
           "But that's about to change.",
+          "We've found Andy, your personal height coach.",
+          "He'll help you maximize your height potential.",
         ]);
       }
     }
-  }, [height, sex, dateOfBirth, units]);
+  }, [height, sex, dateOfBirth, units, ethnicity]);
 
   useEffect(() => {
-    if (currentMessageIndex >= messages.length) return;
+    if (currentMessageIndex >= messages.length || isSkipped) return;
 
     const message = messages[currentMessageIndex];
     let currentCharIndex = 0;
 
     const typingInterval = setInterval(async () => {
+      if (isSkipped) {
+        clearInterval(typingInterval);
+        return;
+      }
+
       if (currentCharIndex <= message.length) {
         setDisplayText((prev) => {
           const lines = prev.split("\n");
@@ -125,26 +149,48 @@ function ResultsScreen({ onNext, onBack }: OnboardingScreenProps) {
         setTimeout(() => {
           if (currentMessageIndex < messages.length - 1) {
             setCurrentMessageIndex((prev) => prev + 1);
+          } else {
+            setIsComplete(true);
           }
         }, 1000);
       }
     }, 30);
 
     return () => clearInterval(typingInterval);
-  }, [currentMessageIndex, messages]);
+  }, [currentMessageIndex, messages, isSkipped]);
+
+  const skipTyping = () => {
+    // Stop typing animation and show all messages immediately
+    setIsSkipped(true);
+    setDisplayText(messages.join("\n"));
+    setCurrentMessageIndex(messages.length);
+    setIsComplete(true);
+  };
+
+  const handleNext = () => {
+    // stop any pending haptic/typing
+    skipTyping();
+    onNext?.();
+  };
 
   return (
     <OnboardingLayout
       title="Your Results"
       currentStep={12}
-      onNext={isComplete ? onNext : undefined}
+      onNext={handleNext}
       onBack={onBack}
     >
       <View style={styles.container}>
-        <Text style={styles.loadingTitle}>
-          {displayText}
-          <Text style={styles.cursor}>|</Text>
-        </Text>
+        <TouchableOpacity
+          style={styles.textContainer}
+          onPress={skipTyping}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.loadingTitle}>
+            {displayText}
+            <Text style={styles.cursor}>|</Text>
+          </Text>
+        </TouchableOpacity>
       </View>
     </OnboardingLayout>
   );
@@ -156,6 +202,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
+  },
+  textContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingTitle: {
     color: "#fff",

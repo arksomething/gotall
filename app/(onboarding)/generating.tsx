@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { withOnboarding } from "../../components/withOnboarding";
+import { logEvent } from "../../utils/Analytics";
 import { parseHeightToCm } from "../../utils/heightUtils";
 import { useOnboarding } from "./_layout";
 
@@ -41,9 +42,10 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
   const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const messages = [
-    "Now, let's change your life...",
+    "You didn't choose your genetics.",
+    "But you can choose what you do.",
     "Analyzing the CDC data...",
-    "Creating your custom profile...",
+    "Finding your height coach...",
   ];
 
   useEffect(() => {
@@ -87,7 +89,7 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
   }, [currentMessageIndex]);
 
   useEffect(() => {
-    const LOADING_DURATION = 6000;
+    const LOADING_DURATION = 8500;
 
     // Start progress bar animation
     const animation = Animated.timing(progressAnim, {
@@ -107,6 +109,15 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
 
         // Wait for the exact same duration as the progress bar
         loadingTimeoutRef.current = setTimeout(async () => {
+          // Log gender selection once here
+          try {
+            logEvent("onboarding_gender_select", {
+              gender: sex === "1" ? "male" : sex === "2" ? "female" : "other",
+            });
+          } catch (e) {
+            console.warn("Failed to log gender analytics", e);
+          }
+
           await updateUserData({
             heightCm: heightInCm,
             dateOfBirth: dateOfBirth.toISOString().split("T")[0],
@@ -130,7 +141,7 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
         }, LOADING_DURATION);
       } catch (error) {
         setIsGenerating(false);
-        router.back();
+        router.replace("/(onboarding)/short");
         console.error("Onboarding save error:", error);
       }
     };
@@ -159,7 +170,7 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
     // Stop the animation
     progressAnim.stopAnimation();
     setIsGenerating(false);
-    router.back();
+    router.replace("/(onboarding)/reviews");
   };
 
   return (

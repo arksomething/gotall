@@ -58,6 +58,7 @@ export function withOnboarding<P extends OnboardingScreenProps>(
       preferredWeightUnit,
       usShoeSize,
       euShoeSize,
+      dreamHeightCm,
     } = useOnboarding();
 
     // Log screen view when component mounts
@@ -105,6 +106,11 @@ export function withOnboarding<P extends OnboardingScreenProps>(
             break;
           case "sex":
             partialUserData.sex = sex;
+            break;
+          case "dream":
+            if (dreamHeightCm !== null) {
+              partialUserData.dreamHeightCm = dreamHeightCm;
+            }
             break;
           case "shoe":
             partialUserData.usShoeSize = usShoeSize;

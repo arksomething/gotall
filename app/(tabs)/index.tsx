@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -9,12 +10,15 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Card } from "../../components/Card";
 import Graph from "../../components/Graph";
 import { Header } from "../../components/Header";
 import { CalorieModal } from "../../components/modals/CalorieModal";
 import { HeightModal } from "../../components/modals/HeightModal";
 import { WeightModal } from "../../components/modals/WeightModal";
+import { TodaysGoals } from "../../components/TodaysGoals";
 import { databaseManager } from "../../utils/database";
+import { calculateDreamHeightProbability } from "../../utils/dreamHeightProbability";
 import { calculateHealthGoals } from "../../utils/healthGoals";
 import { calculateHeightProjection } from "../../utils/heightProjection";
 import { getHeightForInput } from "../../utils/heightUtils";
@@ -39,8 +43,6 @@ export default function Index() {
     getDisplayHeight,
     getDisplayWeight,
   } = useUserData();
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [sleepHours, setSleepHours] = useState<number | null>(null);
   const [calorieModalVisible, setCalorieModalVisible] = useState(false);
   const [weightModalVisible, setWeightModalVisible] = useState(false);
   const [heightModalVisible, setHeightModalVisible] = useState(false);
@@ -57,7 +59,15 @@ export default function Index() {
     sleepHours: number;
     calories: number;
   }>({ sleepHours: 0, calories: 0 });
+  const [dreamHeightData, setDreamHeightData] = useState<{
+    probability: number;
+    probabilityText: string;
+    dreamHeightFormatted: string;
+    heightDifference: number;
+    heightDifferenceFormatted: string;
+  } | null>(null);
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   // Get live data from UserContext
   const userAge = getAge();
@@ -88,117 +98,27 @@ export default function Index() {
     if (userData) {
       const goals = calculateHealthGoals(getAge(), userData.sex);
       setHealthGoals(goals);
+
+      // Calculate dream height probability if dream height is set
+      if (userData.dreamHeightCm && userData.dreamHeightCm > 0) {
+        try {
+          const dreamData = calculateDreamHeightProbability({
+            dreamHeightCm: userData.dreamHeightCm,
+            currentHeightCm: userData.heightCm,
+            age: getAge(),
+            sex: userData.sex,
+            motherHeightCm: userData.motherHeightCm,
+            fatherHeightCm: userData.fatherHeightCm,
+          });
+          setDreamHeightData(dreamData);
+        } catch (error) {
+          console.error("Error calculating dream height probability:", error);
+        }
+      } else {
+        setDreamHeightData(null);
+      }
     }
   }, [userData, getAge]);
-
-  const handleSleepChange = async (increment: boolean) => {
-    let newSleepHours: number;
-
-    if (sleepHours === null) {
-      newSleepHours = 8; // Set to 8 on first interaction
-    } else {
-      newSleepHours = increment ? sleepHours + 0.5 : sleepHours - 0.5;
-      newSleepHours = Math.max(0, Math.min(24, newSleepHours));
-    }
-
-    setSleepHours(newSleepHours);
-
-    // Update the sleep goal in the goals system
-    const sleepGoal = goals.find((goal) => goal.title === "Hours slept");
-    if (sleepGoal && sleepGoal.id) {
-      try {
-        await databaseManager.updateGoalCompletion(
-          sleepGoal.id,
-          true,
-          newSleepHours.toString()
-        );
-        // Update local state without reloading all data
-        setGoals((prev) =>
-          prev.map((goal) =>
-            goal.title === "Hours slept"
-              ? {
-                  ...goal,
-                  completed: true,
-                  value: newSleepHours.toString(),
-                  completionValue: newSleepHours.toString(),
-                }
-              : goal
-          )
-        );
-      } catch (error) {
-        console.error("Failed to save sleep hours to database:", error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    loadTodaysData();
-  }, []);
-
-  const loadTodaysData = async () => {
-    try {
-      // Initialize database first
-      await databaseManager.initialize();
-
-      // Load goals for today (this will automatically generate random daily goals if needed)
-      const todaysGoals = await databaseManager.getGoalsForToday();
-      const formattedGoals = todaysGoals.map((goal: any) => ({
-        id: goal.id,
-        title: goal.title,
-        icon: goal.icon,
-        value: goal.completionValue || goal.value,
-        unit: goal.unit,
-        completed: goal.completed,
-        type: goal.type,
-        completionValue: goal.completionValue,
-      }));
-
-      setGoals(formattedGoals);
-
-      // Set sleep hours from the sleep goal
-      const sleepGoal = formattedGoals.find(
-        (goal: Goal) => goal.title === "Hours slept"
-      );
-      if (sleepGoal && sleepGoal.completionValue) {
-        setSleepHours(parseFloat(sleepGoal.completionValue));
-      } else if (sleepGoal && sleepGoal.value) {
-        setSleepHours(parseFloat(sleepGoal.value));
-      }
-    } catch (error) {
-      console.error("Error loading today's data:", error);
-    }
-  };
-
-  const toggleTask = async (goalId: number) => {
-    try {
-      const goal = goals.find((g) => g.id === goalId);
-      if (!goal) return;
-
-      // If it's the calorie goal, open the modal instead of toggling
-      if (goal.title === "Calorie Goal") {
-        openCalorieModal(goal);
-        return;
-      }
-
-      const newCompleted = !goal.completed;
-
-      // Update in database
-      await databaseManager.updateGoalCompletion(
-        goalId,
-        newCompleted,
-        goal.type === "numeric" ? goal.value : undefined
-      );
-
-      // Update local state
-      setGoals((prev) =>
-        prev.map((g) =>
-          g.id === goalId ? { ...g, completed: newCompleted } : g
-        )
-      );
-    } catch (error) {
-      console.error("Error toggling goal:", error);
-    }
-  };
 
   const openCalorieModal = (goal: Goal) => {
     setTempCalorieValue(goal.value || goal.completionValue || "2000");
@@ -206,9 +126,6 @@ export default function Index() {
   };
 
   const saveCalorieGoal = async (newCalorieValue: string) => {
-    const calorieGoal = goals.find((goal) => goal.title === "Calorie Goal");
-    if (!calorieGoal || !calorieGoal.id) return;
-
     const numericValue = parseInt(newCalorieValue);
     if (isNaN(numericValue) || numericValue <= 0) {
       Alert.alert("Invalid Input", "Please enter a valid number of calories.");
@@ -216,27 +133,6 @@ export default function Index() {
     }
 
     try {
-      // Update in database
-      await databaseManager.updateGoalCompletion(
-        calorieGoal.id,
-        true,
-        newCalorieValue
-      );
-
-      // Update local state
-      setGoals((prev) =>
-        prev.map((goal) =>
-          goal.title === "Calorie Goal"
-            ? {
-                ...goal,
-                value: newCalorieValue,
-                completed: true,
-                completionValue: newCalorieValue,
-              }
-            : goal
-        )
-      );
-
       setCalorieModalVisible(false);
     } catch (error) {
       console.error("Error saving calorie goal:", error);
@@ -277,43 +173,51 @@ export default function Index() {
 
       await databaseManager.debugGoalsInDatabase();
 
-      console.log("Reloading goals...");
-      await loadTodaysData();
-
       console.log("=== COMPLETE RESET FINISHED ===");
     } catch (error) {
       console.error("Debug error:", error);
     }
   };
 
-  // Filter goals to show boolean tasks and calorie goal in the daily tasks section
-  const dailyTasks = goals.filter(
-    (goal) => goal.type === "boolean" || goal.title === "Calorie Goal"
-  );
-
   return (
     <View style={[styles.container]}>
-      <Header title="Home" />
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.cardsContainer}>
-          <TouchableOpacity style={styles.card} onPress={openHeightModal}>
-            <Text style={styles.cardLabel}>Current Height</Text>
-            <Text style={styles.cardValue}>{heightData.currentHeight}</Text>
+      <Header
+        title="Home"
+        rightElement={
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/profile")}
+            style={{
+              width: 32,
+              height: 32,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons name="settings-outline" size={24} color="#fff" />
           </TouchableOpacity>
-          <View style={[styles.card, styles.projectedCard]}>
-            <Text style={[styles.cardLabel, styles.projectedCardText]}>
-              Maximum Height
-            </Text>
-            <Text style={[styles.cardValue, styles.projectedCardText]}>
-              {heightData.potentialHeight}
-            </Text>
+        }
+      />
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.section}>
+          <View style={styles.cardsRowInSection}>
+            <Card
+              label="Current Height"
+              value={heightData.currentHeight}
+              onPress={openHeightModal}
+              variant="touchable"
+            />
+            <Card
+              label="Maximum Height"
+              value={heightData.potentialHeight}
+              variant="projected"
+            />
           </View>
         </View>
 
         {/* Progress Section with Graph */}
-        <View style={styles.progressSection}>
+        <View style={styles.section}>
           <View style={styles.progressHeader}>
-            <Text style={styles.progressTitle}>Projected Height</Text>
+            <Text style={styles.sectionTitle}>Projected Height</Text>
             <Ionicons
               name="trending-up"
               size={16}
@@ -336,112 +240,37 @@ export default function Index() {
           />
         </View>
 
-        {/* Today's Goals Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Today's Goals</Text>
-          <View style={styles.statsContainer}>
-            <View style={styles.statsGrid}>
-              {/* Sleep Card */}
-              <View style={styles.sleepCard}>
-                <Ionicons
-                  name="moon"
-                  size={20}
-                  color="#fff"
-                  style={styles.sleepIcon}
-                />
-                <View style={styles.sleepPicker}>
-                  <TouchableOpacity
-                    style={styles.stepperButton}
-                    onPress={() => handleSleepChange(false)}
-                  >
-                    <Ionicons name="remove" size={16} color="#9ACD32" />
-                  </TouchableOpacity>
-
-                  <Text style={styles.sleepLabel}>
-                    {sleepHours !== null ? `${sleepHours} hrs` : "N/A"}
-                  </Text>
-
-                  <TouchableOpacity
-                    style={styles.stepperButton}
-                    onPress={() => handleSleepChange(true)}
-                  >
-                    <Ionicons name="add" size={16} color="#9ACD32" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Daily Tasks Card */}
-              <View style={styles.statsCard}>
-                <Text style={styles.statsTitle}>Daily Tasks</Text>
-                <View style={styles.tasksContainer}>
-                  {dailyTasks.map((task) => (
-                    <TouchableOpacity
-                      key={task.id}
-                      style={styles.taskRow}
-                      onPress={() => task.id && toggleTask(task.id)}
-                    >
-                      {task.type === "boolean" ? (
-                        // Boolean task with checkbox
-                        <>
-                          <View
-                            style={[
-                              styles.taskCheckbox,
-                              task.completed && styles.taskCompleted,
-                            ]}
-                          >
-                            {task.completed && (
-                              <Ionicons
-                                name="checkmark"
-                                size={14}
-                                color="#000"
-                              />
-                            )}
-                          </View>
-                          <Text
-                            style={[
-                              styles.taskText,
-                              task.completed && styles.taskTextCompleted,
-                            ]}
-                          >
-                            {task.title}
-                          </Text>
-                        </>
-                      ) : (
-                        // Numeric task with value display
-                        <>
-                          <Ionicons
-                            name="fitness"
-                            size={18}
-                            color="#000"
-                            style={styles.taskIcon}
-                          />
-                          <Text style={styles.taskText}>{task.title}</Text>
-                          <Text style={styles.taskValue}>
-                            {task.value || task.completionValue || "0"}{" "}
-                            {task.unit}
-                          </Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
+        {/* Dream Height Section */}
+        {dreamHeightData && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Dream Height</Text>
+            <View style={styles.cardsRowInSection}>
+              <Card
+                label="Probability"
+                value={dreamHeightData.probabilityText}
+                subtext={`${dreamHeightData.probability}%`}
+              />
+              <Card
+                label="Dream Height"
+                value={dreamHeightData.dreamHeightFormatted}
+                subtext={dreamHeightData.heightDifferenceFormatted}
+              />
             </View>
           </View>
-        </View>
+        )}
+
+        {/* Today's Goals Section */}
+        <TodaysGoals onCalorieGoalPress={openCalorieModal} />
 
         {/* Health Goals Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Health Goals</Text>
-          <View style={[styles.cardsContainer, styles.fullWidth]}>
-            <View style={styles.card}>
-              <Text style={styles.cardLabel}>Sleep Goal</Text>
-              <Text style={styles.cardValue}>{healthGoals.sleepHours} hrs</Text>
-            </View>
-            <View style={styles.card}>
-              <Text style={styles.cardLabel}>Daily Calories</Text>
-              <Text style={styles.cardValue}>{healthGoals.calories}</Text>
-            </View>
+          <View style={styles.cardsRowInSection}>
+            <Card label="Sleep Goal" value={`${healthGoals.sleepHours} hrs`} />
+            <Card
+              label="Daily Calories"
+              value={healthGoals.calories.toString()}
+            />
           </View>
         </View>
       </ScrollView>
@@ -477,35 +306,14 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  cardsContainer: {
+
+  cardsRowInSection: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
+    gap: 12,
+    paddingHorizontal: 0, // No padding since section already has it
     marginTop: 16,
     marginBottom: 24,
-  },
-  fullWidth: {
-    paddingHorizontal: 0,
-    marginHorizontal: -8, // Compensate for card margins
-  },
-  card: {
-    flex: 1,
-    backgroundColor: "rgba(154, 205, 50, 0.1)",
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 8,
-    alignItems: "center",
-  },
-  cardLabel: {
-    color: "#9ACD32",
-    fontSize: 16,
-    fontWeight: "500",
-    marginBottom: 8,
-  },
-  cardValue: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "bold",
+    alignItems: "stretch",
   },
   section: {
     paddingHorizontal: 24,
@@ -518,116 +326,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 16,
   },
-  statsContainer: {
-    marginTop: 20,
-  },
-  statsGrid: {
-    backgroundColor: "#333",
-    borderRadius: 12,
-    padding: 12,
-    flexDirection: "column",
-    gap: 8,
-    width: "100%",
-  },
-  sleepCard: {
-    backgroundColor: "#333",
-    borderRadius: 8,
-    padding: 12,
-    alignItems: "center",
-    minHeight: 70,
-    justifyContent: "center",
-  },
-  sleepIcon: {
-    marginBottom: 5,
-  },
-  sleepPicker: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
-    paddingHorizontal: 10,
-  },
-  stepperButton: {
-    width: 28,
-    height: 28,
-    borderWidth: 1,
-    borderColor: "#9ACD32",
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(154, 205, 50, 0.1)",
-  },
-  sleepLabel: {
-    color: "#9ACD32",
-    fontSize: 16,
-    fontWeight: "bold",
-    minWidth: 50,
-    textAlign: "center",
-  },
-  statsCard: {
-    backgroundColor: "#9ACD32",
-    borderRadius: 8,
-    padding: 12,
-    width: "100%",
-  },
-  statsTitle: {
-    color: "#000",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  tasksContainer: {
-    flexDirection: "column",
-    gap: 8,
-  },
-  taskRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  taskCheckbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 2,
-    borderColor: "#000",
-    borderRadius: 4,
-    marginRight: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  taskCompleted: {
-    backgroundColor: "#000",
-    borderColor: "#000",
-  },
-  taskText: {
-    color: "#000",
-    fontSize: 14,
-    fontWeight: "500",
-    flex: 1,
-  },
-  taskTextCompleted: {
-    textDecorationLine: "line-through",
-    opacity: 0.6,
-  },
-  taskIcon: {
-    marginRight: 10,
-  },
-  taskValue: {
-    color: "#000",
-    fontSize: 14,
-    fontWeight: "bold",
-    marginLeft: "auto",
-  },
-  progressSection: {
-    paddingHorizontal: 20,
-    marginTop: 30,
-    flex: 1,
-  },
+
   progressHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
-    paddingHorizontal: 0,
   },
   progressTitle: {
     color: "#fff",
@@ -705,11 +409,5 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: "center",
     opacity: 0.7,
-  },
-  projectedCard: {
-    backgroundColor: "#9ACD32",
-  },
-  projectedCardText: {
-    color: "#000",
   },
 });

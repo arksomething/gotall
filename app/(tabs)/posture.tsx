@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Notifications from "expo-notifications";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -28,6 +29,7 @@ export default function PostureScreen() {
   const [reminderInterval, setReminderInterval] = useState(20); // minutes
   const [notificationId, setNotificationId] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const intervalOptions = [
     { value: 20, label: "20 min" },
@@ -129,14 +131,29 @@ export default function PostureScreen() {
 
   return (
     <View style={[styles.container]}>
-      <Header title="Posture" />
+      <Header
+        title="Posture"
+        rightElement={
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/profile")}
+            style={{
+              width: 32,
+              height: 32,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons name="settings-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+        }
+      />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Status Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Ionicons
               name={reminderActive ? "notifications" : "notifications-off"}
-              size={24}
+              size={20}
               color={reminderActive ? "#9ACD32" : "#666"}
             />
             <Text
@@ -185,9 +202,9 @@ export default function PostureScreen() {
           onPress={reminderActive ? stopReminder : startReminder}
         >
           <Ionicons
-            name={reminderActive ? "stop" : "play"}
-            size={24}
-            color={reminderActive ? "#fff" : "#000"}
+            name={reminderActive ? "stop-circle" : "play-circle"}
+            size={20}
+            color={reminderActive ? "#000" : "#9ACD32"}
             style={styles.buttonIcon}
           />
           <Text
@@ -199,6 +216,18 @@ export default function PostureScreen() {
             {reminderActive ? "Stop Reminders" : "Start Reminders"}
           </Text>
         </TouchableOpacity>
+
+        {/* Instructions */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="information-circle" size={20} color="#666" />
+            <Text style={styles.cardTitle}>How it works</Text>
+          </View>
+          <Text style={styles.cardSubtitle}>
+            You'll receive gentle reminders to check your posture throughout the
+            day, even when the app is closed.
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -215,18 +244,18 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#111",
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 32,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 24,
+    marginBottom: 24,
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "500",
     color: "#666",
     marginLeft: 12,
   },
@@ -235,65 +264,67 @@ const styles = StyleSheet.create({
   },
   cardSubtitle: {
     color: "#666",
-    fontSize: 16,
+    fontSize: 14,
+    marginTop: 4,
     marginLeft: 36,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   sectionTitle: {
     color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "500",
     marginBottom: 16,
   },
   intervalGrid: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
+    gap: 8,
   },
   intervalButton: {
     flex: 1,
     backgroundColor: "#111",
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#333",
+    justifyContent: "center",
+    height: 48,
   },
   selectedInterval: {
     backgroundColor: "#9ACD32",
-    borderColor: "#9ACD32",
   },
   intervalButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    color: "#666",
+    fontSize: 14,
+    fontWeight: "500",
   },
   selectedIntervalText: {
     color: "#000",
+    fontWeight: "600",
   },
   controlButton: {
-    backgroundColor: "#9ACD32",
-    borderRadius: 24,
-    padding: 20,
+    backgroundColor: "#111",
+    borderRadius: 25,
+    paddingVertical: 15,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 32,
+    marginBottom: 30,
   },
   stopButton: {
-    backgroundColor: "#FF6B6B",
+    backgroundColor: "#9ACD32",
   },
   buttonIcon: {
     marginRight: 8,
   },
   controlButtonText: {
-    color: "#000",
-    fontSize: 18,
-    fontWeight: "bold",
+    color: "#666",
+    fontSize: 16,
+    fontWeight: "500",
   },
   stopButtonText: {
-    color: "#fff",
+    color: "#000",
+    fontWeight: "600",
   },
 });

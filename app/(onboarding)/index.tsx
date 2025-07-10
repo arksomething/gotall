@@ -22,23 +22,18 @@ const AUTO_SCROLL_INTERVAL = 3000; // Time between auto-scrolls in milliseconds
 
 const carouselData = [
   {
-    image: require("../../assets/images/onboarding/home.png"),
+    image: require("../../assets/images/onboarding/Index.png"),
     text: "Track your current height and see your projected growth potential with our advanced prediction model.",
     aspectRatio: 0.5,
   },
   {
-    image: require("../../assets/images/onboarding/goals.png"),
+    image: require("../../assets/images/onboarding/Goals.png"),
     text: "Set and track daily goals including sleep, nutrition, and stretching exercises to optimize your growth.",
     aspectRatio: 0.5,
   },
   {
-    image: require("../../assets/images/onboarding/exercises.png"),
-    text: "Follow guided stretching routines and exercises designed specifically for height optimization.",
-    aspectRatio: 0.5,
-  },
-  {
-    image: require("../../assets/images/onboarding/reminders.png"),
-    text: "Set posture reminders to maintain good form throughout the day and build better habits.",
+    image: require("../../assets/images/onboarding/Coach.png"),
+    text: "Get personalized coaching and support from our in-app coach to help you achieve your height goals.",
     aspectRatio: 0.5,
   },
 ];
@@ -190,8 +185,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 8,
-    borderWidth: 1,
-    borderColor: "rgba(154, 205, 50, 0.3)",
   },
   screenshot: {
     width: "100%",

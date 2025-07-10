@@ -12,6 +12,7 @@ export interface UserData {
   ethnicity: string;
   preferredWeightUnit: "lbs" | "kg";
   preferredHeightUnit: "ft" | "cm";
+  dreamHeightCm?: number;
 }
 
 interface UserContextType {
@@ -35,6 +36,7 @@ const defaultUserData: UserData = {
   ethnicity: "Caucasian",
   preferredWeightUnit: "lbs",
   preferredHeightUnit: "ft",
+  dreamHeightCm: Math.round((5 * 12 + 10) * 2.54), // 5'10" (178cm)
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -130,6 +132,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         ethnicity,
         preferredWeightUnit,
         preferredHeightUnit,
+        dreamHeight,
       ] = await Promise.all([
         AsyncStorage.getItem("@user_height_cm"),
         AsyncStorage.getItem("@user_date_of_birth"),
@@ -140,6 +143,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         AsyncStorage.getItem("@user_ethnicity"),
         AsyncStorage.getItem("@user_preferred_weight_unit"),
         AsyncStorage.getItem("@user_preferred_height_unit"),
+        AsyncStorage.getItem("@user_dream_height_cm"),
       ]);
 
       setUserData({
@@ -158,6 +162,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         preferredHeightUnit:
           (preferredHeightUnit as "ft" | "cm") ||
           defaultUserData.preferredHeightUnit,
+        dreamHeightCm: dreamHeight
+          ? parseFloat(dreamHeight)
+          : defaultUserData.dreamHeightCm,
       });
     } catch (error) {
       console.error("Error loading user data:", error);
@@ -220,6 +227,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
           AsyncStorage.setItem(
             "@user_preferred_height_unit",
             updates.preferredHeightUnit
+          )
+        );
+
+      if (updates.dreamHeightCm !== undefined && updates.dreamHeightCm !== null)
+        promises.push(
+          AsyncStorage.setItem(
+            "@user_dream_height_cm",
+            updates.dreamHeightCm.toString()
           )
         );
 

@@ -7,7 +7,7 @@ import {
   OnboardingScreenProps,
   withOnboarding,
 } from "../../components/withOnboarding";
-import { logEvent } from "../../utils/FirebaseAnalytics";
+import { logEvent } from "../../utils/Analytics";
 import { useOnboarding } from "../../utils/OnboardingContext";
 import { useUserData } from "../../utils/UserContext";
 import { calculateHeightProjection } from "../../utils/heightProjection";

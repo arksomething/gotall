@@ -77,7 +77,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="coach"
         options={{
-          title: "Coach",
+          title: "Andy",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="school" size={size} color={color} />
           ),
@@ -86,10 +86,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
-          ),
+          // Hide from the tab bar but keep the route accessible
+          href: null,
         }}
       />
     </Tabs>

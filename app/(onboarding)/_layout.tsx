@@ -114,7 +114,9 @@ export default function OnboardingLayout() {
     }
   };
 
-  const [dreamHeightCm, setDreamHeightCm] = useState<number | null>(null);
+  const [dreamHeightCm, setDreamHeightCm] = useState<number | null>(
+    Math.round((5 * 12 + 10) * 2.54)
+  ); // Default to 5'10" (178cm)
 
   return (
     <OnboardingContext.Provider

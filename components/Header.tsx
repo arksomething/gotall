@@ -45,12 +45,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     backgroundColor: "#000",
+    minHeight: 44,
   },
   title: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     flex: 1,
+    margin: 4,
     textAlign: "center",
   },
   backButton: {

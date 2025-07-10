@@ -1,6 +1,8 @@
 import "@react-native-firebase/app";
+import Constants from "expo-constants";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { SuperwallProvider } from "expo-superwall";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import {
@@ -13,6 +15,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingProvider, useOnboarding } from "../utils/OnboardingContext";
 import { PRODUCTS } from "../utils/products";
+import { initTikTok } from "../utils/TikTokAnalytics";
 import { UserProvider } from "../utils/UserContext";
 
 const LIFETIME_ACCESS_ID = PRODUCTS.LIFETIME.id;
@@ -75,6 +78,14 @@ function NavigationRoot() {
     };
   }, [initialized]);
 
+  // Initialise TikTok SDK once
+  useEffect(() => {
+    const ttAppId = (Constants?.expoConfig?.extra as any)?.tiktokAppId;
+    if (ttAppId) {
+      initTikTok(ttAppId, __DEV__);
+    }
+  }, []);
+
   useEffect(() => {
     if (isLoading) return;
 
@@ -135,12 +146,18 @@ function NavigationRoot() {
 }
 
 export default function RootLayout() {
+  const swApiKey = (Constants?.expoConfig?.extra as any)?.superwallApiKey;
   return (
-    <UserProvider>
-      <OnboardingProvider>
-        <NavigationRoot />
-        <StatusBar style="light" backgroundColor="#000" />
-      </OnboardingProvider>
-    </UserProvider>
+    <SuperwallProvider
+      apiKeys={{ ios: swApiKey, android: swApiKey }}
+      options={{ isPaidSubscriptionEnabled: true }}
+    >
+      <UserProvider>
+        <OnboardingProvider>
+          <NavigationRoot />
+          <StatusBar style="light" backgroundColor="#000" />
+        </OnboardingProvider>
+      </UserProvider>
+    </SuperwallProvider>
   );
 }

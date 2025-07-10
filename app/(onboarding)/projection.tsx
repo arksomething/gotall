@@ -8,7 +8,9 @@ import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { withOnboarding } from "../../components/withOnboarding";
 import { useOnboarding } from "../../utils/OnboardingContext";
 import { useUserData } from "../../utils/UserContext";
+import { calculateDreamHeightProbability } from "../../utils/dreamHeightProbability";
 import { calculateHeightProjection } from "../../utils/heightProjection";
+import { convert, parseHeightToCm } from "../../utils/heightUtils";
 
 interface HeightData {
   currentHeight: string;
@@ -31,6 +33,7 @@ const ProjectionScreen = () => {
     potentialHeight: "5'11\"",
     actualHeight: "5'7\"",
   });
+  const [dreamData, setDreamData] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
   const windowWidth = Dimensions.get("window").width;
 
@@ -55,6 +58,21 @@ const ProjectionScreen = () => {
 
       console.log("Final heights calculated:", projectionData);
       setHeightData(projectionData);
+
+      // Calculate dream height probability if dream height set
+      if (userData.dreamHeightCm && userData.dreamHeightCm > 0) {
+        const dream = calculateDreamHeightProbability({
+          dreamHeightCm: userData.dreamHeightCm,
+          currentHeightCm: userData.heightCm,
+          age: getAge(),
+          sex: userData.sex,
+          motherHeightCm: userData.motherHeightCm,
+          fatherHeightCm: userData.fatherHeightCm,
+        });
+        setDreamData(dream);
+      } else {
+        setDreamData(null);
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
@@ -116,6 +134,20 @@ const ProjectionScreen = () => {
     router.push("/(onboarding)/short" as any);
   };
 
+  const heightGainInches = hasPaid
+    ? Math.round(
+        Math.max(
+          0,
+          convert(parseHeightToCm(heightData.potentialHeight, "ft"))
+            .from("cm")
+            .to("in") -
+            convert(parseHeightToCm(heightData.actualHeight, "ft"))
+              .from("cm")
+              .to("in")
+        )
+      )
+    : 0;
+
   return (
     <OnboardingLayout
       title="Your Height Projection"
@@ -137,7 +169,7 @@ const ProjectionScreen = () => {
             <View style={styles.metricsContainer}>
               <View style={styles.metricBox}>
                 <Text style={styles.metricLabel}>On track to be:</Text>
-                <View style={styles.heightBox}>
+                <View style={[styles.heightBox, styles.heightBoxLarge]}>
                   <Text style={[styles.metricValue, styles.heightValue]}>
                     {heightData.actualHeight}
                   </Text>
@@ -146,7 +178,7 @@ const ProjectionScreen = () => {
 
               <View style={styles.metricBox}>
                 <Text style={styles.metricLabel}>True potential:</Text>
-                <View style={styles.lockedMetric}>
+                <View style={[styles.lockedMetric, styles.heightBoxLarge]}>
                   {!hasPaid && (
                     <BlurView
                       intensity={10}
@@ -166,9 +198,7 @@ const ProjectionScreen = () => {
                 {hasPaid ? (
                   <>
                     Optimize up to{" "}
-                    <Text style={styles.highlight}>
-                      {heightData.heightGainPotential || 2}
-                    </Text>{" "}
+                    <Text style={styles.highlight}>{heightGainInches}</Text>{" "}
                     inch(es)
                   </>
                 ) : (
@@ -182,6 +212,58 @@ const ProjectionScreen = () => {
               style={styles.image}
               resizeMode="contain"
             />
+
+            <View style={styles.metricsContainer}>
+              <View style={[styles.metricBox, styles.smallMetricBox]}>
+                <Text style={styles.metricLabel}>
+                  {hasPaid ? (
+                    <>
+                      Growth:{" "}
+                      <Text style={styles.highlight}>
+                        {heightData.growthComplete || 85}%
+                      </Text>
+                    </>
+                  ) : (
+                    "Growth complete: 🔒%"
+                  )}
+                </Text>
+                <View style={styles.progressBarContainer}>
+                  <View style={styles.progressBackground}>
+                    <View
+                      style={[
+                        styles.progressBar,
+                        {
+                          width: hasPaid
+                            ? `${heightData.growthComplete || 85}%`
+                            : "60%",
+                        },
+                      ]}
+                    />
+                  </View>
+                  <View style={styles.progressContent} />
+                </View>
+              </View>
+
+              {dreamData && (
+                <View style={[styles.metricBox, styles.smallMetricBox]}>
+                  <Text style={styles.metricLabel}>Dream Odds</Text>
+                  <View style={styles.heightBox}>
+                    {!hasPaid && (
+                      <BlurView
+                        intensity={10}
+                        tint="dark"
+                        style={StyleSheet.absoluteFillObject}
+                      />
+                    )}
+                    <Text style={[styles.metricValue, styles.heightValue]}>
+                      {hasPaid
+                        ? `${Math.round(dreamData.probability / 5) * 5}%`
+                        : "🔒"}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </View>
 
             <View style={styles.optimizeContainer}>
               <Text style={styles.optimizeText}>
@@ -197,36 +279,6 @@ const ProjectionScreen = () => {
                   "Taller than 🔒 of your age"
                 )}
               </Text>
-            </View>
-
-            <View style={styles.optimizeContainer}>
-              <Text style={styles.metricLabel}>
-                {hasPaid ? (
-                  <>
-                    Growth complete:{" "}
-                    <Text style={styles.highlight}>
-                      {heightData.growthComplete || 85}%
-                    </Text>
-                  </>
-                ) : (
-                  "Growth complete: 🔒%"
-                )}
-              </Text>
-              <View style={styles.progressBarContainer}>
-                <View style={styles.progressBackground}>
-                  <View
-                    style={[
-                      styles.progressBar,
-                      {
-                        width: hasPaid
-                          ? `${heightData.growthComplete || 85}%`
-                          : "60%",
-                      },
-                    ]}
-                  />
-                </View>
-                <View style={styles.progressContent} />
-              </View>
             </View>
           </>
         )}
@@ -267,10 +319,12 @@ const styles = StyleSheet.create({
   lockedMetric: {
     backgroundColor: "#9ACD32",
     borderRadius: 12,
-    padding: 16,
+    padding: 8,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+    marginTop: 4,
+    minHeight: 48,
   },
   optimizeContainer: {
     backgroundColor: "#111",
@@ -285,7 +339,7 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: 200,
-    marginBottom: 16,
+    marginBottom: 0,
   },
   errorContainer: {
     padding: 20,
@@ -306,12 +360,12 @@ const styles = StyleSheet.create({
   heightBox: {
     backgroundColor: "#222",
     borderRadius: 12,
-    padding: 16,
+    padding: 8,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#333",
+    marginTop: 4,
+    minHeight: 48,
   },
   highlight: {
     color: "#9ACD32",
@@ -319,9 +373,13 @@ const styles = StyleSheet.create({
   },
   heightValue: {
     color: "#9ACD32",
+    fontSize: 24,
+    fontWeight: "bold",
   },
   potentialValue: {
     color: "#000",
+    fontSize: 24,
+    fontWeight: "bold",
   },
   progressBarContainer: {
     height: 4,
@@ -329,7 +387,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     overflow: "hidden",
     position: "relative",
-    marginTop: 8,
+    marginTop: 24,
   },
   progressBackground: {
     position: "absolute",
@@ -357,6 +415,20 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 12,
     fontWeight: "bold",
+  },
+  dreamChanceText: {
+    marginTop: 8,
+  },
+  smallMetricBox: {
+    flex: 1,
+    backgroundColor: "#111",
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 4,
+  },
+  heightBoxLarge: {
+    padding: 16,
+    minHeight: 64,
   },
 });
 
