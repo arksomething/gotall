@@ -58,6 +58,8 @@ export default function ProfileScreen() {
                 "@user_ethnicity",
                 "@user_preferred_weight_unit",
                 "@user_preferred_height_unit",
+                "@promo_access",
+                "@onboarding_completed",
               ]);
               await setIsOnboardingComplete(false);
               router.replace("/(onboarding)" as any);

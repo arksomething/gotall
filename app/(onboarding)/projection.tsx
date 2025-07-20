@@ -37,6 +37,24 @@ const ProjectionScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const windowWidth = Dimensions.get("window").width;
 
+  // Helper to convert any height string (ft/in or cm) to centimetres
+  const parseAnyHeightToCm = (h: string): number => {
+    if (h.toLowerCase().includes("cm")) {
+      return parseHeightToCm(h.replace(/cm/i, "").trim(), "cm");
+    }
+    return parseHeightToCm(h, "ft");
+  };
+
+  const isMetric = userData.preferredHeightUnit === "cm";
+
+  const formatHeightForDisplay = (ftHeight: string): string => {
+    if (isMetric) {
+      const cm = parseAnyHeightToCm(ftHeight);
+      return `${cm}cm`;
+    }
+    return ftHeight;
+  };
+
   const calculateProjections = useCallback(() => {
     try {
       setError(null);
@@ -57,7 +75,16 @@ const ProjectionScreen = () => {
       });
 
       console.log("Final heights calculated:", projectionData);
-      setHeightData(projectionData);
+
+      // Convert heights for display based on preferred unit
+      const convertedData: HeightData = {
+        ...projectionData,
+        currentHeight: formatHeightForDisplay(projectionData.currentHeight),
+        actualHeight: formatHeightForDisplay(projectionData.actualHeight),
+        potentialHeight: formatHeightForDisplay(projectionData.potentialHeight),
+      };
+
+      setHeightData(convertedData);
 
       // Calculate dream height probability if dream height set
       if (userData.dreamHeightCm && userData.dreamHeightCm > 0) {
@@ -134,19 +161,21 @@ const ProjectionScreen = () => {
     router.push("/(onboarding)/short" as any);
   };
 
-  const heightGainInches = hasPaid
-    ? Math.round(
-        Math.max(
+  // Calculate height gain in the user's preferred units
+  const heightGain = hasPaid
+    ? (() => {
+        const diffCm = Math.max(
           0,
-          convert(parseHeightToCm(heightData.potentialHeight, "ft"))
-            .from("cm")
-            .to("in") -
-            convert(parseHeightToCm(heightData.actualHeight, "ft"))
-              .from("cm")
-              .to("in")
-        )
-      )
+          parseAnyHeightToCm(heightData.potentialHeight) -
+            parseAnyHeightToCm(heightData.actualHeight)
+        );
+        return isMetric
+          ? Math.round(diffCm)
+          : Math.round(convert(diffCm).from("cm").to("in"));
+      })()
     : 0;
+
+  const unitLabel = isMetric ? "cm" : "inch(es)";
 
   return (
     <OnboardingLayout
@@ -198,11 +227,11 @@ const ProjectionScreen = () => {
                 {hasPaid ? (
                   <>
                     Optimize up to{" "}
-                    <Text style={styles.highlight}>{heightGainInches}</Text>{" "}
-                    inch(es)
+                    <Text style={styles.highlight}>{heightGain}</Text>{" "}
+                    {unitLabel}
                   </>
                 ) : (
-                  "Optimize up to 🔒 inch(es)"
+                  `Optimize up to 🔒 ${unitLabel}`
                 )}
               </Text>
             </View>

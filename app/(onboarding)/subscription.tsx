@@ -1,7 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  DeviceEventEmitter,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import {
   OnboardingScreenProps,
@@ -28,6 +35,9 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [heightDifference, setHeightDifference] = useState(2);
+  const [promoCode, setPromoCode] = useState<string>("");
+  const validPromoCodes = ["GOTALLREVIEW", "PLAYREVIEW"];
+  const [showPromoInput, setShowPromoInput] = useState(false);
 
   useEffect(() => {
     if (userData?.heightCm) {
@@ -107,6 +117,29 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
       console.error("Restore failed:", err);
       setError(
         err?.message || "Failed to restore purchases. Please try again."
+      );
+    }
+  };
+
+  const onRedeemPromo = async () => {
+    try {
+      setError(null);
+      const trimmed = promoCode.trim().toUpperCase();
+      if (!validPromoCodes.includes(trimmed)) {
+        setError("Invalid promo code");
+        return;
+      }
+
+      logEvent("promo_code_redeem", { promoCode: trimmed });
+      await setIsOnboardingComplete(true);
+      await AsyncStorage.setItem("@onboarding_completed", "true");
+      await AsyncStorage.setItem("@promo_access", "true");
+      DeviceEventEmitter.emit("promoAccessGranted");
+      router.replace("/(tabs)");
+    } catch (err: any) {
+      console.error("Promo redeem failed:", err);
+      setError(
+        err?.message || "Failed to redeem promo code. Please try again."
       );
     }
   };
@@ -200,13 +233,42 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.restoreButton}
-          onPress={onRestore}
-          disabled={isPurchasing}
-        >
-          <Text style={styles.restoreText}>Restore Purchase</Text>
-        </TouchableOpacity>
+        <View style={styles.bottomActions}>
+          <TouchableOpacity
+            style={styles.restoreButton}
+            onPress={onRestore}
+            disabled={isPurchasing}
+          >
+            <Text style={styles.restoreText}>Restore Purchase</Text>
+          </TouchableOpacity>
+
+          {showPromoInput ? (
+            <View style={styles.promoContainer}>
+              <TextInput
+                style={styles.promoInput}
+                placeholder="Promo Code"
+                placeholderTextColor="#9ACD32"
+                value={promoCode}
+                autoCapitalize="characters"
+                onChangeText={setPromoCode}
+              />
+              <TouchableOpacity
+                style={styles.promoApplyButton}
+                onPress={onRedeemPromo}
+                disabled={promoCode.trim() === ""}
+              >
+                <Text style={styles.promoApplyText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.restoreButton}
+              onPress={() => setShowPromoInput(true)}
+            >
+              <Text style={styles.restoreText}>Promo</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
@@ -313,14 +375,47 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   restoreButton: {
-    marginTop: "auto",
     paddingVertical: 16,
     alignItems: "center",
+  },
+  bottomActions: {
+    marginTop: "auto",
+    alignItems: "center",
+    gap: 0,
   },
   restoreText: {
     color: "#9ACD32",
     fontSize: 14,
     textDecorationLine: "underline",
+  },
+  promoContainer: {
+    flexDirection: "row",
+    marginTop: 8,
+    paddingHorizontal: 20,
+    gap: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  promoInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#9ACD32",
+    borderRadius: 8,
+    color: "#fff",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minWidth: 120,
+  },
+  promoApplyButton: {
+    backgroundColor: "#9ACD32",
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  promoApplyText: {
+    color: "#000",
+    fontWeight: "600",
+    fontSize: 14,
   },
   errorText: {
     color: "#ff4444",

@@ -1,10 +1,11 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import "@react-native-firebase/app";
 import Constants from "expo-constants";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SuperwallProvider } from "expo-superwall";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, DeviceEventEmitter, View } from "react-native";
 import {
   endConnection,
   getAvailablePurchases,
@@ -13,6 +14,9 @@ import {
   purchaseUpdatedListener,
 } from "react-native-iap";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ErrorBoundary from "../components/ErrorBoundary";
+import { crashlytics } from "../utils/crashlytics";
+import { initializeErrorHandling } from "../utils/errorHandler";
 import { OnboardingProvider, useOnboarding } from "../utils/OnboardingContext";
 import { PRODUCTS } from "../utils/products";
 import { initTikTok } from "../utils/TikTokAnalytics";
@@ -34,9 +38,12 @@ function NavigationRoot() {
     const checkPurchaseStatus = async () => {
       try {
         const purchases = await getAvailablePurchases();
-        setHasValidAccess(purchases.length > 0);
+        const promoAccess = await AsyncStorage.getItem("@promo_access");
+        setHasValidAccess(purchases.length > 0 || promoAccess === "true");
       } catch (error) {
         console.error("Error checking purchase status:", error);
+        // Don't let purchase errors crash the app
+        setHasValidAccess(false);
       }
     };
 
@@ -52,6 +59,10 @@ function NavigationRoot() {
           if (error.message?.includes("Billing is unavailable")) {
             setInitialized(true);
             setHasValidAccess(false); // Assume no valid access if billing is unavailable
+          } else {
+            // For other errors, still initialize but with no access
+            setInitialized(true);
+            setHasValidAccess(false);
           }
         } finally {
           setIsLoading(false);
@@ -61,8 +72,20 @@ function NavigationRoot() {
 
     initializeApp();
 
+    // Listen for promo access grant events
+    const promoListener = DeviceEventEmitter.addListener(
+      "promoAccessGranted",
+      () => {
+        setHasValidAccess(true);
+      }
+    );
+
     const purchaseUpdate = purchaseUpdatedListener(async () => {
-      await checkPurchaseStatus();
+      try {
+        await checkPurchaseStatus();
+      } catch (error) {
+        console.error("Error in purchase update listener:", error);
+      }
     });
 
     const purchaseError = purchaseErrorListener((error) => {
@@ -70,10 +93,15 @@ function NavigationRoot() {
     });
 
     return () => {
-      purchaseUpdate.remove();
-      purchaseError.remove();
-      if (initialized) {
-        endConnection();
+      try {
+        purchaseUpdate.remove();
+        purchaseError.remove();
+        promoListener.remove();
+        if (initialized) {
+          endConnection();
+        }
+      } catch (error) {
+        console.error("Error cleaning up purchase listeners:", error);
       }
     };
   }, [initialized]);
@@ -122,6 +150,7 @@ function NavigationRoot() {
 
   return (
     <>
+      {/* Status bar overlay colored per route group */}
       <View
         style={{
           position: "absolute",
@@ -129,7 +158,10 @@ function NavigationRoot() {
           left: 0,
           right: 0,
           height: insets.top,
-          backgroundColor: "#000",
+          backgroundColor:
+            segments[0] === "(onboarding)" && segments.length === 1
+              ? "#9ACD32"
+              : "#000",
           zIndex: 999,
         }}
       />
@@ -147,17 +179,35 @@ function NavigationRoot() {
 
 export default function RootLayout() {
   const swApiKey = (Constants?.expoConfig?.extra as any)?.superwallApiKey;
+
+  // Initialize global error handling and Crashlytics
+  useEffect(() => {
+    const initializeServices = async () => {
+      try {
+        initializeErrorHandling();
+        await crashlytics.initialize();
+        console.log("Error handling and Crashlytics initialized successfully");
+      } catch (error) {
+        console.error("Failed to initialize error handling services:", error);
+      }
+    };
+
+    initializeServices();
+  }, []);
+
   return (
-    <SuperwallProvider
-      apiKeys={{ ios: swApiKey, android: swApiKey }}
-      options={{ isPaidSubscriptionEnabled: true }}
-    >
-      <UserProvider>
-        <OnboardingProvider>
-          <NavigationRoot />
-          <StatusBar style="light" backgroundColor="#000" />
-        </OnboardingProvider>
-      </UserProvider>
-    </SuperwallProvider>
+    <ErrorBoundary>
+      <SuperwallProvider
+        apiKeys={{ ios: swApiKey, android: swApiKey }}
+        options={{ isPaidSubscriptionEnabled: true }}
+      >
+        <UserProvider>
+          <OnboardingProvider>
+            <NavigationRoot />
+            <StatusBar style="light" backgroundColor="#000" />
+          </OnboardingProvider>
+        </UserProvider>
+      </SuperwallProvider>
+    </ErrorBoundary>
   );
 }

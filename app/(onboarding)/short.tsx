@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   Animated,
   Dimensions,
@@ -22,21 +22,26 @@ function ShortScreen({
 }) {
   const screenWidth = Dimensions.get("window").width;
   // Start from off the right side of the screen
-  const slideAnims = [...Array(6)].map(
-    () => React.useRef(new Animated.Value(screenWidth)).current
-  );
+  const slideAnims = [
+    useRef(new Animated.Value(screenWidth)),
+    useRef(new Animated.Value(screenWidth)),
+    useRef(new Animated.Value(screenWidth)),
+    useRef(new Animated.Value(screenWidth)),
+    useRef(new Animated.Value(screenWidth)),
+    useRef(new Animated.Value(screenWidth)),
+  ];
 
   useEffect(() => {
     // Animate each card with a staggered delay
     slideAnims.forEach((anim, index) => {
-      Animated.timing(anim, {
+      Animated.timing(anim.current, {
         toValue: 0,
         duration: 150, // Reduced from 500ms to 300ms
         delay: index * 30, // Reduced from 100ms to 50ms delay between each card
         useNativeDriver: true,
       }).start();
     });
-  }, []);
+  }, [slideAnims]);
 
   const costItems = [
     "40% fewer dating matches",
@@ -62,7 +67,7 @@ function ShortScreen({
             style={[
               styles.costItem,
               {
-                transform: [{ translateX: slideAnims[index] }],
+                transform: [{ translateX: slideAnims[index].current }],
               },
             ]}
           >

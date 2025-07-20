@@ -1,7 +1,16 @@
 import React from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  Linking,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { withOnboarding } from "../../components/withOnboarding";
+import { useUnits } from "../../utils/useUnits";
 
 export default withOnboarding(ReviewsScreen, 10, "reviews", "short");
 
@@ -12,6 +21,8 @@ function ReviewsScreen({
   onNext?: () => void;
   onBack?: () => void;
 }) {
+  const { gain } = useUnits();
+
   return (
     <OnboardingLayout
       title="Real Results"
@@ -44,7 +55,7 @@ function ReviewsScreen({
             <View style={styles.reviewMeta}>
               <View style={styles.reviewTopLine}>
                 <Text style={styles.reviewName}>Ian N.</Text>
-                <Text style={styles.reviewInches}>+1.3 inches</Text>
+                <Text style={styles.reviewInches}>{gain(1.3)}</Text>
               </View>
               <Text style={styles.reviewAge}>Age 16</Text>
             </View>
@@ -66,7 +77,7 @@ function ReviewsScreen({
             <View style={styles.reviewMeta}>
               <View style={styles.reviewTopLine}>
                 <Text style={styles.reviewName}>Daniil K.</Text>
-                <Text style={styles.reviewInches}>+1.8 inches</Text>
+                <Text style={styles.reviewInches}>{gain(1.8)}</Text>
               </View>
               <Text style={styles.reviewAge}>Age 15</Text>
             </View>
@@ -89,7 +100,7 @@ function ReviewsScreen({
             <View style={styles.reviewMeta}>
               <View style={styles.reviewTopLine}>
                 <Text style={styles.reviewName}>Bagkar N.</Text>
-                <Text style={styles.reviewInches}>+1.5 inches</Text>
+                <Text style={styles.reviewInches}>{gain(1.5)}</Text>
               </View>
               <Text style={styles.reviewAge}>Age 17</Text>
             </View>
@@ -100,6 +111,24 @@ function ReviewsScreen({
           </Text>
         </View>
       </View>
+
+      {/* Leave a Rating Button */}
+      <TouchableOpacity
+        style={styles.ratingButton}
+        activeOpacity={0.8}
+        onPress={() => {
+          // Attempt to open app store rating page; fallback logs
+          const url =
+            Platform.OS === "ios"
+              ? "https://apps.apple.com/us/app/gotall/id6747467975"
+              : "https://play.google.com/store/apps/details?id=com.gotall.app";
+          Linking.openURL(url).catch(() =>
+            console.warn("Unable to open rating link")
+          );
+        }}
+      >
+        <Text style={styles.ratingButtonText}>Leave a Rating</Text>
+      </TouchableOpacity>
     </OnboardingLayout>
   );
 }
@@ -199,5 +228,17 @@ const styles = StyleSheet.create({
     width: "100%",
     height: undefined,
     aspectRatio: 2.5,
+  },
+  ratingButton: {
+    backgroundColor: "#9ACD32",
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginTop: 24,
+  },
+  ratingButtonText: {
+    color: "#000",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

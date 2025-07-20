@@ -93,8 +93,8 @@ missingDimensionStrategy "store", "play"
         applicationId 'app.gotall.play'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.2.0"
+        versionCode 2
+        versionName "1.2.2"
     }
     signingConfigs {
         debug {
@@ -149,7 +149,6 @@ missingDimensionStrategy "store", "play"
 }
 
 dependencies {
-        implementation("com.tiktok.app-events.sdk:app-events-sdk:1.4.1")
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 

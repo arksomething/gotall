@@ -26,6 +26,9 @@ interface OnboardingLayoutProps {
   centerContent?: boolean;
   disableDefaultNext?: boolean;
   nextButtonStyle?: object;
+  hideFooter?: boolean;
+  hideHeader?: boolean;
+  containerBgColor?: string;
 }
 
 export function OnboardingLayout({
@@ -39,6 +42,9 @@ export function OnboardingLayout({
   centerContent = false,
   disableDefaultNext = false,
   nextButtonStyle,
+  hideFooter = false,
+  hideHeader = false,
+  containerBgColor = "#000",
 }: OnboardingLayoutProps) {
   const insets = useSafeAreaInsets();
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
@@ -54,45 +60,49 @@ export function OnboardingLayout({
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: containerBgColor }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
       <View style={[styles.safeArea, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          {showBackButton && onBack && (
-            <Pressable
-              style={styles.backButton}
-              onPressIn={() => animateScale(0.9)}
-              onPressOut={() => animateScale(1)}
-              onPress={onBack}
-            >
-              <Animated.View
-                style={[
-                  styles.backButtonCircle,
-                  { transform: [{ scale: scaleAnim }] },
-                ]}
+        {!hideHeader && (
+          <View style={styles.header}>
+            {showBackButton && onBack && (
+              <Pressable
+                style={styles.backButton}
+                onPressIn={() => animateScale(0.9)}
+                onPressOut={() => animateScale(1)}
+                onPress={onBack}
               >
-                <Ionicons name="arrow-back" size={24} color="#fff" />
-              </Animated.View>
-            </Pressable>
-          )}
+                <Animated.View
+                  style={[
+                    styles.backButtonCircle,
+                    { transform: [{ scale: scaleAnim }] },
+                  ]}
+                >
+                  <Ionicons name="arrow-back" size={24} color="#fff" />
+                </Animated.View>
+              </Pressable>
+            )}
 
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${((currentStep + 1) / TOTAL_STEPS) * 100}%` },
-                ]}
-              />
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBar}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${((currentStep + 1) / TOTAL_STEPS) * 100}%` },
+                  ]}
+                />
+              </View>
             </View>
           </View>
-        </View>
+        )}
 
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>{title}</Text>
-        </View>
+        {!hideHeader && (
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{title}</Text>
+          </View>
+        )}
 
         <ScrollView
           style={styles.scrollContent}
@@ -105,41 +115,42 @@ export function OnboardingLayout({
         >
           {children}
         </ScrollView>
+        {!hideFooter && (
+          <View
+            style={[
+              styles.footer,
+              {
+                paddingBottom:
+                  Math.max(insets.bottom, 16) +
+                  (Platform.OS === "android" ? 12 : 0),
+              },
+            ]}
+          >
+            <View style={styles.buttonContainer}>
+              {showBackButton && onBack && (
+                <TouchableOpacity
+                  style={styles.bottomBackButton}
+                  onPress={onBack}
+                >
+                  <Ionicons name="chevron-back" size={20} color="#666" />
+                  <Text style={styles.backButtonText}>Back</Text>
+                </TouchableOpacity>
+              )}
 
-        <View
-          style={[
-            styles.footer,
-            {
-              paddingBottom:
-                Math.max(insets.bottom, 16) +
-                (Platform.OS === "android" ? 12 : 0),
-            },
-          ]}
-        >
-          <View style={styles.buttonContainer}>
-            {showBackButton && onBack && (
               <TouchableOpacity
-                style={styles.bottomBackButton}
-                onPress={onBack}
+                style={[
+                  styles.nextButton,
+                  !showBackButton && styles.nextButtonFullWidth,
+                  nextButtonStyle,
+                ]}
+                onPress={disableDefaultNext ? undefined : onNext}
               >
-                <Ionicons name="chevron-back" size={20} color="#666" />
-                <Text style={styles.backButtonText}>Back</Text>
+                <Text style={styles.nextButtonText}>{nextButtonText}</Text>
+                <Ionicons name="chevron-forward" size={20} color="#000" />
               </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-              style={[
-                styles.nextButton,
-                !showBackButton && styles.nextButtonFullWidth,
-                nextButtonStyle,
-              ]}
-              onPress={disableDefaultNext ? undefined : onNext}
-            >
-              <Text style={styles.nextButtonText}>{nextButtonText}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#000" />
-            </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )}
       </View>
     </KeyboardAvoidingView>
   );

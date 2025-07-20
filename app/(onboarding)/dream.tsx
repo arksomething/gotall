@@ -6,46 +6,53 @@ import {
   OnboardingScreenProps,
   withOnboarding,
 } from "../../components/withOnboarding";
+import { useUserData } from "../../utils/UserContext";
+import {
+  generateImperialHeight,
+  generateMetricHeight,
+} from "../../utils/pickerData";
 import { useOnboarding } from "./_layout";
 
 // Convert 5'10" to cm for default height
 const DEFAULT_HEIGHT = Math.round((5 * 12 + 10) * 2.54); // 178cm
 
-// Generate height options for both metric and imperial
+// Build picker data re-using the generic generators from utils/pickerData
+// and converting their string values to a numeric centimetre value used internally.
 const generateHeightOptions = (isMetric: boolean) => {
   if (isMetric) {
-    // Metric: 122cm to 213cm (4'0" to 7'0")
-    return Array.from({ length: 92 }, (_, i) => {
-      const cm = i + 122;
-      return {
-        label: `${cm} cm`,
-        value: cm,
-      };
+    return generateMetricHeight().map((item) => {
+      const cm = parseInt(item.value, 10); // "170 cm" → 170
+      return { label: item.label, value: cm };
     });
-  } else {
-    // Imperial: 4'0" to 7'0" with inch increments
-    const options = [];
-    for (let feet = 4; feet <= 7; feet++) {
-      for (let inches = 0; inches <= 11; inches++) {
-        // Convert to cm for internal value
-        const totalInches = feet * 12 + inches;
-        const cm = Math.round(totalInches * 2.54);
-        options.push({
-          label: `${feet}'${inches}"`,
-          value: cm,
-        });
-      }
-    }
-    return options;
   }
+
+  // Imperial list – convert "5 ft 7 in" → 170 cm (rounded)
+  return generateImperialHeight().map((item) => {
+    const match = item.value.match(/(\d+)\s*ft\s*(\d+)\s*in/);
+    if (!match) {
+      return { label: item.label, value: 0 };
+    }
+    const feet = parseInt(match[1], 10);
+    const inches = parseInt(match[2], 10);
+    const totalInches = feet * 12 + inches;
+    const cm = Math.round(totalInches * 2.54);
+    return {
+      label: item.label, // preserve original "X ft Y in" format
+      value: cm,
+    };
+  });
 };
 
 function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
-  const { dreamHeightCm, setDreamHeightCm } = useOnboarding();
+  const { dreamHeightCm, setDreamHeightCm, units, toggleUnits } =
+    useOnboarding();
+  const { userData } = useUserData();
+
   const [selectedHeight, setSelectedHeight] = useState(
     dreamHeightCm || DEFAULT_HEIGHT
   );
-  const [isMetric, setIsMetric] = useState(false);
+
+  const isMetric = units === "metric";
 
   // Set default dream height if not already set
   useEffect(() => {
@@ -61,10 +68,10 @@ function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
     setDreamHeightCm(value);
   };
 
-  const toggleUnit = () => {
-    setIsMetric(!isMetric);
-    // Find closest height in new unit system
-    const newOptions = generateHeightOptions(!isMetric);
+  const handleToggleUnits = () => {
+    const newIsMetric = !isMetric; // predicted new state after toggle
+    // Find closest height in the upcoming unit system
+    const newOptions = generateHeightOptions(newIsMetric);
     const closestHeight = newOptions.reduce((prev, curr) => {
       return Math.abs(curr.value - selectedHeight) <
         Math.abs(prev.value - selectedHeight)
@@ -73,6 +80,8 @@ function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
     });
     setSelectedHeight(closestHeight.value);
     setDreamHeightCm(closestHeight.value);
+    // Propagate the unit change through shared context
+    toggleUnits();
   };
 
   return (
@@ -116,7 +125,7 @@ function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
             </Text>
             <Switch
               value={isMetric}
-              onValueChange={toggleUnit}
+              onValueChange={handleToggleUnits}
               trackColor={{ false: "#333", true: "#9ACD32" }}
               thumbColor={"#fff"}
               ios_backgroundColor="#333"

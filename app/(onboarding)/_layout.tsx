@@ -166,8 +166,18 @@ export default function OnboardingLayout() {
           animationDuration: 150,
         }}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="birthdate" />
+        <Stack.Screen
+          name="index"
+          options={{
+            animation: "none",
+          }}
+        />
+        <Stack.Screen
+          name="birthdate"
+          options={{
+            animation: "none",
+          }}
+        />
         <Stack.Screen name="sex" />
         <Stack.Screen name="ethnicity" />
         <Stack.Screen name="measurements" />

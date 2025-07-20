@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -21,8 +22,9 @@ import { databaseManager } from "../../utils/database";
 import { calculateDreamHeightProbability } from "../../utils/dreamHeightProbability";
 import { calculateHealthGoals } from "../../utils/healthGoals";
 import { calculateHeightProjection } from "../../utils/heightProjection";
-import { getHeightForInput } from "../../utils/heightUtils";
+import { convert, parseHeightToCm } from "../../utils/heightUtils";
 import { useUserData } from "../../utils/UserContext";
+import { useUnits } from "../../utils/useUnits";
 
 interface Goal {
   id?: number;
@@ -43,6 +45,8 @@ export default function Index() {
     getDisplayHeight,
     getDisplayWeight,
   } = useUserData();
+
+  const { height: formatHeight, preferredHeightUnit } = useUnits();
   const [calorieModalVisible, setCalorieModalVisible] = useState(false);
   const [weightModalVisible, setWeightModalVisible] = useState(false);
   const [heightModalVisible, setHeightModalVisible] = useState(false);
@@ -83,10 +87,17 @@ export default function Index() {
           motherHeightCm: userData.motherHeightCm,
           fatherHeightCm: userData.fatherHeightCm,
         });
+
+        // Helper to convert projection height (ft/in string) to preferred unit
+        const toDisplay = (ftHeight: string) => {
+          const cmVal = parseHeightToCm(ftHeight, "ft");
+          return cmVal ? formatHeight(cmVal) : ftHeight;
+        };
+
         setHeightData({
-          currentHeight: projectionData.currentHeight,
-          actualHeight: projectionData.actualHeight,
-          potentialHeight: projectionData.potentialHeight,
+          currentHeight: toDisplay(projectionData.currentHeight),
+          actualHeight: toDisplay(projectionData.actualHeight),
+          potentialHeight: toDisplay(projectionData.potentialHeight),
         });
       } catch (error) {
         console.error("Error calculating height projections:", error);
@@ -102,7 +113,7 @@ export default function Index() {
       // Calculate dream height probability if dream height is set
       if (userData.dreamHeightCm && userData.dreamHeightCm > 0) {
         try {
-          const dreamData = calculateDreamHeightProbability({
+          const rawDreamData = calculateDreamHeightProbability({
             dreamHeightCm: userData.dreamHeightCm,
             currentHeightCm: userData.heightCm,
             age: getAge(),
@@ -110,7 +121,28 @@ export default function Index() {
             motherHeightCm: userData.motherHeightCm,
             fatherHeightCm: userData.fatherHeightCm,
           });
-          setDreamHeightData(dreamData);
+
+          // Format values for preferred unit
+          const dreamHeightFormatted = formatHeight(userData.dreamHeightCm);
+
+          const diffCm = rawDreamData.heightDifference;
+          const heightDifferenceFormatted =
+            preferredHeightUnit === "cm"
+              ? `${diffCm}cm to go`
+              : (() => {
+                  const totalInches = convert(diffCm).from("cm").to("in");
+                  const feet = Math.floor(totalInches / 12);
+                  const inches = Math.round(totalInches % 12);
+                  if (feet === 0) return `${inches}" to go`;
+                  if (inches === 0) return `${feet}' to go`;
+                  return `${feet}'${inches}" to go`;
+                })();
+
+          setDreamHeightData({
+            ...rawDreamData,
+            dreamHeightFormatted,
+            heightDifferenceFormatted,
+          });
         } catch (error) {
           console.error("Error calculating dream height probability:", error);
         }
@@ -147,9 +179,7 @@ export default function Index() {
 
   const openHeightModal = () => {
     // Set temp value using centralized utility
-    setTempHeightValue(
-      getHeightForInput(userData.heightCm, userData.preferredHeightUnit)
-    );
+    setTempHeightValue(formatHeight(userData.heightCm));
     setHeightModalVisible(true);
   };
 
@@ -182,7 +212,25 @@ export default function Index() {
   return (
     <View style={[styles.container]}>
       <Header
-        title="Home"
+        title={
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 26,
+                fontWeight: "bold",
+                marginRight: 6,
+                marginVertical: 4,
+              }}
+            >
+              GoTall
+            </Text>
+            <Image
+              source={require("../../assets/images/icon.png")}
+              style={{ width: 26, height: 26, borderRadius: 4 }}
+            />
+          </View>
+        }
         rightElement={
           <TouchableOpacity
             onPress={() => router.push("/(tabs)/profile")}
@@ -311,7 +359,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     paddingHorizontal: 0, // No padding since section already has it
-    marginTop: 16,
     marginBottom: 24,
     alignItems: "stretch",
   },

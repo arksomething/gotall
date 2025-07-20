@@ -37,8 +37,8 @@ export function calculateDreamHeightProbability(data: DreamHeightData): Probabil
     dreamHeightCm,
   });
   
-  // Ensure probability is within reasonable bounds
-  probability = Math.max(0, Math.min(100, probability));
+  // Ensure probability is within 5-100% range
+  probability = Math.max(5, Math.min(100, probability));
   
   const probabilityText = formatProbabilityText(probability);
   
@@ -68,9 +68,9 @@ function calculateBaseProbability({
   fatherHeightCm,
   dreamHeightCm,
 }: BaseProbabilityArgs): number {
-  // If dream height already achieved
+  // If dream height already achieved, certainty is 100%
   if (heightDifference <= 0) {
-    return 95;
+    return 100;
   }
 
   // Estimate remaining natural growth potential in cm

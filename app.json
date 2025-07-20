@@ -2,7 +2,7 @@
   "expo": {
     "name": "GoTall",
     "slug": "gotall",
-    "version": "1.2.1",
+    "version": "1.2.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "gotall",
@@ -15,7 +15,14 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSUserNotificationUsageDescription": "We use notifications to remind you to stretch and stay active."
+        "NSUserNotificationUsageDescription": "We use notifications to remind you to stretch and stay active.",
+        "TikTokClientKey": "7524706160773890066",
+        "LSApplicationQueriesSchemes": [
+          "tiktokopensdk",
+          "tiktoksharesdk",
+          "snssdk1180",
+          "snssdk1233"
+        ]
       }
     },
     "android": {
@@ -71,7 +78,7 @@
       "expo-sqlite",
       "expo-web-browser",
       "@react-native-firebase/app",
-      ["./withTikTokAppEvents.js", { "appId": "7524706160773890066" }]
+      "@react-native-firebase/crashlytics"
     ],
     "experiments": {
       "typedRoutes": true

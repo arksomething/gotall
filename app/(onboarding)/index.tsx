@@ -5,13 +5,14 @@ import {
   Linking,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { OnboardingLayout } from "../../components/OnboardingLayout";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   OnboardingScreenProps,
   withOnboarding,
@@ -42,6 +43,8 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
   const [activeSlide, setActiveSlide] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const autoScrollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const insets = useSafeAreaInsets();
+  const HERO_HEIGHT = screenHeight - insets.top - 280; // subtract approximate bottom panel height
 
   const scrollToSlide = useCallback((index: number) => {
     scrollViewRef.current?.scrollTo({
@@ -73,13 +76,9 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
   }, [activeSlide, scrollToSlide]);
 
   return (
-    <OnboardingLayout
-      title="Welcome to GoTall"
-      currentStep={0}
-      onNext={onNext}
-      showBackButton={false}
-    >
-      <View style={styles.stepContent}>
+    <SafeAreaView style={styles.safeContainer}>
+      {/* Green Hero Section */}
+      <View style={styles.heroContainer} accessibilityLabel="hero-section">
         <ScrollView
           ref={scrollViewRef}
           horizontal
@@ -93,20 +92,30 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
           snapToInterval={screenWidth}
         >
           {carouselData.map((slide, index) => (
-            <View key={index} style={styles.slide}>
-              <Text style={styles.welcomeText}>{slide.text}</Text>
-              <View style={styles.imageContainer}>
+            <View key={index} style={styles.slideHero}>
+              <View style={styles.imageContainerHero}>
                 <Image
                   source={slide.image}
-                  style={styles.screenshot}
+                  style={[
+                    styles.screenshot,
+                    { height: screenHeight * 0.5 }, // limit image height to 50% of viewport
+                  ]}
                   resizeMode="contain"
                 />
               </View>
             </View>
           ))}
         </ScrollView>
+      </View>
 
-        <View style={styles.pagination}>
+      {/* Black Bottom Panel */}
+      <View style={styles.bottomPanel}>
+        <Text style={styles.headline}>Predict your height</Text>
+        <Text style={styles.subtitleText}>
+          Input your details to discover your future height and potential
+        </Text>
+
+        <View style={styles.paginationBottom}>
           {carouselData.map((_, index) => (
             <View
               key={index}
@@ -118,28 +127,32 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
           ))}
         </View>
 
-        <TouchableOpacity
-          style={styles.privacyLink}
-          onPress={() =>
-            Linking.openURL(
-              "https://docs.google.com/document/d/16ZWdn9p2huxdIsVV51foFDPxCxMSuXofLxgY0A-BvTE/edit?usp=sharing"
-            )
-          }
-        >
-          <Text style={styles.privacyText}>Privacy Policy</Text>
+        <TouchableOpacity style={styles.startButton} onPress={onNext}>
+          <Text style={styles.startButtonText}>Let's start</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.privacyLink}
-          onPress={() =>
-            Linking.openURL(
-              "https://docs.google.com/document/d/1rg1W0ZepiwV48UTvXhDkiysV1bEg7u8TofQrQAJl1-Q/edit?usp=sharing"
-            )
-          }
-        >
-          <Text style={styles.privacyText}>Terms of Use</Text>
-        </TouchableOpacity>
+
+        <View style={styles.linkRow}>
+          <TouchableOpacity
+            onPress={() =>
+              Linking.openURL(
+                "https://docs.google.com/document/d/16ZWdn9p2huxdIsVV51foFDPxCxMSuXofLxgY0A-BvTE/edit?usp=sharing"
+              )
+            }
+          >
+            <Text style={styles.privacyText}>Privacy Policy</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              Linking.openURL(
+                "https://docs.google.com/document/d/1rg1W0ZepiwV48UTvXhDkiysV1bEg7u8TofQrQAJl1-Q/edit?usp=sharing"
+              )
+            }
+          >
+            <Text style={styles.privacyText}>Terms of Use</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </OnboardingLayout>
+    </SafeAreaView>
   );
 }
 
@@ -147,21 +160,40 @@ const styles = StyleSheet.create({
   stepContent: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     width: "100%",
   },
-  carousel: {
+  safeContainer: {
     flex: 1,
+    backgroundColor: "#000",
+  },
+  heroContainer: {
+    flex: 1,
+    width: "100%",
+    backgroundColor: "#9ACD32",
+    alignItems: "center",
+  },
+  carousel: {
     width: screenWidth,
   },
   carouselContent: {
     alignItems: "center",
   },
-  slide: {
+  slideHero: {
     width: screenWidth,
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 20,
+    justifyContent: "center",
+  },
+  imageContainerHero: {
+    flex: 1,
+    marginTop: 0,
+    marginBottom: 40, // spacing below the screenshot only
+    alignSelf: "stretch",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  screenshot: {
+    width: "100%", // base image width; height supplied inline when rendered
   },
   welcomeText: {
     color: "#fff",
@@ -171,30 +203,43 @@ const styles = StyleSheet.create({
     maxWidth: screenWidth * 0.85,
     marginBottom: 32,
   },
-  imageContainer: {
-    width: screenWidth * 0.9,
-    height: screenHeight * 0.7,
-    borderRadius: 25,
-    overflow: "hidden",
+  bottomPanel: {
     backgroundColor: "#000",
-    shadowColor: "#9ACD32",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    alignSelf: "stretch",
+    marginHorizontal: 0,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
+    alignItems: "center",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -24,
   },
-  screenshot: {
-    width: "100%",
-    height: "100%",
+  headline: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  subtitleText: {
+    color: "#fff",
+    fontSize: 16,
+    textAlign: "center",
+    opacity: 0.8,
+    marginBottom: 24,
   },
   pagination: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
+  },
+  paginationBottom: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 24,
   },
   paginationDot: {
     width: 8,
@@ -209,9 +254,27 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
   },
-  privacyLink: {
-    marginBottom: 20,
+  startButton: {
+    backgroundColor: "#9ACD32",
+    borderRadius: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    marginBottom: 16,
+    width: "100%",
+    alignItems: "center",
   },
+  startButtonText: {
+    color: "#000",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  linkRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
+  },
+  privacyLink: {},
   privacyText: {
     color: "#9ACD32",
     fontSize: 14,
