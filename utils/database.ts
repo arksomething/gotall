@@ -44,6 +44,8 @@ export interface DailyGoal {
 export class DatabaseManager {
   private db: SQLite.SQLiteDatabase | null = null;
   private isInitializing = false;
+  // Prevent concurrent generation of daily goals
+  private generatingDates: Set<string> = new Set();
   private initializationPromise: Promise<void> | null = null;
 
   async initialize(): Promise<void> {
@@ -285,6 +287,13 @@ export class DatabaseManager {
   }
 
   async generateDailyGoals(date: string): Promise<void> {
+    // ---- concurrency guard ----
+    if (this.generatingDates.has(date)) {
+      // Another call is already generating goals for this date
+      return;
+    }
+    this.generatingDates.add(date);
+
     const db = await this.getDb();
     const now = new Date().toISOString();
 
@@ -338,6 +347,8 @@ export class DatabaseManager {
       console.log(`Daily goals generated for ${date}: ${randomStretch.name} + ${randomTask.name}`);
     } catch (error) {
       console.error('Error generating daily goals:', error);
+    } finally {
+      this.generatingDates.delete(date);
     }
   }
 

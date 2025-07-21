@@ -1,3 +1,4 @@
+import Constants from "expo-constants";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
@@ -17,6 +18,7 @@ import {
   OnboardingScreenProps,
   withOnboarding,
 } from "../../components/withOnboarding";
+import { crashlytics } from "../../utils/crashlytics";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const AUTO_SCROLL_INTERVAL = 3000; // Time between auto-scrolls in milliseconds
@@ -46,6 +48,30 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
   const insets = useSafeAreaInsets();
   const HERO_HEIGHT = screenHeight - insets.top - 280; // subtract approximate bottom panel height
 
+  // Add logging for debugging
+  useEffect(() => {
+    crashlytics.logMessage("WelcomeScreen mounted");
+    crashlytics.setCustomKey("screen", "onboarding_index");
+    crashlytics.setCustomKey("safe_area_top", insets.top.toString());
+    crashlytics.setCustomKey(
+      "screen_dimensions",
+      `${screenWidth}x${screenHeight}`
+    );
+
+    // Add Expo-specific logging
+    console.log("Expo Debug Info:", {
+      expoVersion: Constants.expoConfig?.version,
+      platform: Constants.platform,
+      deviceName: Constants.deviceName,
+      deviceYearClass: Constants.deviceYearClass,
+      isDevice: Constants.isDevice,
+      appOwnership: Constants.appOwnership,
+      installationTime: Constants.installationTime,
+      nativeAppVersion: Constants.nativeAppVersion,
+      nativeBuildVersion: Constants.nativeBuildVersion,
+    });
+  }, [insets.top]);
+
   const scrollToSlide = useCallback((index: number) => {
     scrollViewRef.current?.scrollTo({
       x: index * screenWidth,
@@ -74,6 +100,36 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
       }
     };
   }, [activeSlide, scrollToSlide]);
+
+  const handleNextPress = () => {
+    try {
+      crashlytics.logMessage("User pressed Let's start button");
+      crashlytics.setCustomKey("action", "pressed_lets_start");
+      crashlytics.setCustomKey("active_slide", activeSlide.toString());
+
+      // Log current state
+      console.log("Navigation state before onNext:", {
+        activeSlide,
+        screenWidth,
+        screenHeight,
+        insets: insets,
+        timestamp: new Date().toISOString(),
+      });
+
+      onNext?.();
+    } catch (error) {
+      crashlytics.logError(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          screen: "onboarding_index",
+          action: "pressed_lets_start",
+          activeSlide,
+          error_type: "navigation_error",
+        }
+      );
+      console.error("Error in handleNextPress:", error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -127,7 +183,7 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.startButton} onPress={onNext}>
+        <TouchableOpacity style={styles.startButton} onPress={handleNextPress}>
           <Text style={styles.startButtonText}>Let's start</Text>
         </TouchableOpacity>
 

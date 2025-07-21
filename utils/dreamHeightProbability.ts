@@ -1,4 +1,40 @@
-import { convert } from "./heightUtils";
+import { calculateHeightProjection } from "./heightProjection";
+import { convert, parseHeightToCm } from "./heightUtils";
+
+/* --------------------------------------------------------------------------
+ * Constants & helpers
+ * --------------------------------------------------------------------------*/
+
+const MALE_REMAINING_CM_TABLE = [
+  [6, 35],
+  [8, 30],
+  [10, 25],
+  [12, 22],
+  [14, 15],
+  [15, 12],
+  [16, 8],
+  [17, 5],
+  [18, 2],
+  [19, 0.5],
+] as const;
+
+const FEMALE_REMAINING_CM_TABLE = [
+  [6, 30],
+  [8, 25],
+  [10, 20],
+  [11, 17],
+  [12, 13],
+  [13, 9],
+  [14, 6],
+  [15, 3],
+  [16, 1],
+  [17, 0.3],
+] as const;
+
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+
+/** Logistic drop-off: returns value 0-100 */
+const logistic = (x: number, steep: number, mid: number) => 100 / (1 + Math.exp(steep * (x - mid)));
 
 export interface DreamHeightData {
   dreamHeightCm: number;
@@ -35,9 +71,18 @@ export function calculateDreamHeightProbability(data: DreamHeightData): Probabil
     motherHeightCm,
     fatherHeightCm,
     dreamHeightCm,
+    currentHeightCm,
   });
   
-  // Ensure probability is within 5-100% range
+  // Guard against NaN or infinite
+  if (!isFinite(probability)) {
+    probability = 5;
+  }
+
+  // Round to one decimal place
+  probability = Math.round(probability * 10) / 10;
+
+  // Ensure probability is within 5-100 % range
   probability = Math.max(5, Math.min(100, probability));
   
   const probabilityText = formatProbabilityText(probability);
@@ -58,6 +103,7 @@ interface BaseProbabilityArgs {
   motherHeightCm?: number;
   fatherHeightCm?: number;
   dreamHeightCm: number;
+  currentHeightCm: number;
 }
 
 function calculateBaseProbability({
@@ -67,28 +113,64 @@ function calculateBaseProbability({
   motherHeightCm,
   fatherHeightCm,
   dreamHeightCm,
+  currentHeightCm,
 }: BaseProbabilityArgs): number {
   // If dream height already achieved, certainty is 100%
   if (heightDifference <= 0) {
     return 100;
   }
 
-  // Estimate remaining natural growth potential in cm
-  const remainingPotentialCm = getRemainingGrowthPotentialCm(age, sex);
+  //////////////////////////////////////////////////////////////
+  // New approach: centre odds on PROJECTED POTENTIAL height  //
+  //////////////////////////////////////////////////////////////
 
-  // If virtually no growth left
-  if (remainingPotentialCm < 0.5) {
-    return 5;
+  // 1. Compute projected potential adult height using the same util used in UI
+  let projectedPotentialCm: number | null = null;
+  try {
+    const projection = calculateHeightProjection({
+      heightCm: currentHeightCm,
+      age,
+      sex,
+      motherHeightCm,
+      fatherHeightCm,
+    });
+
+    // convert potentialHeight string (e.g. 6'1") to cm
+    projectedPotentialCm = parseHeightToCm(projection.potentialHeight, "ft");
+  } catch (e) {
+    // Fallback: estimate remaining growth potential if projection failed
+    projectedPotentialCm = null;
   }
 
-  // If dream height requires more than 125% of expected potential -> very low chance
-  if (heightDifference > remainingPotentialCm * 1.25) {
-    return 5;
+  let probability: number;
+
+  /* ---------- Primary branch: we have a projected potential height ---------- */
+  if (projectedPotentialCm) {
+    const diffFromPotential = dreamHeightCm - projectedPotentialCm; // cm (may be negative)
+
+    if (diffFromPotential <= 0) {
+      // Dream height is at or below projected potential – high odds
+      probability = 90;
+    } else {
+      /*
+        Use a logistic curve centred at 0 cm (dream == potential → 50-60 %)
+        and dropping towards 5 % when dream is >12 cm over potential.
+      */
+      probability = logistic(diffFromPotential, 0.4, 0); // centred at 0 cm
+    }
+  }
+  /* ---------- Fallback branch: no projection available ---------- */
+  else {
+    // Fallback to previous remaining-growth model if projection failed
+    const remainingPotentialCm = getRemainingGrowthPotentialCm(age, sex);
+
+    if (remainingPotentialCm < 0.5) return 5;
+    const ratio = heightDifference / remainingPotentialCm;
+    probability = logistic(ratio, 8, 0.6);
   }
 
-  // Probability inversely related to how much of remaining growth is needed
-  const ratio = heightDifference / remainingPotentialCm; // 0..1.25
-  let probability = 95 - ratio * 90; // linear drop from 95 → 5
+  // Clamp reasonable bounds
+  probability = clamp(probability, 5, 95);
 
   // Adjust for genetics if we have parental heights
   if (motherHeightCm && fatherHeightCm) {
@@ -114,47 +196,21 @@ function calculateBaseProbability({
 
 function getRemainingGrowthPotentialCm(age: number, sex: "1" | "2"): number {
   // Approximate average remaining growth based on CDC growth curves (very rough)
-  const tableMale: { age: number; cm: number }[] = [
-    { age: 6, cm: 35 },
-    { age: 8, cm: 30 },
-    { age: 10, cm: 25 },
-    { age: 12, cm: 22 },
-    { age: 14, cm: 15 },
-    { age: 15, cm: 12 },
-    { age: 16, cm: 8 },
-    { age: 17, cm: 5 },
-    { age: 18, cm: 2 },
-    { age: 19, cm: 0.5 },
-  ];
-
-  const tableFemale: { age: number; cm: number }[] = [
-    { age: 6, cm: 30 },
-    { age: 8, cm: 25 },
-    { age: 10, cm: 20 },
-    { age: 11, cm: 17 },
-    { age: 12, cm: 13 },
-    { age: 13, cm: 9 },
-    { age: 14, cm: 6 },
-    { age: 15, cm: 3 },
-    { age: 16, cm: 1 },
-    { age: 17, cm: 0.3 },
-  ];
-
-  const table = sex === "1" ? tableMale : tableFemale;
+  const table = sex === "1" ? MALE_REMAINING_CM_TABLE : FEMALE_REMAINING_CM_TABLE;
 
   // Find the first entry older than the user and interpolate linearly
   for (let i = 0; i < table.length - 1; i++) {
-    const current = table[i];
-    const next = table[i + 1];
-    if (age >= current.age && age < next.age) {
-      const t = (age - current.age) / (next.age - current.age);
-      return current.cm + (next.cm - current.cm) * t;
+    const [ageA, cmA] = table[i];
+    const [ageB, cmB] = table[i + 1];
+    if (age >= ageA && age < ageB) {
+      const t = (age - ageA) / (ageB - ageA);
+      return cmA + (cmB - cmA) * t;
     }
   }
 
   // If age younger than first entry, use first value; if older than last, use last
-  if (age < table[0].age) return table[0].cm;
-  return table[table.length - 1].cm;
+  if (age < table[0][0]) return table[0][1];
+  return table[table.length - 1][1];
 }
 
 function formatHeight(heightCm: number): string {
