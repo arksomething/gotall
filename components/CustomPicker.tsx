@@ -6,7 +6,7 @@ interface CustomPickerProps {
   label: string;
   selectedValue: string;
   onValueChange: (value: string) => void;
-  items: Array<{ label: string; value: string }>;
+  items: { label: string; value: string }[];
   containerStyle?: object;
 }
 

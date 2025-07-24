@@ -84,6 +84,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="roadmap"
+        options={{
+          title: "Roadmap",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="map" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           // Hide from the tab bar but keep the route accessible

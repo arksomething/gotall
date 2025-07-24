@@ -2,6 +2,8 @@ import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { Pressable } from "react-native";
 import * as OnboardingContext from "../app/(onboarding)/_layout";
+
+import { withOnboarding } from "../components/withOnboarding";
 // Mock Firebase-related native modules **before** importing HOC
 jest.mock("@react-native-firebase/app", () => () => ({}));
 jest.mock("@react-native-firebase/analytics", () => () => ({
@@ -13,8 +15,6 @@ jest.mock("../utils/FirebaseAnalytics", () => ({
   logEvent: jest.fn(),
   setUserId: jest.fn(),
 }));
-
-import { withOnboarding } from "../components/withOnboarding";
 
 // Router mocks (names prefixed with "mock" so Jest allows access in factory)
 const mockPush = jest.fn();

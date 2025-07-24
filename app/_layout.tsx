@@ -109,9 +109,9 @@ function NavigationRoot() {
   // Initialise TikTok SDK once
   useEffect(() => {
     const ttAppId = (Constants?.expoConfig?.extra as any)?.tiktokAppId;
-    if (ttAppId) {
-      initTikTok(ttAppId, __DEV__);
-    }
+    // if (ttAppId) {
+    //   initTikTok(ttAppId, __DEV__);
+    // }
   }, []);
 
   useEffect(() => {

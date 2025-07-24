@@ -171,6 +171,28 @@ export class DatabaseManager {
           FOREIGN KEY (goal_id) REFERENCES goals (id),
           UNIQUE(date, goal_id)
         );
+        
+        -- Added tables for calorie tracking and height predictions
+        CREATE TABLE IF NOT EXISTS calorie_data (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date TEXT UNIQUE NOT NULL,
+          calories INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS height_predictions (
+          id INTEGER PRIMARY KEY CHECK(id = 1),
+          adultHeight REAL,
+          created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS lesson_completions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          lesson_id TEXT NOT NULL,
+          date TEXT NOT NULL,
+          UNIQUE(lesson_id, date)
+        );
       `);
 
       await this.db.execAsync(`
@@ -178,6 +200,7 @@ export class DatabaseManager {
         CREATE INDEX IF NOT EXISTS idx_goal_completions_date ON goal_completions(date);
         CREATE INDEX IF NOT EXISTS idx_goal_completions_goal_id ON goal_completions(goal_id);
         CREATE INDEX IF NOT EXISTS idx_daily_goals_date ON daily_goals(date);
+        CREATE INDEX IF NOT EXISTS idx_calorie_data_date ON calorie_data(date);
       `);
 
       // Insert default goals if none exist
@@ -559,6 +582,86 @@ export class DatabaseManager {
       
     } catch (error) {
       console.error('Error force regenerating daily goals:', error);
+    }
+  }
+
+  async addLessonCompletion(lessonId: string): Promise<void> {
+    const db = await this.getDb();
+    const today = new Date().toISOString().split("T")[0];
+    try {
+      await db.runAsync(
+        "INSERT OR IGNORE INTO lesson_completions (lesson_id, date) VALUES (?, ?)",
+        [lessonId, today]
+      );
+    } catch (error) {
+      console.error("Error adding lesson completion:", error);
+      throw error;
+    }
+  }
+
+  async getLessonCompletionStatus(lessonId: string): Promise<boolean> {
+    const db = await this.getDb();
+    try {
+      const result = await db.getFirstAsync(
+        "SELECT COUNT(*) as count FROM lesson_completions WHERE lesson_id = ?",
+        [lessonId]
+      );
+      return (result as any).count > 0;
+    } catch (error) {
+      console.error("Error getting lesson completion status:", error);
+      return false;
+    }
+  }
+
+  async removeLessonCompletion(lessonId: string): Promise<void> {
+    const db = await this.getDb();
+    try {
+      await db.runAsync("DELETE FROM lesson_completions WHERE lesson_id = ?", [
+        lessonId,
+      ]);
+    } catch (error) {
+      console.error("Error removing lesson completion:", error);
+      throw error;
+    }
+  }
+
+  async markLessonsUpToDay(
+    lessonIdBase: string,
+    day: number,
+    totalDays: number
+  ): Promise<void> {
+    const db = await this.getDb();
+    try {
+      for (let i = 1; i <= day; i++) {
+        const lessonId = `${lessonIdBase}-${i}`;
+        const today = new Date().toISOString().split("T")[0];
+        await db.runAsync(
+          "INSERT OR IGNORE INTO lesson_completions (lesson_id, date) VALUES (?, ?)",
+          [lessonId, today]
+        );
+      }
+    } catch (error) {
+      console.error("Error marking lessons up to day:", error);
+      throw error;
+    }
+  }
+
+  async unmarkLessonsFromDay(
+    lessonIdBase: string,
+    day: number,
+    totalDays: number
+  ): Promise<void> {
+    const db = await this.getDb();
+    try {
+      for (let i = day; i <= totalDays; i++) {
+        const lessonId = `${lessonIdBase}-${i}`;
+        await db.runAsync("DELETE FROM lesson_completions WHERE lesson_id = ?", [
+          lessonId,
+        ]);
+      }
+    } catch (error) {
+      console.error("Error unmarking lessons from day:", error);
+      throw error;
     }
   }
 

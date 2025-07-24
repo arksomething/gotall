@@ -1,0 +1,26 @@
+{
+  "lessons": [
+    {
+      "id": "posture-basics",
+      "title": "Posture Basics",
+      "steps": [
+        {
+          "type": "text",
+          "title": "Welcome to Posture Basics",
+          "markdown": "## Why Posture Matters\nGood posture makes you look taller and feel better."
+        },
+        {
+          "type": "video",
+          "title": "Neutral Spine Demonstration",
+          "url": "https://www.youtube.com/embed/VIDEO_ID"
+        },
+        {
+          "type": "quiz",
+          "prompt": "Which of these positions represents a neutral spine?",
+          "choices": ["A slouched C-shape", "Ears over shoulders"],
+          "answer": 1
+        }
+      ]
+    }
+  ]
+} 

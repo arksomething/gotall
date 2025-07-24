@@ -1,7 +1,7 @@
+import { getHeightForInput } from "./heightUtils";
+
 export type HeightUnit = "ft" | "cm";
 export type WeightUnit = "lbs" | "kg";
-
-import { getHeightForInput } from "./heightUtils";
 
 /**
  * Convert a centimetre value to a formatted height string in the

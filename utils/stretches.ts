@@ -6,7 +6,8 @@ export interface Stretch {
   bodyParts: string[];
   youtubeUrl: string;
   youtubeId: string;
-  duration: string;
+  sets: number;
+  durationSeconds: number;
 }
 
 export const stretches: Stretch[] = [
@@ -24,7 +25,8 @@ export const stretches: Stretch[] = [
     bodyParts: ["Lower back", "Abdominals", "Chest", "Hip flexors", "Shoulders"],
     youtubeUrl: "https://www.youtube.com/watch?v=jwoTJNgh8BY",
     youtubeId: "jwoTJNgh8BY",
-    duration: "20-30 seconds"
+    sets: 1,
+    durationSeconds: 25
   },
   {
     name: "Hanging Stretch",
@@ -40,7 +42,8 @@ export const stretches: Stretch[] = [
     bodyParts: ["Spine", "Latissimus dorsi", "Shoulders", "Forearms", "Core"],
     youtubeUrl: "https://www.youtube.com/watch?v=5jC2DvRFips",
     youtubeId: "5jC2DvRFips",
-    duration: "20-40 seconds"
+    sets: 1,
+    durationSeconds: 30
   },
   {
     name: "Cat-Cow Stretch",
@@ -56,7 +59,8 @@ export const stretches: Stretch[] = [
     bodyParts: ["Entire spine", "Core muscles", "Neck", "Shoulders", "Hip flexors"],
     youtubeUrl: "https://www.youtube.com/watch?v=y39PrKY_4JM",
     youtubeId: "y39PrKY_4JM",
-    duration: "10 repetitions"
+    sets: 1,
+    durationSeconds: 30
   },
   {
     name: "Child's Pose",
@@ -72,7 +76,8 @@ export const stretches: Stretch[] = [
     bodyParts: ["Lower back", "Hips", "Thighs", "Ankles", "Shoulders"],
     youtubeUrl: "https://www.youtube.com/watch?v=EniGBCHAEVQ",
     youtubeId: "EniGBCHAEVQ",
-    duration: "30-60 seconds"
+    sets: 1,
+    durationSeconds: 45
   },
   {
     name: "Forward Bend (Standing Toe Touch)",
@@ -89,7 +94,8 @@ export const stretches: Stretch[] = [
     bodyParts: ["Hamstrings", "Calves", "Lower back", "Spine", "Glutes"],
     youtubeUrl: "https://www.youtube.com/watch?v=VOPnBMKTbO8",
     youtubeId: "VOPnBMKTbO8",
-    duration: "20-30 seconds"
+    sets: 1,
+    durationSeconds: 25
   },
   {
     name: "Bridge Stretch",
@@ -105,7 +111,8 @@ export const stretches: Stretch[] = [
     bodyParts: ["Glutes", "Hamstrings", "Hip flexors", "Lower back", "Core"],
     youtubeUrl: "https://www.youtube.com/watch?v=WtilA9IJX1c",
     youtubeId: "WtilA9IJX1c",
-    duration: "15-20 seconds"
+    sets: 1,
+    durationSeconds: 18
   },
   {
     name: "Seated Forward Fold",
@@ -122,7 +129,8 @@ export const stretches: Stretch[] = [
     bodyParts: ["Hamstrings", "Calves", "Lower back", "Spine", "Shoulders"],
     youtubeUrl: "https://www.youtube.com/watch?v=SLIaql7h6RQ",
     youtubeId: "SLIaql7h6RQ",
-    duration: "20-30 seconds"
+    sets: 1,
+    durationSeconds: 25
   },
   {
     name: "Side Stretch",
@@ -139,7 +147,8 @@ export const stretches: Stretch[] = [
     bodyParts: ["Obliques", "Intercostal muscles", "Latissimus dorsi", "Spine", "Shoulders"],
     youtubeUrl: "https://www.youtube.com/watch?v=kqnua4rHVVA",
     youtubeId: "kqnua4rHVVA",
-    duration: "15-20 seconds each side"
+    sets: 1,
+    durationSeconds: 18
   },
   {
     name: "Downward Dog",
@@ -156,7 +165,8 @@ export const stretches: Stretch[] = [
     bodyParts: ["Hamstrings", "Calves", "Shoulders", "Arms", "Core", "Back"],
     youtubeUrl: "https://www.youtube.com/watch?v=j97SSGsnCAQ",
     youtubeId: "j97SSGsnCAQ",
-    duration: "20-30 seconds"
+    sets: 1,
+    durationSeconds: 25
   },
   {
     name: "Spinal Twist",
@@ -173,6 +183,7 @@ export const stretches: Stretch[] = [
     bodyParts: ["Spine", "Obliques", "Hip flexors", "Glutes", "Lower back"],
     youtubeUrl: "https://www.youtube.com/watch?v=ciGK6HyYqV4",
     youtubeId: "ciGK6HyYqV4",
-    duration: "20 seconds each side"
+    sets: 1,
+    durationSeconds: 20
   }
 ]; 

@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   DeviceEventEmitter,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -37,6 +38,7 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
   const [heightDifference, setHeightDifference] = useState(2);
   const [promoCode, setPromoCode] = useState<string>("");
   const validPromoCodes = ["GOTALLREVIEW", "PLAYREVIEW"];
+  const isAndroid = Platform.OS === "android";
   const [showPromoInput, setShowPromoInput] = useState(false);
 
   useEffect(() => {
@@ -242,32 +244,33 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
             <Text style={styles.restoreText}>Restore Purchase</Text>
           </TouchableOpacity>
 
-          {showPromoInput ? (
-            <View style={styles.promoContainer}>
-              <TextInput
-                style={styles.promoInput}
-                placeholder="Promo Code"
-                placeholderTextColor="#9ACD32"
-                value={promoCode}
-                autoCapitalize="characters"
-                onChangeText={setPromoCode}
-              />
+          {isAndroid &&
+            (showPromoInput ? (
+              <View style={styles.promoContainer}>
+                <TextInput
+                  style={styles.promoInput}
+                  placeholder="Promo Code"
+                  placeholderTextColor="#9ACD32"
+                  value={promoCode}
+                  autoCapitalize="characters"
+                  onChangeText={setPromoCode}
+                />
+                <TouchableOpacity
+                  style={styles.promoApplyButton}
+                  onPress={onRedeemPromo}
+                  disabled={promoCode.trim() === ""}
+                >
+                  <Text style={styles.promoApplyText}>Apply</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
               <TouchableOpacity
-                style={styles.promoApplyButton}
-                onPress={onRedeemPromo}
-                disabled={promoCode.trim() === ""}
+                style={styles.restoreButton}
+                onPress={() => setShowPromoInput(true)}
               >
-                <Text style={styles.promoApplyText}>Apply</Text>
+                <Text style={styles.restoreText}>Promo</Text>
               </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.restoreButton}
-              onPress={() => setShowPromoInput(true)}
-            >
-              <Text style={styles.restoreText}>Promo</Text>
-            </TouchableOpacity>
-          )}
+            ))}
         </View>
 
         {error && <Text style={styles.errorText}>{error}</Text>}
