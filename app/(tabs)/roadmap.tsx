@@ -258,7 +258,10 @@ export default function RoadmapScreen() {
                   day={day}
                   onMeasure={handleMeasure}
                   onStartLessons={() => {
-                    (router as any).push(`/lessons/${day}/0`);
+                    router.push({
+                      pathname: "/(tabs)/lesson",
+                      params: { day: String(day), step: "0" },
+                    });
                   }}
                 >
                   {content}
