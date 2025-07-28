@@ -22,13 +22,14 @@ import { Header } from "../../components/Header";
 import RoadmapNode from "../../components/RoadmapNode";
 import { databaseManager } from "../../utils/database";
 import { getLessonsForDay } from "../../utils/lessons";
+import lessonsData from "../../utils/lessons.json";
 
 export default function RoadmapScreen() {
   const router = useRouter();
 
   const insets = useSafeAreaInsets();
 
-  const TOTAL_DAYS = 30;
+  const TOTAL_DAYS = lessonsData.lessons.length;
   const [completedDayCount, setCompletedDayCount] = useState(0);
   const nodePositions = useRef<{ [key: number]: number }>({});
   const baselineNodePositions = useRef<{ [key: number]: number }>({});
@@ -42,9 +43,9 @@ export default function RoadmapScreen() {
   useFocusEffect(
     useCallback(() => {
       const fetchLessonCompletion = async () => {
-        const lessons = getLessonsForDay(1); // Assuming lessons are the same for all days for now
         const completionStatus: { [key: string]: boolean } = {};
-        for (let i = 1; i <= 30; i++) {
+        for (let i = 1; i <= TOTAL_DAYS; i++) {
+          const lessons = getLessonsForDay(i);
           for (const lesson of lessons) {
             const lessonId = `${lesson.id}-${i}`;
             completionStatus[lessonId] =
@@ -58,12 +59,11 @@ export default function RoadmapScreen() {
   );
 
   useEffect(() => {
-    const lessons = getLessonsForDay(1);
-    if (!lessons.length) return;
-    const lesson = lessons[0];
-
     let consecutiveDays = 0;
     for (let i = 1; i <= TOTAL_DAYS; i++) {
+      const lessons = getLessonsForDay(i);
+      if (!lessons.length) break;
+      const lesson = lessons[0];
       const lessonId = `${lesson.id}-${i}`;
       if (lessonCompletion[lessonId]) {
         consecutiveDays = i;
@@ -184,8 +184,20 @@ export default function RoadmapScreen() {
 
               const lessons = getLessonsForDay(day);
               const lesson = lessons[0];
-              const lessonId = `${lesson.id}-${day}`;
+              const lessonId = lesson ? `${lesson.id}-${day}` : `day-${day}`;
               const isCompleted = lesson ? lessonCompletion[lessonId] : false;
+
+              // Check if this lesson is unlocked (previous lesson completed)
+              const isUnlocked =
+                day === 1 ||
+                (() => {
+                  const previousDay = day - 1;
+                  const previousLessons = getLessonsForDay(previousDay);
+                  if (previousLessons.length === 0) return true; // If no previous lesson, allow access
+                  const previousLesson = previousLessons[0];
+                  const previousLessonId = `${previousLesson.id}-${previousDay}`;
+                  return lessonCompletion[previousLessonId] === true;
+                })();
 
               let content: React.ReactNode;
               if (isCompleted) {
@@ -216,33 +228,49 @@ export default function RoadmapScreen() {
                   onPress={() => handleDayPress(day)}
                   onToggleComplete={async () => {
                     Haptics.selectionAsync();
-                    const lessons = getLessonsForDay(1);
+                    const lessons = getLessonsForDay(day);
                     if (!lessons.length) return;
                     const lesson = lessons[0];
 
                     if (isCompleted) {
-                      await databaseManager.unmarkLessonsFromDay(
-                        lesson.id,
-                        day,
-                        TOTAL_DAYS
-                      );
+                      // Unmark from current day onwards
+                      for (let i = day; i <= TOTAL_DAYS; i++) {
+                        const dayLessons = getLessonsForDay(i);
+                        for (const dayLesson of dayLessons) {
+                          const lessonId = `${dayLesson.id}-${i}`;
+                          await databaseManager.removeLessonCompletion(
+                            lessonId
+                          );
+                        }
+                      }
                     } else {
-                      await databaseManager.markLessonsUpToDay(
-                        lesson.id,
-                        day,
-                        TOTAL_DAYS
-                      );
+                      // Mark from day 1 up to current day
+                      for (let i = 1; i <= day; i++) {
+                        const dayLessons = getLessonsForDay(i);
+                        for (const dayLesson of dayLessons) {
+                          const lessonId = `${dayLesson.id}-${i}`;
+                          await databaseManager.addLessonCompletion(lessonId);
+                        }
+                      }
                     }
 
                     // Manually update local state for immediate feedback
                     const newCompletionStatus = { ...lessonCompletion };
                     if (isCompleted) {
+                      // Unmark from current day onwards
                       for (let i = day; i <= TOTAL_DAYS; i++) {
-                        newCompletionStatus[`${lesson.id}-${i}`] = false;
+                        const dayLessons = getLessonsForDay(i);
+                        for (const dayLesson of dayLessons) {
+                          newCompletionStatus[`${dayLesson.id}-${i}`] = false;
+                        }
                       }
                     } else {
+                      // Mark from day 1 up to current day
                       for (let i = 1; i <= day; i++) {
-                        newCompletionStatus[`${lesson.id}-${i}`] = true;
+                        const dayLessons = getLessonsForDay(i);
+                        for (const dayLesson of dayLessons) {
+                          newCompletionStatus[`${dayLesson.id}-${i}`] = true;
+                        }
                       }
                     }
                     setLessonCompletion(newCompletionStatus);
@@ -251,18 +279,22 @@ export default function RoadmapScreen() {
                   label={`Day ${day}`}
                   description={
                     <Text style={styles.descriptionText}>
-                      Placeholder description for Day {day}. You can add more
-                      details here.
+                      {lesson
+                        ? lesson.description
+                        : `No lesson available for Day ${day}`}
                     </Text>
                   }
                   day={day}
                   onMeasure={handleMeasure}
                   onStartLessons={() => {
-                    router.push({
-                      pathname: "/(tabs)/lesson",
-                      params: { day: String(day), step: "0" },
-                    });
+                    if (isUnlocked) {
+                      router.push({
+                        pathname: "/(tabs)/lesson",
+                        params: { day: String(day), step: "0" },
+                      });
+                    }
                   }}
+                  isUnlocked={isUnlocked}
                 >
                   {content}
                 </RoadmapNode>
@@ -298,7 +330,7 @@ const styles = StyleSheet.create({
     top: 0,
     width: 6,
     borderRadius: 3,
-    backgroundColor: "#333",
+    backgroundColor: "#222",
     height: "100%",
   },
   progressFill: {

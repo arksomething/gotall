@@ -80,3 +80,51 @@ Use this information to provide personalized advice and answer questions in the 
     }
   }
 );
+
+export const foodAnalyzer = onRequest(
+  { cors: true, secrets: [OPENROUTER_API_KEY] },
+  async (req: Request, res: Response) => {
+    const { images, prompt } = req.body; // Expecting { images: string[], prompt: string }
+
+    if (!images || !Array.isArray(images) || images.length === 0 || !prompt) {
+      res.status(400).send("Missing images or prompt.");
+      return;
+    }
+
+    const openai = new OpenAI({
+      apiKey: OPENROUTER_API_KEY.value(),
+      baseURL: "https://openrouter.ai/api/v1",
+      defaultHeaders: {
+        "HTTP-Referer": "https://gotall.app",
+        "X-Title": "GoTall Food Analyzer",
+      },
+    });
+
+    const imageUrls = images.map((base64) => `data:image/jpeg;base64,${base64}`);
+
+    const messages: any = [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          ...imageUrls.map((url) => ({
+            type: "image_url",
+            image_url: { url },
+          })),
+        ],
+      },
+    ];
+
+    try {
+      const aiResponse = await openai.chat.completions.create({
+        model: "openai/gpt-4o", // Using a model that supports vision
+        messages: messages,
+      });
+
+      res.json({ reply: aiResponse.choices[0].message.content });
+    } catch (error) {
+      logger.error("OpenAI request failed for food analyzer", error as any);
+      res.status(500).send("Internal server error");
+    }
+  }
+);

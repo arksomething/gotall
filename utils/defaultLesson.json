@@ -1,0 +1,54 @@
+{
+  "id": "default",
+  "title": "Daily Lesson",
+  "steps": [
+    {
+      "type": "article",
+      "title": "Daily Tip",
+      "text": "Here's your daily tip for height optimization. Stay consistent with your routine and you'll see progress over time.",
+      "image": "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?q=80&w=2826&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+      "type": "video",
+      "title": "Daily Exercise",
+      "url": "https://www.youtube.com/watch?v=2-z4Bca2Tq8"
+    },
+    {
+      "type": "quiz",
+      "title": "Knowledge Check",
+      "prompt": "What's the most important factor for height optimization?",
+      "choices": ["Genetics only", "Consistent routine", "Quick fixes"],
+      "answer": 1
+    },
+    {
+      "type": "timer",
+      "title": "Daily Stretch",
+      "duration": 30,
+      "description": "Take time to stretch and improve your posture.",
+      "sets": 3,
+      "image": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2720&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "timeOptions": {
+        "start": 15,
+        "end": 300,
+        "increment": 15
+      }
+    },
+    {
+      "type": "reminder",
+      "title": "Daily Reminder",
+      "prompt": "Check your posture throughout the day.",
+      "time": "12:00",
+      "description": "A simple reminder to maintain good posture.",
+      "image": "https://images.unsplash.com/photo-1599408995438-e6b71427775c?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+      "type": "food",
+      "title": "Nutrition Check"
+    },
+    {
+      "type": "update",
+      "title": "Update Progress",
+      "measurement": "height"
+    }
+  ]
+}

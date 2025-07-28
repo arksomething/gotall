@@ -7,44 +7,13 @@ import {
   withOnboarding,
 } from "../../components/withOnboarding";
 import { useUserData } from "../../utils/UserContext";
-import {
-  generateImperialHeight,
-  generateMetricHeight,
-} from "../../utils/pickerData";
 import { useOnboarding } from "./_layout";
 
 // Convert 5'10" to cm for default height
 const DEFAULT_HEIGHT = Math.round((5 * 12 + 10) * 2.54); // 178cm
 
-// Build picker data re-using the generic generators from utils/pickerData
-// and converting their string values to a numeric centimetre value used internally.
-const generateHeightOptions = (isMetric: boolean) => {
-  if (isMetric) {
-    return generateMetricHeight().map((item) => {
-      const cm = parseInt(item.value, 10); // "170 cm" → 170
-      return { label: item.label, value: cm };
-    });
-  }
-
-  // Imperial list – convert "5 ft 7 in" → 170 cm (rounded)
-  return generateImperialHeight().map((item) => {
-    const match = item.value.match(/(\d+)\s*ft\s*(\d+)\s*in/);
-    if (!match) {
-      return { label: item.label, value: 0 };
-    }
-    const feet = parseInt(match[1], 10);
-    const inches = parseInt(match[2], 10);
-    const totalInches = feet * 12 + inches;
-    const cm = Math.round(totalInches * 2.54);
-    return {
-      label: item.label, // preserve original "X ft Y in" format
-      value: cm,
-    };
-  });
-};
-
 function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
-  const { dreamHeightCm, setDreamHeightCm, units, toggleUnits } =
+  const { dreamHeightCm, setDreamHeightCm, units, toggleUnits, heightData } =
     useOnboarding();
   const { userData } = useUserData();
 
@@ -61,7 +30,25 @@ function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
     }
   }, [dreamHeightCm, setDreamHeightCm]);
 
-  const heightOptions = generateHeightOptions(isMetric);
+  // Convert heightData to numeric cm values for the dream height picker
+  const heightOptions = heightData.map((item) => {
+    if (isMetric) {
+      // Metric: "170 cm" → 170
+      const cm = parseInt(item.value, 10);
+      return { label: item.label, value: cm };
+    } else {
+      // Imperial: "5 ft 7 in" → cm
+      const match = item.value.match(/(\d+)\s*ft\s*(\d+)\s*in/);
+      if (!match) {
+        return { label: item.label, value: 0 };
+      }
+      const feet = parseInt(match[1], 10);
+      const inches = parseInt(match[2], 10);
+      const totalInches = feet * 12 + inches;
+      const cm = Math.round(totalInches * 2.54);
+      return { label: item.label, value: cm };
+    }
+  });
 
   const handleHeightChange = (value: number) => {
     setSelectedHeight(value);
@@ -71,7 +58,24 @@ function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
   const handleToggleUnits = () => {
     const newIsMetric = !isMetric; // predicted new state after toggle
     // Find closest height in the upcoming unit system
-    const newOptions = generateHeightOptions(newIsMetric);
+    const newOptions = heightData.map((item) => {
+      if (newIsMetric) {
+        // Metric: "170 cm" → 170
+        const cm = parseInt(item.value, 10);
+        return { label: item.label, value: cm };
+      } else {
+        // Imperial: "5 ft 7 in" → cm
+        const match = item.value.match(/(\d+)\s*ft\s*(\d+)\s*in/);
+        if (!match) {
+          return { label: item.label, value: 0 };
+        }
+        const feet = parseInt(match[1], 10);
+        const inches = parseInt(match[2], 10);
+        const totalInches = feet * 12 + inches;
+        const cm = Math.round(totalInches * 2.54);
+        return { label: item.label, value: cm };
+      }
+    });
     const closestHeight = newOptions.reduce((prev, curr) => {
       return Math.abs(curr.value - selectedHeight) <
         Math.abs(prev.value - selectedHeight)

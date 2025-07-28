@@ -1,15 +1,27 @@
 import React from "react";
-import { StyleSheet, Text } from "react-native";
-import { TextStep } from "../../utils/lessonTypes";
+import { StyleSheet, Text, View } from "react-native";
+import { ArticleStep } from "../../utils/lessonTypes";
 
 interface Props {
-  step: TextStep;
+  step: ArticleStep;
 }
 
 export default function Article({ step }: Props) {
-  return <Text style={styles.text}>{step.markdown}</Text>;
+  return (
+    <View style={styles.container}>
+      <Text style={styles.text}>{step.text}</Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  text: { color: "#fff", fontSize: 16, marginBottom: 12 },
+  container: {
+    alignItems: "center",
+  },
+  text: {
+    color: "#fff",
+    fontSize: 16,
+    lineHeight: 24,
+    textAlign: "left",
+  },
 });

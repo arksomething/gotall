@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import {
   generateImperialHeight,
   generateImperialWeight,
@@ -92,10 +92,16 @@ export default function OnboardingLayout() {
   const preferredHeightUnit = units === "imperial" ? "ft" : "cm";
   const preferredWeightUnit = units === "imperial" ? "lbs" : "kg";
 
-  const heightData =
-    units === "imperial" ? generateImperialHeight() : generateMetricHeight();
-  const weightData =
-    units === "imperial" ? generateImperialWeight() : generateMetricWeight();
+  const heightData = useMemo(() => {
+    return units === "imperial"
+      ? generateImperialHeight()
+      : generateMetricHeight();
+  }, [units]);
+  const weightData = useMemo(() => {
+    return units === "imperial"
+      ? generateImperialWeight()
+      : generateMetricWeight();
+  }, [units]);
 
   const toggleUnits = () => {
     const newUnits = units === "imperial" ? "metric" : "imperial";

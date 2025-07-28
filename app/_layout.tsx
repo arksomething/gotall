@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import "@react-native-firebase/app";
 import Constants from "expo-constants";
 import { Stack, useRouter, useSegments } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { SuperwallProvider } from "expo-superwall";
 import React, { useEffect, useState } from "react";
@@ -19,7 +20,6 @@ import { crashlytics } from "../utils/crashlytics";
 import { initializeErrorHandling } from "../utils/errorHandler";
 import { OnboardingProvider, useOnboarding } from "../utils/OnboardingContext";
 import { PRODUCTS } from "../utils/products";
-import { initTikTok } from "../utils/TikTokAnalytics";
 import { UserProvider } from "../utils/UserContext";
 
 const LIFETIME_ACCESS_ID = PRODUCTS.LIFETIME.id;
@@ -124,11 +124,15 @@ function NavigationRoot() {
       // If onboarding is not complete or no valid purchase, ensure we're in onboarding
       if (!inOnboardingGroup) {
         router.replace("/(onboarding)");
+      } else {
+        SplashScreen.hideAsync();
       }
     } else {
       // If everything is complete, ensure we're in tabs
       if (!inTabsGroup) {
         router.replace("/(tabs)");
+      } else {
+        SplashScreen.hideAsync();
       }
     }
   }, [isLoading, isOnboardingComplete, hasValidAccess, segments]);
@@ -168,6 +172,7 @@ function NavigationRoot() {
       <Stack
         screenOptions={{
           headerShown: false,
+          animation: "none",
         }}
       >
         <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
@@ -179,6 +184,8 @@ function NavigationRoot() {
 
 export default function RootLayout() {
   const swApiKey = (Constants?.expoConfig?.extra as any)?.superwallApiKey;
+
+  SplashScreen.preventAutoHideAsync();
 
   // Initialize global error handling and Crashlytics
   useEffect(() => {

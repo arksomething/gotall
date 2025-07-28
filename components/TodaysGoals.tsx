@@ -262,8 +262,6 @@ export const TodaysGoals: React.FC<TodaysGoalsProps> = ({
 const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 24,
-    marginTop: 24,
-    marginBottom: 24,
   },
   sectionTitle: {
     color: "#fff",
@@ -272,7 +270,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   statsContainer: {
-    marginTop: 20,
   },
   statsGrid: {
     backgroundColor: "#111",

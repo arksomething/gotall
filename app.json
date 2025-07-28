@@ -2,7 +2,7 @@
   "expo": {
     "name": "GoTall",
     "slug": "gotall",
-    "version": "1.3.1",
+    "version": "1.4.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "gotall",
@@ -14,6 +14,8 @@
       "buildNumber": "1",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to let you take photos for your profile.",
+        "NSPhotoLibraryUsageDescription": "This app uses the photo library to let you select photos for your profile.",
         "ITSAppUsesNonExemptEncryption": false,
         "NSUserNotificationUsageDescription": "We use notifications to remind you to stretch and stay active.",
         "TikTokClientKey": "7524706160773890066",
@@ -35,6 +37,9 @@
       "versionCode": 1,
       "googleServicesFile": "./google-services.json",
       "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
         "BILLING"
       ]
     },

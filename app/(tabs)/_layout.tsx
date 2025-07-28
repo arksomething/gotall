@@ -44,11 +44,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="stats"
+        name="progress"
         options={{
-          title: "Stats",
+          title: "Progress",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="bar-chart" size={size} color={color} />
+            <Ionicons name="trending-up" size={size} color={color} />
           ),
         }}
       />
@@ -62,15 +62,6 @@ export default function TabLayout() {
               size={size}
               color={color}
             />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="habit"
-        options={{
-          title: "Habits",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="body" size={size} color={color} />
           ),
         }}
       />
@@ -101,6 +92,18 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="lesson"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="stats"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="habit"
         options={{
           href: null,
         }}

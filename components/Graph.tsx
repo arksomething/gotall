@@ -180,7 +180,7 @@ const Graph: React.FC<GraphProps> = ({
 
   // Calculate optimal chart width and height - make it more vertical
   const chartWidth = screenWidth - 40; // Much wider to match daily tasks width
-  const chartHeight = 320; // Much taller chart
+  const chartHeight = 240; // Reduced height for more compact layout
 
   // Build datasets based on user's percentile band
   const datasets = [];
@@ -245,8 +245,8 @@ const Graph: React.FC<GraphProps> = ({
       stroke: "#00ffff",
     },
     formatYLabel: (value: string) => getHeightForInput(parseFloat(value), "ft"),
-    paddingTop: 20,
-    paddingBottom: 20,
+    paddingTop: 12,
+    paddingBottom: 12,
     strokeWidth: 3,
     fillShadowGradient: "#000000",
     fillShadowGradientOpacity: 0,
@@ -342,18 +342,18 @@ const Graph: React.FC<GraphProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 8,
+    padding: 4,
     backgroundColor: "#000000",
     borderRadius: 12,
     marginHorizontal: 0,
-    marginVertical: 4,
+    marginVertical: 2,
     borderWidth: 1,
     borderColor: "#111",
     alignItems: "center",
   },
   chartContainer: {
     marginVertical: 0,
-    paddingVertical: 4,
+    paddingVertical: 2,
     backgroundColor: "#000000",
     borderRadius: 16,
     alignItems: "center",
@@ -371,27 +371,27 @@ const styles = StyleSheet.create({
   growthStatsContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 16,
+    marginTop: 8,
     gap: 8,
     width: "100%",
   },
   growthStat: {
     flex: 1,
     backgroundColor: "#000000",
-    padding: 12,
+    padding: 8,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#111",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 56, // Match height of the progress bar card
+    minHeight: 48,
   },
   growthProgressBar: {
     width: "100%",
     height: 4,
     backgroundColor: "#111",
     borderRadius: 2,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   growthProgressFill: {
     height: "100%",

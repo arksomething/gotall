@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -14,10 +13,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "../../components/Card";
 import Graph from "../../components/Graph";
 import { Header } from "../../components/Header";
-import { CalorieModal } from "../../components/modals/CalorieModal";
 import { HeightModal } from "../../components/modals/HeightModal";
 import { WeightModal } from "../../components/modals/WeightModal";
-import { TodaysGoals } from "../../components/TodaysGoals";
 import { databaseManager } from "../../utils/database";
 import { calculateDreamHeightProbability } from "../../utils/dreamHeightProbability";
 import { calculateHealthGoals } from "../../utils/healthGoals";
@@ -25,17 +22,6 @@ import { calculateHeightProjection } from "../../utils/heightProjection";
 import { convert, parseHeightToCm } from "../../utils/heightUtils";
 import { useUserData } from "../../utils/UserContext";
 import { useUnits } from "../../utils/useUnits";
-
-interface Goal {
-  id?: number;
-  title: string;
-  icon: string;
-  value?: string;
-  unit?: string;
-  completed: boolean;
-  type: "boolean" | "numeric";
-  completionValue?: string;
-}
 
 export default function Index() {
   const {
@@ -47,10 +33,8 @@ export default function Index() {
   } = useUserData();
 
   const { height: formatHeight, preferredHeightUnit } = useUnits();
-  const [calorieModalVisible, setCalorieModalVisible] = useState(false);
   const [weightModalVisible, setWeightModalVisible] = useState(false);
   const [heightModalVisible, setHeightModalVisible] = useState(false);
-  const [tempCalorieValue, setTempCalorieValue] = useState("");
   const [tempWeightValue, setTempWeightValue] = useState("");
   const [tempHeightValue, setTempHeightValue] = useState("");
   const [heightData, setHeightData] = useState({
@@ -151,26 +135,6 @@ export default function Index() {
       }
     }
   }, [userData, getAge]);
-
-  const openCalorieModal = (goal: Goal) => {
-    setTempCalorieValue(goal.value || goal.completionValue || "2000");
-    setCalorieModalVisible(true);
-  };
-
-  const saveCalorieGoal = async (newCalorieValue: string) => {
-    const numericValue = parseInt(newCalorieValue);
-    if (isNaN(numericValue) || numericValue <= 0) {
-      Alert.alert("Invalid Input", "Please enter a valid number of calories.");
-      return;
-    }
-
-    try {
-      setCalorieModalVisible(false);
-    } catch (error) {
-      console.error("Error saving calorie goal:", error);
-      Alert.alert("Error", "Failed to save calorie goal");
-    }
-  };
 
   const openWeightModal = () => {
     setTempWeightValue(userData.weight.toString());
@@ -307,9 +271,6 @@ export default function Index() {
           </View>
         )}
 
-        {/* Today's Goals Section */}
-        <TodaysGoals onCalorieGoalPress={openCalorieModal} />
-
         {/* Health Goals Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Health Goals</Text>
@@ -324,13 +285,6 @@ export default function Index() {
       </ScrollView>
 
       {/* Modals */}
-      <CalorieModal
-        visible={calorieModalVisible}
-        onClose={() => setCalorieModalVisible(false)}
-        onSave={saveCalorieGoal}
-        initialValue={tempCalorieValue}
-      />
-
       <WeightModal
         visible={weightModalVisible}
         onClose={() => setWeightModalVisible(false)}
@@ -359,26 +313,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     paddingHorizontal: 0, // No padding since section already has it
-    marginBottom: 24,
+    marginBottom: 8,
     alignItems: "stretch",
   },
   section: {
     paddingHorizontal: 24,
-    marginTop: 24,
-    marginBottom: 24,
+    marginTop: 8,
+    marginBottom: 8,
   },
   sectionTitle: {
     color: "#fff",
     fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 16,
+    marginBottom: 8,
   },
 
   progressHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 8,
   },
   progressTitle: {
     color: "#fff",
