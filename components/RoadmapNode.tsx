@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#111",
     padding: 18,
     borderRadius: 14,
-    maxWidth: 280,
+    width: "100%",
     marginVertical: 6,
   },
   cardHeader: {

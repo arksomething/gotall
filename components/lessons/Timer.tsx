@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Audio } from "expo-av";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -24,6 +25,58 @@ export default function Timer({ step }: Props) {
 
   const totalSets = step.sets || 1;
   const progressAnim = useRef(new Animated.Value(0)).current;
+  const sound = useRef<Audio.Sound | null>(null);
+
+  // Load sound on component mount
+  useEffect(() => {
+    const loadSound = async () => {
+      try {
+        const { sound: audioSound } = await Audio.Sound.createAsync(
+          require("../../assets/sounds/alarm-327234.mp3")
+        );
+        sound.current = audioSound;
+      } catch (error) {
+        console.log("Error loading sound:", error);
+      }
+    };
+
+    loadSound();
+
+    return () => {
+      if (sound.current) {
+        sound.current.unloadAsync();
+      }
+    };
+  }, []);
+
+  const playAlarmSound = async () => {
+    try {
+      if (sound.current) {
+        await sound.current.replayAsync();
+      }
+    } catch (error) {
+      console.log("Error playing sound:", error);
+    }
+  };
+
+  const stopAlarmSound = async () => {
+    try {
+      if (sound.current) {
+        await sound.current.stopAsync();
+      }
+    } catch (error) {
+      console.log("Error stopping sound:", error);
+    }
+  };
+
+  // Reset timer when step changes
+  useEffect(() => {
+    setDuration(step.duration);
+    setSeconds(step.duration);
+    setCurrentSet(1);
+    setIsActive(false);
+    progressAnim.setValue(0);
+  }, [step.title, step.duration, step.sets]);
 
   useEffect(() => {
     // Animate progress smoothly over 1 second to match the state update
@@ -41,6 +94,7 @@ export default function Timer({ step }: Props) {
       }, 1000);
     } else if (isActive && seconds === 0) {
       setIsActive(false); // Automatically pause when a set is finished
+      playAlarmSound(); // Play alarm sound when timer finishes
     }
 
     return () => {
@@ -57,6 +111,7 @@ export default function Timer({ step }: Props) {
     setSeconds(duration);
     setCurrentSet(1);
     setIsActive(false);
+    stopAlarmSound(); // Stop sound when resetting
   };
 
   const handleNextSet = () => {
@@ -65,6 +120,7 @@ export default function Timer({ step }: Props) {
       setSeconds(duration);
       setIsActive(false);
       progressAnim.setValue(0);
+      stopAlarmSound(); // Stop sound when moving to next set
     }
   };
 

@@ -398,13 +398,11 @@ export default function ProgressScreen() {
     if (selectedDate === today) {
       return "Today's Progress";
     } else {
-      return (
-        date.toLocaleDateString("en-US", {
-          weekday: "long",
-          month: "short",
-          day: "numeric",
-        })
-      );
+      return date.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+      });
     }
   };
 
@@ -504,7 +502,10 @@ export default function ProgressScreen() {
                 </View>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.goalContent}>
+              <TouchableOpacity
+                style={styles.goalContent}
+                onPress={() => toggleGoal(goal.id?.toString() || "")}
+              >
                 <Text style={styles.goalTitle}>{goal.title}</Text>
               </TouchableOpacity>
 

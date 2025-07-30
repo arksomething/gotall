@@ -21,15 +21,47 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "../../components/Header";
 import RoadmapNode from "../../components/RoadmapNode";
 import { databaseManager } from "../../utils/database";
-import { getLessonsForDay } from "../../utils/lessons";
-import lessonsData from "../../utils/lessons.json";
+import { getLessonsForDay, getTotalDays } from "../../utils/lessons";
+
+// Countdown timer component for locked lessons
+const LockCountdown = ({ unlockTime }: { unlockTime: Date | null }) => {
+  const [timeLeft, setTimeLeft] = useState<string>("");
+
+  useEffect(() => {
+    if (!unlockTime) return;
+
+    const updateCountdown = () => {
+      const now = new Date();
+      const diff = unlockTime.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setTimeLeft("Unlocked!");
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+      setTimeLeft(`${hours}h ${minutes}m`);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, [unlockTime]);
+
+  if (!unlockTime || timeLeft === "Unlocked!") return null;
+
+  return <Text style={styles.lockCountdown}>Unlocks in {timeLeft}</Text>;
+};
 
 export default function RoadmapScreen() {
   const router = useRouter();
 
   const insets = useSafeAreaInsets();
 
-  const TOTAL_DAYS = lessonsData.lessons.length;
+  const TOTAL_DAYS = getTotalDays();
   const [completedDayCount, setCompletedDayCount] = useState(0);
   const nodePositions = useRef<{ [key: number]: number }>({});
   const baselineNodePositions = useRef<{ [key: number]: number }>({});
@@ -39,11 +71,20 @@ export default function RoadmapScreen() {
   const [lessonCompletion, setLessonCompletion] = useState<{
     [key: string]: boolean;
   }>({});
+  const [lessonLocks, setLessonLocks] = useState<{
+    [key: number]: boolean;
+  }>({});
+  const [unlockTimes, setUnlockTimes] = useState<{
+    [key: number]: Date | null;
+  }>({});
 
   useFocusEffect(
     useCallback(() => {
       const fetchLessonCompletion = async () => {
         const completionStatus: { [key: string]: boolean } = {};
+        const lockStatus: { [key: number]: boolean } = {};
+        const unlockTimeStatus: { [key: number]: Date | null } = {};
+
         for (let i = 1; i <= TOTAL_DAYS; i++) {
           const lessons = getLessonsForDay(i);
           for (const lesson of lessons) {
@@ -51,10 +92,33 @@ export default function RoadmapScreen() {
             completionStatus[lessonId] =
               await databaseManager.getLessonCompletionStatus(lessonId);
           }
+
+          // Check if this day is locked
+          const isLocked = await databaseManager.isLessonLocked(i);
+
+          // If the day is completed, remove any existing lock
+          if (isLocked && completionStatus[`${lessons[0]?.id}-${i}`]) {
+            await databaseManager.removeLessonLock(i);
+            lockStatus[i] = false;
+            unlockTimeStatus[i] = null;
+          } else {
+            lockStatus[i] = isLocked;
+            if (isLocked) {
+              const unlockTime = await databaseManager.getNextUnlockTime(i);
+              unlockTimeStatus[i] = unlockTime;
+            }
+          }
         }
         setLessonCompletion(completionStatus);
+        setLessonLocks(lockStatus);
+        setUnlockTimes(unlockTimeStatus);
       };
       fetchLessonCompletion();
+
+      // Set up a timer to refresh lock status every minute
+      const interval = setInterval(fetchLessonCompletion, 60000);
+
+      return () => clearInterval(interval);
     }, [])
   );
 
@@ -179,7 +243,7 @@ export default function RoadmapScreen() {
           {/* Daily task buttons */}
           <View style={styles.nodesWrapper}>
             {daysArray.map((day) => {
-              const isMilestone = day % 5 === 0;
+              const isMilestone = day % 7 === 0;
               const diameter = isMilestone ? 80 : 60;
 
               const lessons = getLessonsForDay(day);
@@ -196,7 +260,16 @@ export default function RoadmapScreen() {
                   if (previousLessons.length === 0) return true; // If no previous lesson, allow access
                   const previousLesson = previousLessons[0];
                   const previousLessonId = `${previousLesson.id}-${previousDay}`;
-                  return lessonCompletion[previousLessonId] === true;
+                  const previousCompleted =
+                    lessonCompletion[previousLessonId] === true;
+
+                  // If previous lesson is completed, check if current day is locked
+                  if (previousCompleted) {
+                    const isLocked = lessonLocks[day] === true;
+                    return !isLocked; // Unlocked if not locked
+                  }
+
+                  return false; // Previous lesson not completed
                 })();
 
               let content: React.ReactNode;
@@ -252,10 +325,37 @@ export default function RoadmapScreen() {
                           await databaseManager.addLessonCompletion(lessonId);
                         }
                       }
+
+                      // Set lock for the next day if it exists and is not already completed
+                      if (day < TOTAL_DAYS) {
+                        const nextDayLessons = getLessonsForDay(day + 1);
+                        if (nextDayLessons.length > 0) {
+                          const nextDayLesson = nextDayLessons[0];
+                          const nextDayLessonId = `${nextDayLesson.id}-${
+                            day + 1
+                          }`;
+                          const isNextDayCompleted =
+                            await databaseManager.getLessonCompletionStatus(
+                              nextDayLessonId
+                            );
+
+                          if (!isNextDayCompleted) {
+                            // Only set a new lock if one doesn't already exist
+                            const existingLock =
+                              await databaseManager.getLessonLock(day + 1);
+                            if (!existingLock) {
+                              await databaseManager.setLessonLock(day + 1);
+                            }
+                          }
+                        }
+                      }
                     }
 
                     // Manually update local state for immediate feedback
                     const newCompletionStatus = { ...lessonCompletion };
+                    const newLockStatus = { ...lessonLocks };
+                    const newUnlockTimes = { ...unlockTimes };
+
                     if (isCompleted) {
                       // Unmark from current day onwards
                       for (let i = day; i <= TOTAL_DAYS; i++) {
@@ -272,17 +372,67 @@ export default function RoadmapScreen() {
                           newCompletionStatus[`${dayLesson.id}-${i}`] = true;
                         }
                       }
+
+                      // Set lock for the next day if it exists and is not already completed
+                      if (day < TOTAL_DAYS) {
+                        const nextDayLessons = getLessonsForDay(day + 1);
+                        if (nextDayLessons.length > 0) {
+                          const nextDayLesson = nextDayLessons[0];
+                          const nextDayLessonId = `${nextDayLesson.id}-${
+                            day + 1
+                          }`;
+                          const isNextDayCompleted =
+                            newCompletionStatus[nextDayLessonId];
+
+                          if (!isNextDayCompleted) {
+                            // Only set a new lock if one doesn't already exist
+                            const existingUnlockTime = unlockTimes[day + 1];
+                            if (!existingUnlockTime) {
+                              newLockStatus[day + 1] = true;
+                              const unlockTime = new Date(
+                                Date.now() + 12 * 60 * 60 * 1000
+                              );
+                              newUnlockTimes[day + 1] = unlockTime;
+                            } else {
+                              // Preserve the existing lock time
+                              newLockStatus[day + 1] = true;
+                              newUnlockTimes[day + 1] = existingUnlockTime;
+                            }
+                          }
+                        }
+                      }
                     }
+
+                    // Remove locks from any completed days
+                    for (let i = 1; i <= TOTAL_DAYS; i++) {
+                      const dayLessons = getLessonsForDay(i);
+                      if (dayLessons.length > 0) {
+                        const dayLesson = dayLessons[0];
+                        const dayLessonId = `${dayLesson.id}-${i}`;
+                        if (newCompletionStatus[dayLessonId]) {
+                          newLockStatus[i] = false;
+                          newUnlockTimes[i] = null;
+                        }
+                      }
+                    }
+
                     setLessonCompletion(newCompletionStatus);
+                    setLessonLocks(newLockStatus);
+                    setUnlockTimes(newUnlockTimes);
                     setExpandedDay(null);
                   }}
                   label={`Day ${day}`}
                   description={
-                    <Text style={styles.descriptionText}>
-                      {lesson
-                        ? lesson.description
-                        : `No lesson available for Day ${day}`}
-                    </Text>
+                    <View>
+                      <Text style={styles.descriptionText}>
+                        {lesson
+                          ? lesson.description
+                          : `No lesson available for Day ${day}`}
+                      </Text>
+                      {lessonLocks[day] && (
+                        <LockCountdown unlockTime={unlockTimes[day]} />
+                      )}
+                    </View>
                   }
                   day={day}
                   onMeasure={handleMeasure}
@@ -361,5 +511,10 @@ const styles = StyleSheet.create({
   descriptionText: {
     color: "#fff",
     fontSize: 14,
+  },
+  lockCountdown: {
+    color: "#fff",
+    fontSize: 12,
+    marginTop: 5,
   },
 });

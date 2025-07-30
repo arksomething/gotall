@@ -4,6 +4,9 @@ import { Platform } from 'react-native';
 import { stretches } from './stretches';
 import { dailyTasks } from './tasks';
 
+// Lesson lock duration in seconds (12 hours = 12 * 60 * 60 = 43200 seconds)
+const LESSON_LOCK_DURATION_SECONDS = 43200;
+
 export interface DailyLog {
   id?: number;
   date: string; // YYYY-MM-DD format
@@ -193,6 +196,12 @@ export class DatabaseManager {
           date TEXT NOT NULL,
           UNIQUE(lesson_id, date)
         );
+
+        -- Lesson Lock System
+        CREATE TABLE IF NOT EXISTS lesson_locks (
+          day_id INTEGER PRIMARY KEY,
+          locked_at TEXT NOT NULL
+        );
       `);
 
       await this.db.execAsync(`
@@ -201,6 +210,8 @@ export class DatabaseManager {
         CREATE INDEX IF NOT EXISTS idx_goal_completions_goal_id ON goal_completions(goal_id);
         CREATE INDEX IF NOT EXISTS idx_daily_goals_date ON daily_goals(date);
         CREATE INDEX IF NOT EXISTS idx_calorie_data_date ON calorie_data(date);
+        CREATE INDEX IF NOT EXISTS idx_lesson_completions_lesson_id ON lesson_completions(lesson_id);
+        CREATE INDEX IF NOT EXISTS idx_lesson_locks_day_id ON lesson_locks(day_id);
       `);
 
       // Insert default goals if none exist
@@ -249,7 +260,6 @@ export class DatabaseManager {
             [goal.title, goal.icon, goal.type, goal.unit, goal.value, now, now]
           );
         }
-        console.log('Inserted static goals');
       }
     } catch (error) {
       console.error('Error inserting default goals:', error);
@@ -272,7 +282,6 @@ export class DatabaseManager {
         )
       `);
       
-      console.log('Cleaned up duplicate goals');
     } catch (error) {
       console.error('Error cleaning up duplicate goals:', error);
     }
@@ -287,7 +296,6 @@ export class DatabaseManager {
       await db.runAsync('DELETE FROM goal_completions WHERE goal_id IN (SELECT id FROM goals WHERE active = 1)');
       await db.runAsync('DELETE FROM goals WHERE active = 1');
       
-      console.log('Cleared all static goals');
     } catch (error) {
       console.error('Error clearing static goals:', error);
     }
@@ -303,7 +311,6 @@ export class DatabaseManager {
       await db.runAsync('DELETE FROM daily_goals');
       await db.runAsync('DELETE FROM goals');
       
-      console.log('Purged all goals, completions, and daily goals');
     } catch (error) {
       console.error('Error purging all goals:', error);
     }
@@ -329,7 +336,6 @@ export class DatabaseManager {
 
       // If we already have goals for this date, don't generate more
       if (existingGoals[0].count > 0) {
-        console.log(`Daily goals already exist for ${date}, skipping generation`);
         return;
       }
 
@@ -338,9 +344,6 @@ export class DatabaseManager {
       
       // Pick one random task
       const randomTask = dailyTasks[Math.floor(Math.random() * dailyTasks.length)];
-      
-      console.log(`Selected stretch: ${randomStretch.name}`);
-      console.log(`Selected task: ${randomTask.name}`);
       
       // Insert stretch as a goal
       const stretchResult = await db.runAsync(
@@ -367,7 +370,6 @@ export class DatabaseManager {
         [date, taskResult.lastInsertRowId, now]
       );
       
-      console.log(`Daily goals generated for ${date}: ${randomStretch.name} + ${randomTask.name}`);
     } catch (error) {
       console.error('Error generating daily goals:', error);
     } finally {
@@ -525,7 +527,6 @@ export class DatabaseManager {
     
     try {
       await db.runAsync('DELETE FROM daily_goals WHERE date = ?', [date]);
-      console.log(`Cleared daily goals for ${date}`);
     } catch (error) {
       console.error('Error clearing daily goals:', error);
     }
@@ -537,18 +538,10 @@ export class DatabaseManager {
     
     try {
       const allGoals = await db.getAllAsync('SELECT id, title, active FROM goals ORDER BY active DESC, title') as any[];
-      console.log('All goals in database:');
-      allGoals.forEach(goal => {
-        console.log(`  ${goal.id}: ${goal.title} (active: ${goal.active})`);
-      });
       
       const dailyGoalsToday = await db.getAllAsync('SELECT * FROM daily_goals WHERE date = ?', [new Date().toISOString().split('T')[0]]) as any[];
-      console.log('Daily goals for today:', dailyGoalsToday);
       
       // Check stretch count vs database
-      console.log(`Stretches in data: ${stretches.length}`);
-      console.log(`Tasks in data: ${dailyTasks.length}`);
-      
       const stretchesInDb = await db.getAllAsync(
         `SELECT COUNT(*) as count FROM goals WHERE title IN (${stretches.map(() => '?').join(',')})`,
         stretches.map(s => s.name)
@@ -558,9 +551,6 @@ export class DatabaseManager {
         `SELECT COUNT(*) as count FROM goals WHERE title IN (${dailyTasks.map(() => '?').join(',')})`,
         dailyTasks.map(t => t.name)
       ) as any[];
-      
-      console.log(`Stretches in DB: ${stretchesInDb[0].count}`);
-      console.log(`Tasks in DB: ${tasksInDb[0].count}`);
       
     } catch (error) {
       console.error('Error debugging goals:', error);
@@ -574,11 +564,9 @@ export class DatabaseManager {
     try {
       // Clear existing daily goals for this date
       await db.runAsync('DELETE FROM daily_goals WHERE date = ?', [date]);
-      console.log(`Cleared existing daily goals for ${date}`);
       
       // Force regenerate
       await this.generateDailyGoals(date);
-      console.log(`Forced regeneration complete for ${date}`);
       
     } catch (error) {
       console.error('Error force regenerating daily goals:', error);
@@ -639,6 +627,11 @@ export class DatabaseManager {
           "INSERT OR IGNORE INTO lesson_completions (lesson_id, date) VALUES (?, ?)",
           [lessonId, today]
         );
+      }
+      
+      // Set lock for the next day if it exists
+      if (day < totalDays) {
+        await this.setLessonLock(day + 1);
       }
     } catch (error) {
       console.error("Error marking lessons up to day:", error);
@@ -950,6 +943,69 @@ export class DatabaseManager {
       await db.runAsync('DELETE FROM goals WHERE id = ?', [goalId]);
     } catch (error) {
       console.error('Error deleting goal:', error);
+      throw error;
+    }
+  }
+
+  // Lesson Lock System - 12 hour lock after completing a lesson
+  async setLessonLock(dayId: number): Promise<void> {
+    const db = await this.getDb();
+    const now = new Date().toISOString();
+    try {
+      await db.runAsync(
+        "INSERT OR REPLACE INTO lesson_locks (day_id, locked_at) VALUES (?, ?)",
+        [dayId, now]
+      );
+    } catch (error) {
+      console.error("Error setting lesson lock:", error);
+      throw error;
+    }
+  }
+
+  async getLessonLock(dayId: number): Promise<Date | null> {
+    const db = await this.getDb();
+    try {
+      const result = await db.getFirstAsync(
+        "SELECT locked_at FROM lesson_locks WHERE day_id = ?",
+        [dayId]
+      );
+      return result ? new Date((result as any).locked_at) : null;
+    } catch (error) {
+      console.error("Error getting lesson lock:", error);
+      return null;
+    }
+  }
+
+  async isLessonLocked(dayId: number): Promise<boolean> {
+    const lockTime = await this.getLessonLock(dayId);
+    if (!lockTime) {
+      return false;
+    }
+    
+    const now = new Date();
+    const timeDiff = now.getTime() - lockTime.getTime();
+    const secondsDiff = timeDiff / 1000;
+    
+    return secondsDiff < LESSON_LOCK_DURATION_SECONDS;
+  }
+
+  async getNextUnlockTime(dayId: number): Promise<Date | null> {
+    const lockTime = await this.getLessonLock(dayId);
+    if (!lockTime) return null;
+    
+    const unlockTime = new Date(lockTime.getTime() + (LESSON_LOCK_DURATION_SECONDS * 1000));
+    return unlockTime;
+  }
+
+  async removeLessonLock(dayId: number): Promise<void> {
+    const db = await this.getDb();
+    try {
+      await db.runAsync(
+        "DELETE FROM lesson_locks WHERE day_id = ?",
+        [dayId]
+      );
+    } catch (error) {
+      console.error("Error removing lesson lock:", error);
       throw error;
     }
   }

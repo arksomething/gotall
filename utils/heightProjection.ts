@@ -1,5 +1,5 @@
-import convert from "convert-units";
 import cdcData from './data.json';
+import { HeightConverter } from './heightUtils';
 
 interface UserData {
   heightCm: number;
@@ -82,16 +82,6 @@ function parseNumber(value: string): number {
 }
 
 /**
- * Convert centimeters to feet and inches format
- */
-function cmToFeetInches(cm: number): string {
-  const inches = convert(cm).from('cm').to('in');
-  const feet = Math.floor(inches / 12);
-  const remainingInches = Math.round(inches % 12);
-  return remainingInches === 12 ? `${feet + 1}'0"` : `${feet}'${remainingInches}"`;
-}
-
-/**
  * Find the surrounding percentiles for a given height at a specific age
  */
 export function findSurroundingPercentiles(heightCm: number, ageYears: number, sex: '1' | '2'): PercentileResult {
@@ -101,9 +91,6 @@ export function findSurroundingPercentiles(heightCm: number, ageYears: number, s
   }
 
   const ageMonths = yearsToMonths(ageYears);
-  const minAge = Math.min(...data.map(d => parseInt(d.Agemos)));
-  const maxAge = Math.max(...data.map(d => parseInt(d.Agemos)));
-  console.log(`Looking for age ${ageYears} years (${ageMonths} months) in data with age range: ${minAge} to ${maxAge} months (${monthsToYears(minAge)} to ${monthsToYears(maxAge)} years)`);
   
   // Find the data point for the current age
   const dataPoint = data.find(d => parseInt(d.Agemos) === ageMonths);
@@ -120,7 +107,6 @@ export function findSurroundingPercentiles(heightCm: number, ageYears: number, s
   // Check if height exactly matches a percentile
   const exactMatch = percentileHeights.find(p => Math.abs(p.height - heightCm) < 0.01);
   if (exactMatch) {
-    console.log(`Found exact match at percentile ${exactMatch.percentile} (height: ${exactMatch.height}cm)`);
     return { exactPercentile: exactMatch.percentile };
   }
 
@@ -154,11 +140,6 @@ export function findSurroundingPercentiles(heightCm: number, ageYears: number, s
     heightDiffFromUpper = percentileHeights[0].height - heightCm;
   }
 
-  console.log(`Height ${heightCm}cm falls between percentiles:`, {
-    lower: lowerPercentile ? `${lowerPercentile}th (diff: ${heightDiffFromLower?.toFixed(2)}cm)` : 'none',
-    upper: upperPercentile ? `${upperPercentile}th (diff: ${heightDiffFromUpper?.toFixed(2)}cm)` : 'none'
-  });
-
   return {
     lowerPercentile,
     upperPercentile,
@@ -170,82 +151,61 @@ export function findSurroundingPercentiles(heightCm: number, ageYears: number, s
 /**
  * Get projected adult height based on current height percentile(s)
  */
-export function getProjectedHeights(heightCm: number, ageYears: number, sex: '1' | '2'): { lower?: string; exact?: string; upper?: string } {
-  console.log(`\nCalculating CDC projection for: height=${heightCm}cm, age=${ageYears}, sex=${sex}`);
-  
+export function getProjectedHeights(heightCm: number, ageYears: number, sex: '1' | '2'): { lower?: number; exact?: number; upper?: number } {
   const data = cdcData.filter(d => d.Sex === sex);
   if (data.length === 0) {
-    console.log("No CDC data found for sex:", sex);
     throw new Error(`No data found for sex ${sex}. Available data: ${JSON.stringify(cdcData.map(d => d.Sex))}`);
   }
   
   // Find current percentile(s)
   const percentiles = findSurroundingPercentiles(heightCm, ageYears, sex);
-  console.log("Found percentiles:", percentiles);
   
   // Get adult height at max age in data (typically 20 years)
   const maxAgeMonths = Math.max(...data.map(d => parseInt(d.Agemos)));
   const maxAgeYears = monthsToYears(maxAgeMonths);
-  console.log(`Using max age from CDC data: ${maxAgeYears} years (${maxAgeMonths} months)`);
   
   const adultData = data.find(d => parseInt(d.Agemos) === maxAgeMonths);
   if (!adultData) {
-    console.log("Adult height data not found in CDC data");
     throw new Error(`Adult height data not found. Available ages: ${data.map(d => parseInt(d.Agemos)).join(', ')}`);
   }
 
-  const result: { lower?: string; exact?: string; upper?: string } = {};
+  const result: { lower?: number; exact?: number; upper?: number } = {};
 
   // If we found an exact percentile match
   if (percentiles.exactPercentile !== undefined) {
     const projectedHeightCm = parseNumber(adultData[`P${percentiles.exactPercentile}` as PercentileKey]);
-    console.log(`Found exact percentile match at P${percentiles.exactPercentile}, projected height: ${projectedHeightCm}cm`);
-    result.exact = cmToFeetInches(projectedHeightCm);
+    result.exact = projectedHeightCm;
   } else {
     if (percentiles.lowerPercentile !== undefined) {
       const lowerProjectedCm = parseNumber(adultData[`P${percentiles.lowerPercentile}` as PercentileKey]);
-      console.log(`Lower bound projection: ${lowerProjectedCm}cm at P${percentiles.lowerPercentile}`);
-      result.lower = cmToFeetInches(lowerProjectedCm);
+      result.lower = lowerProjectedCm;
     }
     if (percentiles.upperPercentile !== undefined) {
       const upperProjectedCm = parseNumber(adultData[`P${percentiles.upperPercentile}` as PercentileKey]);
-      console.log(`Upper bound projection: ${upperProjectedCm}cm at P${percentiles.upperPercentile}`);
-      result.upper = cmToFeetInches(upperProjectedCm);
+      result.upper = upperProjectedCm;
     }
   }
 
-  console.log("Final CDC projections:", result);
   return result;
 }
 
 export function calculateHeightProjection(userData: UserData): HeightData {
-  // Convert current height to feet/inches
-  const currentHeightInches = convert(userData.heightCm).from("cm").to("in");
-  const currentFeet = Math.floor(currentHeightInches / 12);
-  const currentInches = Math.round(currentHeightInches % 12);
-  const currentHeight =
-    currentInches === 12
-      ? `${currentFeet + 1}'0"`
-      : `${currentFeet}'${currentInches}"`;
+  // Convert current height to inches (no rounding)
+  const currentHeightInches = HeightConverter.cmToInches(userData.heightCm);
 
   // For adults (21+), limit growth potential to 1 inch max
   if (userData.age >= 21) {
-    const maxGrowthFeet = Math.floor((currentHeightInches + 1) / 12);
-    const maxGrowthInches = Math.round((currentHeightInches + 1) % 12);
-    const potentialHeight = maxGrowthInches === 12 
-      ? `${maxGrowthFeet + 1}'0"` 
-      : `${maxGrowthFeet}'${maxGrowthInches}"`;
+    const potentialHeightInches = currentHeightInches + 1;
     
     return {
-      currentHeight,
-      actualHeight: currentHeight, // No more genetic potential growth
-      potentialHeight,
+      currentHeight: HeightConverter.inchesToFeetInches(currentHeightInches),
+      actualHeight: HeightConverter.inchesToFeetInches(currentHeightInches),
+      potentialHeight: HeightConverter.inchesToFeetInches(potentialHeightInches),
     };
   }
 
   // Calculate genetic potential (midparental height) first
-  let actualHeight = "";
-  let parentBasedHeight = "";
+  let parentBasedHeightInches: number | undefined;
   if (userData.motherHeightCm && userData.fatherHeightCm) {
     // Midparental height formula
     const targetHeightCm =
@@ -253,99 +213,70 @@ export function calculateHeightProjection(userData: UserData): HeightData {
         ? (userData.fatherHeightCm + userData.motherHeightCm + 13) / 2 // For boys: (father + mother + 13) / 2
         : (userData.fatherHeightCm + userData.motherHeightCm - 13) / 2; // For girls: (father + mother - 13) / 2
 
-    const targetHeightInches = convert(targetHeightCm).from("cm").to("in");
+    const targetHeightInches = HeightConverter.cmToInches(targetHeightCm);
     // Ensure projected height is not shorter than current height
-    const adjustedTargetInches = Math.max(targetHeightInches, currentHeightInches);
-    const targetFeet = Math.floor(adjustedTargetInches / 12);
-    const targetInches = Math.round(adjustedTargetInches % 12);
-    parentBasedHeight =
-      targetInches === 12
-        ? `${targetFeet + 1}'0"`
-        : `${targetFeet}'${targetInches}"`;
+    parentBasedHeightInches = Math.max(targetHeightInches, currentHeightInches);
   }
 
-  let cdcHeight = "";
+  let cdcHeightInches: number | undefined;
   // Try to get CDC projections
   try {
-    console.log("Getting CDC projections for:", {
-      heightCm: userData.heightCm,
-      age: userData.age,
-      sex: userData.sex
-    });
     const cdcProjections = getProjectedHeights(
       userData.heightCm,
       userData.age,
       userData.sex
     );
 
-    console.log("CDC projections result:", cdcProjections);
     // If CDC projection is available, use it
-    if (cdcProjections.exact) {
-      console.log("CDC exact projection available:", cdcProjections.exact);
-      cdcHeight = cdcProjections.exact;
-    } else if (cdcProjections.lower || cdcProjections.upper) {
-      console.log("CDC range projection available:", {
-        lower: cdcProjections.lower,
-        upper: cdcProjections.upper
-      });
-      // Use the lower value for a more optimistic projection
-      cdcHeight = cdcProjections.lower || cdcProjections.upper || "";
-    } else {
-      console.log("No CDC projections available");
+    if (cdcProjections.exact !== undefined) {
+      const cdcHeightCm = cdcProjections.exact;
+      // Ensure CDC projection is not shorter than current height
+      if (cdcHeightCm >= userData.heightCm) {
+        cdcHeightInches = HeightConverter.cmToInches(cdcHeightCm);
+      }
+    } else if (cdcProjections.lower !== undefined || cdcProjections.upper !== undefined) {
+      // Use the higher value to ensure it's not shorter than current height
+      const cdcHeightCm = cdcProjections.upper || cdcProjections.lower || 0;
+      if (cdcHeightCm >= userData.heightCm) {
+        cdcHeightInches = HeightConverter.cmToInches(cdcHeightCm);
+      }
     }
   } catch (cdcError) {
-    console.log(
-      "CDC projection failed:",
-      cdcError instanceof Error ? cdcError.message : cdcError
-    );
+    console.error("CDC projection failed:", cdcError instanceof Error ? cdcError.message : cdcError);
   }
 
   // For actual and potential height, use CDC as the maximum
-  let baseHeight = currentHeight;
-  let projectionMethod = "current height (no projections available)";
-  if (cdcHeight && cdcHeight.length > 0) {
-    console.log("Using CDC height:", cdcHeight);
-    baseHeight = cdcHeight;
-    projectionMethod = "CDC growth charts";
-  } else if (parentBasedHeight && parentBasedHeight.length > 0) {
-    console.log("CDC height not available, using parent-based height:", parentBasedHeight);
-    baseHeight = parentBasedHeight;
-    projectionMethod = "parent-based calculation";
-  } else {
-    console.log("No projections available, using current height:", currentHeight);
+  let baseHeightInches = currentHeightInches;
+  if (cdcHeightInches !== undefined) {
+    baseHeightInches = cdcHeightInches;
+  } else if (parentBasedHeightInches !== undefined) {
+    baseHeightInches = parentBasedHeightInches;
   }
   
-  console.log("Final projection using:", projectionMethod);
-  console.log("Base height for calculations:", baseHeight);
+  // Final safety check: ensure base height is never less than current height
+  if (baseHeightInches < currentHeightInches) {
+    baseHeightInches = currentHeightInches;
+  }
 
-  // Calculate actual height (1 inch less than base)
-  const [baseFeet, baseInches] = baseHeight.split("'").map(v => parseInt(v));
-  const baseTotalInches = baseFeet * 12 + baseInches;
-  const actualTotalInches = Math.max(baseTotalInches - 1, currentHeightInches);
-  const actualFeet = Math.floor(actualTotalInches / 12);
-  const actualInches = Math.round(actualTotalInches % 12);
-  actualHeight = actualInches === 12 
-    ? `${actualFeet + 1}'0"` 
-    : `${actualFeet}'${actualInches}"`;
+  // Calculate potential height first (base height + 1 inch, but cap at reasonable growth)
+  const maxReasonableGrowth = userData.age < 18 ? 3 : 1; // 3 inches for teens, 1 inch for adults
+  const potentialHeightInches = Math.max(
+    Math.min(baseHeightInches + 1, currentHeightInches + maxReasonableGrowth),
+    currentHeightInches
+  );
 
-  // Calculate potential height (base height + 1 inch)
-  const potentialTotalInches = baseTotalInches + 1;
-  const potentialFeet = Math.floor(potentialTotalInches / 12);
-  const potentialInches = Math.round(potentialTotalInches % 12);
-  const potentialHeight = potentialInches === 12 
-    ? `${potentialFeet + 1}'0"` 
-    : `${potentialFeet}'${potentialInches}"`;
+  // Calculate actual height (1 inch less than potential, but never less than current)
+  const actualHeightInches = Math.max(potentialHeightInches - 1, currentHeightInches);
 
-  console.log("Final height projections:", {
-    current: currentHeight,
-    actual: actualHeight,
-    potential: potentialHeight
-  });
+  // Validate that all projections make logical sense
+  if (actualHeightInches < currentHeightInches || potentialHeightInches < currentHeightInches || potentialHeightInches < actualHeightInches) {
+    console.error("Height projection logic error detected");
+  }
 
   return {
-    currentHeight,
-    actualHeight,
-    potentialHeight,
+    currentHeight: HeightConverter.inchesToFeetInches(currentHeightInches),
+    actualHeight: HeightConverter.inchesToFeetInches(actualHeightInches),
+    potentialHeight: HeightConverter.inchesToFeetInches(potentialHeightInches),
   };
 }
 

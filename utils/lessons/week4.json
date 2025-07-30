@@ -1,0 +1,316 @@
+{
+  "lessons": [
+    {
+      "id": "22",
+      "title": "Day 22: Balance & Stability",
+      "description": "Improve your balance and stability to enhance posture and overall movement quality.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Balance for Height",
+          "text": "Good balance and stability are essential for maintaining proper posture throughout the day. They also improve your overall movement quality.\n\nBenefits:\n• Better posture maintenance\n• Reduced fall risk\n• Improved coordination\n• Enhanced athletic performance\n• Better body awareness\n\nPractice balance exercises daily for best results.",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQbPevCwJkkEo1vgB6cNRgdCkT0fdItpRNoQ&s"
+        },
+        {
+          "type": "timer",
+          "title": "Single Leg Stand",
+          "duration": 45,
+          "description": "Stand on one leg, lift other leg slightly off ground. Keep your core engaged and focus on a point ahead.",
+          "sets": 3,
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQeO9abl_OXbr6ZFwXq_KXnqlgbLD90xWzPng&s",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Warrior III",
+          "duration": 55,
+          "description": "Stand on one leg, lean forward with arms extended, other leg lifted behind. Keep body in straight line.",
+          "sets": 2,
+          "image": "https://cdn.yogajournal.com/wp-content/uploads/2021/11/Warrior-3-Pose_Andrew-Clark_2400x1350.jpeg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "reminder",
+          "title": "Balance Check",
+          "prompt": "Practice your balance throughout the day!",
+          "time": "16:00",
+          "description": "Afternoon reminder to work on balance and stability.",
+          "image": "data:image/jpeg;base64,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"
+        }
+      ]
+    },
+    {
+      "id": "23",
+      "title": "Day 23: Omega-3 & Growth",
+      "description": "Learn about the importance of omega-3 fatty acids for brain health and growth hormone production.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Omega-3 Benefits",
+          "text": "Omega-3 fatty acids support brain health, reduce inflammation, and may enhance growth hormone production.\n\nBest sources:\n• Fatty fish (salmon, mackerel)\n• Walnuts and flaxseeds\n• Chia seeds\n• Olive oil\n• Avocados\n\nAim for 2-3 servings of omega-3 rich foods weekly.",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxBuJlblxXFvTm6Zfqut0kpJv_KTogFfY1sA&s"
+        },
+        {
+          "type": "food",
+          "title": "Omega-3 Tracker"
+        },
+        {
+          "type": "timer",
+          "title": "Side Plank",
+          "duration": 65,
+          "description": "Lie on side, prop up on elbow, lift hips off ground. Keep body in straight line, engage core.",
+          "sets": 2,
+          "image": "https://i0.wp.com/post.healthline.com/wp-content/uploads/2020/11/Side_Plank_732x549-thumbnail.jpg?h=1152",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Bird Dog",
+          "duration": 75,
+          "description": "On hands and knees, extend opposite arm and leg simultaneously. Keep core engaged and back straight.",
+          "sets": 2,
+          "image": "https://www.verywellfit.com/thmb/l32PmTOLcIQj9h2_ygSjfdkexLA=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Bird-DogExcercise_annotated-b5dc709422df45589a9cb06730213b43.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        }
+      ]
+    },
+    {
+      "id": "24",
+      "title": "Day 24: Shoulder Mobility",
+      "description": "Improve shoulder mobility to enhance posture and reduce upper back tension.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Shoulder Health",
+          "text": "Mobile shoulders are crucial for good posture and overall upper body function. They help maintain proper alignment.\n\nBenefits:\n• Better posture\n• Reduced neck tension\n• Improved breathing\n• Enhanced range of motion\n• Better athletic performance\n\nFocus on gentle, controlled movements.",
+          "image": "https://www.dmoose.com/cdn/shop/articles/1_Main_Image_5db14a4e-660d-43ac-8b67-70e00c7962e1.jpg?v=1670938957"
+        },
+        {
+          "type": "timer",
+          "title": "Arm Circles",
+          "duration": 80,
+          "description": "Stand with arms extended, make large circles forward then backward. Keep shoulders relaxed.",
+          "sets": 2,
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0UEAim1MMWMlRD-ubZFTewHJfFw6mu69ASA&s",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Shoulder Rolls",
+          "duration": 60,
+          "description": "Roll shoulders forward in circles, then backward. Focus on smooth, controlled movement.",
+          "sets": 2,
+          "image": "https://spotebi.com/wp-content/uploads/2015/03/shoulder-rolls-exercise-illustration.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "reminder",
+          "title": "Shoulder Check",
+          "prompt": "Release tension in your shoulders!",
+          "time": "12:00",
+          "description": "Midday reminder to keep shoulders relaxed and mobile.",
+          "image": "https://images.unsplash.com/photo-1599408995438-e6b71427775c?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    },
+    {
+      "id": "25",
+      "title": "Day 25: Stress Management",
+      "description": "Learn how stress management supports growth hormone production and overall health.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Stress & Growth",
+          "text": "Chronic stress can interfere with growth hormone production and overall health. Managing stress is crucial for height optimization.\n\nStress reduction techniques:\n• Deep breathing\n• Meditation\n• Regular exercise\n• Adequate sleep\n• Time in nature\n• Social connections\n\nFind what works best for you.",
+          "image": "https://img.lb.wbmdstatic.com/vim/live/webmd/consumer_assets/site_images/article_thumbnails/blog_posts/migraine/1800x1200_getty_rf_woman_holding_head.jpg?resize=750:*"
+        },
+        {
+          "type": "timer",
+          "title": "Progressive Relaxation",
+          "duration": 240,
+          "description": "Lie down, tense and relax each muscle group from toes to head. Focus on releasing tension completely.",
+          "sets": 1,
+          "image": "https://i0.wp.com/post.medicalnewstoday.com/wp-content/uploads/sites/3/2020/01/GettyImages-1134465736_hero-1024x575.jpg?w=1155&h=1528",
+          "timeOptions": {
+            "start": 120,
+            "end": 600,
+            "increment": 30
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Mindful Walking",
+          "duration": 300,
+          "description": "Walk slowly and mindfully, focusing on each step and your breath. Notice your surroundings.",
+          "sets": 1,
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRN_P51J5Fuh1uClg4eUGk1qPJJBkW5DGwxdw&s",
+          "timeOptions": {
+            "start": 180,
+            "end": 900,
+            "increment": 60
+          }
+        },
+        {
+          "type": "quiz",
+          "title": "Stress Check",
+          "prompt": "Which technique is best for immediate stress relief?",
+          "choices": ["Deep breathing", "Long workout", "Ignoring stress", "Caffeine"],
+          "answer": 0
+        }
+      ]
+    },
+    {
+      "id": "26",
+      "title": "Day 26: Plyometric Training",
+      "description": "Build explosive power and strength with plyometric exercises for enhanced athletic performance.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Plyometrics for Power",
+          "text": "Plyometric exercises build explosive power and improve athletic performance. They also enhance bone density and muscle strength.\n\nBenefits:\n• Increased power output\n• Better bone density\n• Enhanced coordination\n• Improved athletic performance\n• Better muscle activation\n\nStart with basic movements and progress gradually.",
+          "image": "https://media.self.com/photos/61d61293549225ac6a63755f/4:3/w_2560%2Cc_limit/211109_SELF_087.jpg"
+        },
+        {
+          "type": "timer",
+          "title": "Box Jumps",
+          "duration": 100,
+          "description": "Stand in front of a sturdy box, jump up onto it, land softly, then step back down. Repeat rhythmically.",
+          "sets": 3,
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQegeBkYUmQrmAhF-WSmUalIO_1HnajtbhnHw&s",
+          "timeOptions": {
+            "start": 60,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Clap Push-ups",
+          "duration": 90,
+          "description": "Perform push-ups with explosive upward movement, clapping hands together at the top of the movement.",
+          "sets": 2,
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQKy4blisYzLxgy_UZGHnAZFBYOemDp4g060w&s",
+          "timeOptions": {
+            "start": 60,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "reminder",
+          "title": "Power Time",
+          "prompt": "Time to build explosive power!",
+          "time": "17:00",
+          "description": "Afternoon reminder for your plyometric training session.",
+          "image": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    },
+    {
+      "id": "27",
+      "title": "Day 27: Active Recovery",
+      "description": "Focus on active recovery techniques to enhance muscle repair and overall recovery.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Active Recovery",
+          "text": "Active recovery involves light movement that promotes blood flow and muscle repair without causing additional stress.\n\nRecovery activities:\n• Light walking\n• Swimming\n• Cycling\n• Yoga\n• Stretching\n• Foam rolling\n\nListen to your body and keep intensity low.",
+          "image": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2720&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "timer",
+          "title": "Light Walking",
+          "duration": 600,
+          "description": "Take a gentle 10-minute walk, focusing on good posture and deep breathing. Enjoy the movement.",
+          "sets": 1,
+          "image": "https://res.cloudinary.com/peloton-cycle/image/fetch/f_auto,c_limit,w_3840,q_90/https://images.ctfassets.net/6ilvqec50fal/4vcSyE9Ie500uBUwLR3eUp/3d53e42a8d36eff27b5cce3ec31fd85d/walking-after-eating-03.jpg",
+          "timeOptions": {
+            "start": 300,
+            "end": 1200,
+            "increment": 60
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Gentle Stretching",
+          "duration": 120,
+          "description": "Perform gentle stretches for all major muscle groups. Hold each stretch for 20-30 seconds.",
+          "sets": 1,
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgwK1XJmR6coZuHh_SgyWoAF1y6KS4h2HWwQ&s",
+          "timeOptions": {
+            "start": 60,
+            "end": 300,
+            "increment": 30
+          }
+        },
+        {
+          "type": "reminder",
+          "title": "Recovery Day",
+          "prompt": "Take it easy and recover well!",
+          "time": "19:00",
+          "description": "Evening reminder to focus on gentle recovery activities.",
+          "image": "https://images.unsplash.com/photo-1599408995438-e6b71427775c?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    },
+    {
+      "id": "28",
+      "title": "Day 28: Week 4 Review",
+      "description": "Check your progress and celebrate completing four weeks of height optimization.",
+      "steps": [
+        {
+          "type": "update",
+          "title": "Four Week Progress Check",
+          "measurement": "height"
+        },
+        {
+          "type": "timer",
+          "title": "Complete Flow",
+          "duration": 240,
+          "description": "Flow through a complete sequence of your favorite exercises from the past four weeks. Move mindfully.",
+          "sets": 1,
+          "image": "https://hips.hearstapps.com/hmg-prod/images/stretching-her-sides-royalty-free-image-1610745178.?crop=0.529xw:0.833xh;0.250xw,0.134xh&resize=1200:*",
+          "timeOptions": {
+            "start": 180,
+            "end": 600,
+            "increment": 30
+          }
+        },
+        {
+          "type": "food",
+          "title": "Nutrition Review"
+        },
+        {
+          "type": "article",
+          "title": "Four Weeks Complete!",
+          "text": "Congratulations on completing four weeks of height optimization! You've built a comprehensive and sustainable routine.\n\nYour achievements:\n• Consistent daily practice\n• Improved strength and flexibility\n• Better nutrition habits\n• Enhanced recovery practices\n• Stronger foundation\n• Better stress management\n\nYou're well on your way to reaching your height potential!",
+          "image": "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?q=80&w=2826&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    }
+  ]
+} 

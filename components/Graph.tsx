@@ -223,8 +223,12 @@ const Graph: React.FC<GraphProps> = ({
     }
   }
 
+  // Create labels with only one per year
+  const uniqueYears = [...new Set(labels)];
+  const yearLabels = uniqueYears.map((year) => year);
+
   const chartData = {
-    labels: labels.filter((_, index) => index % 4 === 0),
+    labels: yearLabels,
     datasets: datasets,
   };
 

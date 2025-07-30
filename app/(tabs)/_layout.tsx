@@ -44,6 +44,24 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="coach"
+        options={{
+          title: "Andy",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="school" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="roadmap"
+        options={{
+          title: "Roadmap",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="map" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="progress"
         options={{
           title: "Progress",
@@ -66,24 +84,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="coach"
-        options={{
-          title: "Andy",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="school" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="roadmap"
-        options={{
-          title: "Roadmap",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="map" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="profile"
         options={{
           // Hide from the tab bar but keep the route accessible
@@ -92,18 +92,6 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="lesson"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="stats"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="habit"
         options={{
           href: null,
         }}

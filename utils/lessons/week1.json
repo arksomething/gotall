@@ -1,0 +1,393 @@
+{
+  "lessons": [
+    {
+      "id": "1",
+      "title": "Day 1 - Onboarding",
+      "description": "Welcome to your height optimization journey! Learn the basics of posture and how it affects your height.",
+      "steps": [
+        {
+          "type": "video",
+          "title": "Welcome to GoTall",
+          "youtubeUrl": "https://www.youtube.com/shorts/WbudVP7avRc",
+          "youtubeId": "WbudVP7avRc"
+        },
+        {
+          "type": "timer",
+          "title": "Stretch 1: Cobra",
+          "duration": 60,
+          "description": "Lie on your stomach with hands under shoulders. Push up to lift your chest while keeping hips on the ground.",
+          "sets": 2,
+          "image": "https://cdn.yogajournal.com/wp-content/uploads/2022/06/Upward-Facing-Dog-Mod-1_Andrew-Clark-e1670972827524.jpg",
+          "timeOptions": {
+            "start": 15,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Stretch 2: Wall",
+          "duration": 45,
+          "description": "Stand with your front towards a wall, feet shoulder-width apart. Press your head and arms against the wall while keeping your core engaged.",
+          "sets": 3,
+          "image": "https://uprightposturefitness.com/wp-content/uploads/2013/09/CounterStretch-wall.jpg",
+          "timeOptions": {
+            "start": 15,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "video",
+          "title": "Sleep Early",
+          "youtubeUrl": "https://www.youtube.com/shorts/P_6QbA9UajM",
+          "youtubeId": "P_6QbA9UajM"
+        },
+        {
+          "type": "reminder",
+          "title": "Sleep Early Reminder",
+          "prompt": "Time to wind down and get ready for bed.",
+          "time": "22:00",
+          "description": "Getting adequate sleep is crucial for growth and recovery. Aim for 8-9 hours of quality sleep.",
+          "image": "https://images.unsplash.com/photo-1599408995438-e6b71427775c?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "article",
+          "title": "Welcome to Your Height Optimization Journey",
+          "text": "Welcome to GoTall! You're about to embark on a transformative journey to optimize your height potential.\n\nThis program combines proven techniques from posture improvement, stretching exercises, nutrition optimization, and lifestyle habits to help you reach your maximum height potential.\n\nWhat to expect:\n• Daily stretching routines\n• Posture improvement exercises\n• Nutrition guidance\n• Sleep optimization tips\n• Progress tracking\n\nRemember, consistency is key. Stick with the program daily, and you'll see results over time."        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Day 2: Nutrition Fundamentals",
+      "description": "Discover the key nutrients that support healthy growth and maximize your height potential.",
+      "steps": [
+        {
+          "type": "video",
+          "title": "Nutrition Fundamentals",
+          "youtubeUrl": "https://www.youtube.com/shorts/MXhyzSSLWXQ",
+          "youtubeId": "MXhyzSSLWXQ"
+        },
+        {
+          "type": "food",
+          "title": "Nutrition Tracker"
+        },
+        {
+          "type": "article",
+          "title": "Foods to Increase Growth",
+          "text": "Proper nutrition is crucial for maximizing your height potential. Here are the key foods that support healthy growth:\n\n• Protein-rich foods: Lean meats, fish, eggs, legumes, and dairy products provide essential amino acids for muscle and bone development.\n\n• Calcium-rich foods: Milk, yogurt, cheese, leafy greens, and fortified foods strengthen bones and support growth.\n\n• Vitamin D sources: Fatty fish, egg yolks, and fortified dairy help with calcium absorption and bone health.\n\n• Iron-rich foods: Red meat, spinach, beans, and fortified cereals support oxygen transport and energy production.\n\n• Zinc sources: Oysters, beef, pumpkin seeds, and legumes are essential for growth hormone production.\n\n• Vitamin C foods: Citrus fruits, berries, and bell peppers help with collagen formation and tissue repair.\n\n• Omega-3 fatty acids: Fish, walnuts, and flaxseeds support brain development and overall growth.\n\nRemember to eat a balanced diet with plenty of fruits, vegetables, whole grains, and lean proteins.",
+          "image": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=2053&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "timer",
+          "title": "Stretch 1: Forward Bend",
+          "duration": 30,
+          "description": "Stand with feet shoulder-width apart and bend forward, reaching for your toes. Hold this position.",
+          "sets": 2,
+          "image": "https://intouchyogabyronbay.com/wp-content/uploads/2023/07/Bio-Mechanics-of-Forward-Bends.jpg",
+          "timeOptions": {
+            "start": 15,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Stretch 2: Cat-Cow Stretch",
+          "duration": 30,
+          "description": "Get on your hands and knees. Arch your back up like a cat, then dip it down like a cow. Repeat the motion.",
+          "sets": 2,
+          "image": "https://www.orthoindy.com/wp-content/uploads/cat-cow-stretch-exercise.png",
+          "timeOptions": {
+            "start": 15,
+            "end": 300,
+            "increment": 15
+          }
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Day 3: Posture Exercises",
+      "description": "Master essential posture exercises to improve your alignment and maximize your height potential.",
+      "steps": [
+        {
+          "type": "video",
+          "title": "Posture Exercises",
+          "youtubeUrl": "https://www.youtube.com/shorts/-11LnDCe2A4",
+          "youtubeId": "-11LnDCe2A4"
+        },
+        {
+          "type": "video",
+          "title": "Posture Exercises",
+          "youtubeUrl": "https://www.youtube.com/shorts/eUfQirq5e2U",
+          "youtubeId": "eUfQirq5e2U"
+        },
+        {
+          "type": "timer",
+          "title": "Wall Angels",
+          "duration": 90,
+          "description": "Stand with your back against a wall, feet shoulder-width apart. Slide your arms up and down the wall in a snow angel motion.",
+          "sets": 4,
+          "image": "https://s3.amazonaws.com/prod.skimble/assets/2629405/image_iphone.jpg",
+          "timeOptions": {
+            "start": 15,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "article",
+          "title": "Why Slouching Makes You Shorter",
+          "text": "Slouching doesn't just make you appear shorter—it can actually reduce your height over time. When you slouch, you're compressing the natural curves of your spine and putting excessive pressure on your vertebral discs.\n\nHow slouching affects your height:\n\n• Spinal compression: Poor posture compresses the spaces between your vertebrae, reducing your natural height\n• Muscle imbalance: Slouching weakens your core and back muscles while overworking your chest and neck muscles\n• Disc pressure: Forward head posture and rounded shoulders increase pressure on spinal discs, potentially causing them to compress\n• Reduced lung capacity: Slouched posture restricts breathing, limiting oxygen intake and overall health\n\nBenefits of maintaining good posture:\n\n• Preserves your natural height and spinal alignment\n• Strengthens core and back muscles for better support\n• Improves breathing and oxygen intake\n• Reduces stress on joints and ligaments\n• Enhances overall appearance and confidence\n\nMaintaining proper posture is essential for preserving your height and preventing long-term spinal issues. Focus on keeping your head aligned with your shoulders, shoulders back, and core engaged throughout the day.",
+          "image": "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?q=80&w=2826&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "reminder",
+          "title": "Posture Check",
+          "prompt": "Check your posture - shoulders back, head up!",
+          "time": "12:00",
+          "description": "A quick reminder to maintain good posture throughout the day.",
+          "image": "https://images.unsplash.com/photo-1599408995438-e6b71427775c?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "Day 4: Advanced Stretching",
+      "description": "Take your stretching routine to the next level with advanced techniques and consistent practice.",
+      "steps": [
+        {
+          "type": "video",
+          "title": "Advanced Stretching",
+          "youtubeUrl": "https://www.youtube.com/shorts/hW0ZTb_99LE",
+          "youtubeId": "hW0ZTb_99LE"
+        },
+        {
+          "type": "timer",
+          "title": "Child's Pose",
+          "duration": 60,
+          "description": "Kneel on the floor with your big toes touching and knees apart. Sit back on your heels and fold forward, extending your arms in front of you. Rest your forehead on the mat and breathe deeply.",
+          "sets": 2,
+          "image": "https://www.artofliving.org/sites/www.artofliving.org/files/styles/facebook_thumb/public/unity2/blog_image/girl_practicing_child%27s_pose.jpg?itok=_Rd_Q_xD",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Spinal Twist",
+          "duration": 45,
+          "description": "Lie on your back with arms extended to the sides. Bend your knees and drop them to one side while keeping your shoulders flat. Hold and breathe, then switch sides.",
+          "sets": 2,
+          "image": "https://www.yogabasics.com/yogabasics2017/wp-content/uploads/2013/11/KneedDnTwist_9828.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Neck and Shoulder Stretch",
+          "duration": 60,
+          "description": "Sit or stand with your back straight. Gently tilt your head to one side, bringing your ear toward your shoulder. Hold, then switch sides. Follow with shoulder rolls forward and backward.",
+          "sets": 2,
+          "image": "https://www.mayoclinic.org/-/media/kcms/gbs/patient-consumer/images/2022/02/22/15/39/wf6191069neckstretchv2468x263.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "article",
+          "title": "Advanced Stretching for Height",
+          "text": "Advanced stretching techniques can significantly improve your flexibility, posture, and overall height potential.\n\nBenefits of advanced stretching:\n\n• Increased flexibility: Advanced stretches target deeper muscle groups and connective tissues\n• Better posture: Improved flexibility allows for better spinal alignment and posture maintenance\n• Enhanced circulation: Advanced stretching promotes better blood flow to muscles and joints\n• Reduced muscle tension: Deeper stretches help release chronic muscle tightness\n• Improved range of motion: Greater flexibility leads to better overall movement patterns\n\nKey principles for advanced stretching:\n\n• Progressive overload: Gradually increase the intensity and duration of your stretches\n• Proper breathing: Deep, controlled breathing helps relax muscles and improve stretch effectiveness\n• Consistency: Regular practice is essential for seeing long-term improvements\n• Listen to your body: Never force a stretch beyond your comfort level\n• Warm up properly: Always prepare your muscles before advanced stretching\n\nRemember: Advanced stretching is a journey, not a destination. Be patient with your progress.",
+          "image": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2720&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "quiz",
+          "title": "Knowledge Check",
+          "prompt": "What is the most important principle for advanced stretching?",
+          "choices": ["Force the stretch", "Listen to your body", "Skip warm-up"],
+          "answer": 1
+        },
+        {
+          "type": "reminder",
+          "title": "Advanced Stretching Reminder",
+          "prompt": "Time for your advanced stretching routine!",
+          "time": "16:00",
+          "description": "A reminder to practice your advanced stretching exercises.",
+          "image": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2720&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "Day 5: The Power of Sleep",
+      "description": "Discover how quality sleep is essential for growth hormone production and maximizing your height potential.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Why Sleep is Critical for Height Growth",
+          "text": "Sleep is one of the most important factors for height optimization and overall growth. During deep sleep, your body produces growth hormone (GH), which is essential for bone growth and muscle development.\n\nHow sleep affects your height:\n\n• Growth hormone production: 70-80% of daily growth hormone is released during deep sleep\n• Bone growth: Sleep allows your body to repair and build bone tissue\n• Muscle recovery: Adequate sleep helps muscles recover and grow stronger\n• Hormone regulation: Sleep regulates hormones that affect growth and metabolism\n• Cell regeneration: Sleep promotes cellular repair and regeneration\n\nOptimal sleep for growth:\n\n• Duration: 8-9 hours per night for optimal growth hormone production\n• Quality: Deep, uninterrupted sleep is more important than just duration\n• Timing: Going to bed before 11 PM maximizes growth hormone release\n• Consistency: Regular sleep schedule helps regulate your body's natural rhythms\n• Environment: Cool, dark, quiet room promotes better sleep quality\n\nSleep hygiene tips:\n\n• Avoid screens 1-2 hours before bedtime\n• Create a relaxing bedtime routine\n• Keep your bedroom cool and dark\n• Avoid caffeine after 2 PM\n• Exercise regularly but not too close to bedtime\n• Limit large meals before sleep\n\nRemember: Quality sleep is essential for giving your body the time it needs to grow and develop to its full potential.",
+          "image": "https://images.unsplash.com/photo-1599408995438-e6b71427775c?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "timer",
+          "title": "Evening Meditation",
+          "duration": 300,
+          "description": "Find a comfortable seated position. Close your eyes and focus on your breath. Inhale deeply through your nose for 4 counts, hold for 4 counts, exhale slowly for 6 counts. Let your mind settle and prepare for restful sleep.",
+          "sets": 1,
+          "image": "https://myvega.com/cdn/shop/articles/Jan-30-03-620x315_fda1b7c5-7350-4e1e-b2e6-496680656a57.png?v=1597207341",
+          "timeOptions": {
+            "start": 60,
+            "end": 600,
+            "increment": 30
+          }
+        },
+        {
+          "type": "quiz",
+          "title": "Sleep Knowledge Check",
+          "prompt": "What percentage of daily growth hormone is released during deep sleep?",
+          "choices": ["30-40%", "50-60%", "70-80%", "90-100%"],
+          "answer": 2
+        },
+        {
+          "type": "reminder",
+          "title": "Winddown Reminder",
+          "prompt": "Time to start winding down for bed.",
+          "time": "21:30",
+          "description": "Start your bedtime routine early to ensure quality sleep for optimal growth.",
+          "image": "https://www.sleepservicesmd.com/wp-content/uploads/2025/01/blog-0009.jpg"
+        },
+        {
+          "type": "reminder",
+          "title": "Sleep Time",
+          "prompt": "Lights out! Time for quality sleep.",
+          "time": "22:00",
+          "description": "Get 8-9 hours of quality sleep for optimal growth hormone production.",
+          "image": "https://domf5oio6qrcr.cloudfront.net/medialibrary/16297/gettyimages-1448461961.jpg"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "Day 6: Dynamic Workouts",
+      "description": "Discover high-impact exercises that stimulate growth hormone production and improve overall fitness for height optimization.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "High-Impact Exercises for Height",
+          "text": "Dynamic workouts are essential for height optimization as they stimulate growth hormone production and strengthen bones and muscles.\n\nKey exercises for height:\n\n• Running: High-intensity running stimulates growth hormone release and improves cardiovascular health\n• Jumping exercises: Jump squats, box jumps, and skipping increase bone density and muscle strength\n• Swimming: Full-body workout that decompresses the spine and improves posture\n• Basketball: Jumping and stretching movements naturally lengthen muscles and improve coordination\n• Cycling: Low-impact cardio that strengthens leg muscles and improves circulation\n\nBenefits of dynamic workouts:\n\n• Growth hormone stimulation: High-intensity exercise triggers natural growth hormone production\n• Bone strengthening: Impact exercises increase bone density and strength\n• Muscle development: Dynamic movements build lean muscle mass\n• Improved circulation: Better blood flow delivers nutrients to growing tissues\n• Enhanced posture: Stronger muscles support better spinal alignment\n\nWorkout guidelines:\n\n• Start with 20-30 minutes of moderate to high-intensity exercise\n• Include both cardio and strength training\n• Allow adequate rest between sessions\n• Stay hydrated during workouts\n• Listen to your body and avoid overtraining\n\nRemember: Consistency is key. Regular dynamic workouts combined with proper nutrition and rest will maximize your height potential.",
+          "image": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "timer",
+          "title": "Jump Squats",
+          "duration": 45,
+          "description": "Stand with feet shoulder-width apart. Squat down, then explosively jump up, reaching for the sky. Land softly and repeat.",
+          "sets": 3,
+          "image": "https://hips.hearstapps.com/hmg-prod/images/squat-jump-1585155002.jpg?crop=1.00xw:0.837xh;0,0.0987xh&resize=980:*",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "High Knees",
+          "duration": 60,
+          "description": "Run in place, bringing your knees up to waist level. Pump your arms and maintain good posture throughout the exercise.",
+          "sets": 2,
+          "image": "https://liftmanual.com/wp-content/uploads/2023/04/high-knee-run.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Burpees",
+          "duration": 90,
+          "description": "Start standing, drop into a squat, kick feet back into plank, do a push-up, jump feet back to squat, then jump up with arms overhead.",
+          "sets": 2,
+          "image": "https://res.cloudinary.com/greatfeats/image/upload/f_auto/q_auto/v1632957346/gvftwnksqefersywjqmg.png",
+          "timeOptions": {
+            "start": 45,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "quiz",
+          "title": "Workout Knowledge Check",
+          "prompt": "Which exercise is best for stimulating growth hormone production?",
+          "choices": ["Light walking", "High-intensity running", "Sitting meditation"],
+          "answer": 1
+        },
+        {
+          "type": "reminder",
+          "title": "Workout Reminder",
+          "prompt": "Time for your dynamic workout!",
+          "time": "16:00",
+          "description": "Get moving with high-impact exercises to stimulate growth and improve fitness.",
+          "image": "https://media.theeverygirl.com/wp-content/uploads/2020/07/little-things-you-can-do-for-a-better-workout-the-everygirl-1.jpg"
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "Day 7: Progress Check",
+      "description": "Measure your progress, enjoy some gentle stretches, and check your nutrition to complete your first week.",
+      "steps": [
+        {
+          "type": "update",
+          "title": "Weekly Progress Check",
+          "measurement": "height"
+        },
+        {
+          "type": "timer",
+          "title": "Cat-Cow Stretch",
+          "duration": 45,
+          "description": "Get on your hands and knees. Arch your back up like a cat, then dip it down like a cow. Repeat the motion slowly and smoothly.",
+          "sets": 2,
+          "image": "https://www.orthoindy.com/wp-content/uploads/cat-cow-stretch-exercise.png",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Forward Bend",
+          "duration": 60,
+          "description": "Stand with feet shoulder-width apart and bend forward, reaching for your toes. Hold this position and breathe deeply.",
+          "sets": 2,
+          "image": "https://intouchyogabyronbay.com/wp-content/uploads/2023/07/Bio-Mechanics-of-Forward-Bends.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "food",
+          "title": "Weekly Nutrition Review"
+        },
+        {
+          "type": "article",
+          "title": "Week 1 Complete!",
+          "text": "Congratulations on completing your first week of height optimization! You've established a solid foundation with:\n\n• Daily stretching routines\n• Posture improvement exercises\n• Nutrition optimization\n• Sleep hygiene practices\n• Dynamic workouts\n\nWhat you've accomplished:\n\n• Built consistent habits for height optimization\n• Improved flexibility and posture awareness\n• Learned about nutrition for growth\n• Established better sleep patterns\n• Started dynamic exercise routines\n\nLooking ahead:\n\n• Continue with your daily routines\n• Track your progress weekly\n• Stay consistent with all aspects of the program\n• Remember that height optimization is a journey\n\nKeep up the great work! Your dedication will pay off over time.",
+          "image": "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?q=80&w=2826&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    }
+  ]
+} 

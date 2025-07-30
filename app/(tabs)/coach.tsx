@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   LayoutAnimation,
   Platform,
@@ -12,6 +13,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   UIManager,
   View,
 } from "react-native";
@@ -281,38 +283,43 @@ export default function CoachScreen() {
         }
       />
 
-      {messages.length === 0 ? (
-        <View style={styles.welcomeContainer}>
-          <Ionicons name="school" size={64} color="#9ACD32" />
-          <Text style={styles.title}>Meet Andy, your height coach</Text>
-          <Text style={styles.subtitle}>
-            Ask me anything about height, growth, or your journey!
-          </Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.contentContainer}>
+          {messages.length === 0 ? (
+            <View style={styles.welcomeContainer}>
+              <Ionicons name="school" size={64} color="#9ACD32" />
+              <Text style={styles.title}>Meet Andy, your height coach</Text>
+              <Text style={styles.subtitle}>
+                Ask me anything about height, growth, or your journey!
+              </Text>
 
-          {/* Suggested Prompts */}
-          <View style={styles.suggestionsContainer}>
-            {SUGGESTED_PROMPTS.map((prompt) => (
-              <Pressable
-                key={prompt}
-                style={styles.suggestionChip}
-                onPress={() => handleSuggestedPrompt(prompt)}
-              >
-                <Text style={styles.suggestionText}>{prompt}</Text>
-              </Pressable>
-            ))}
-          </View>
+              {/* Suggested Prompts */}
+              <View style={styles.suggestionsContainer}>
+                {SUGGESTED_PROMPTS.map((prompt) => (
+                  <Pressable
+                    key={prompt}
+                    style={styles.suggestionChip}
+                    onPress={() => handleSuggestedPrompt(prompt)}
+                  >
+                    <Text style={styles.suggestionText}>{prompt}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          ) : (
+            <FlatList
+              ref={flatListRef}
+              data={messages}
+              renderItem={renderMessage}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.messageList}
+              onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
+              onLayout={() => flatListRef.current?.scrollToEnd()}
+              onScrollBeginDrag={Keyboard.dismiss}
+            />
+          )}
         </View>
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.messageList}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
-          onLayout={() => flatListRef.current?.scrollToEnd()}
-        />
-      )}
+      </TouchableWithoutFeedback>
 
       <View style={styles.inputContainer}>
         <View style={styles.inputWrapper}>
@@ -349,6 +356,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
+  },
+  contentContainer: {
+    flex: 1,
   },
   welcomeContainer: {
     flex: 1,

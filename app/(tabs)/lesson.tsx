@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { LessonLayout } from "../../components/LessonLayout";
 import Article from "../../components/lessons/Article";
@@ -21,17 +21,31 @@ export default function LessonStepPage() {
   const lesson = lessons[0]; // single lesson for now
   const router = useRouter();
 
+  // Handle navigation side effects in useEffect
+  useEffect(() => {
+    // Check if lesson exists
+    if (!lesson) {
+      // No lesson found for this day, redirect to roadmap
+      router.replace("/(tabs)/roadmap");
+      return;
+    }
+
+    const steps = lesson.steps;
+    const currentStep = steps[stepNum] as StepType | undefined;
+    if (!currentStep) {
+      router.back();
+      return;
+    }
+  }, [lesson, stepNum, router]);
+
   // Check if lesson exists
   if (!lesson) {
-    // No lesson found for this day, redirect to roadmap
-    router.replace("/(tabs)/roadmap");
     return null;
   }
 
   const steps = lesson.steps;
   const currentStep = steps[stepNum] as StepType | undefined;
   if (!currentStep) {
-    router.back();
     return null;
   }
 

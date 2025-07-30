@@ -1,0 +1,302 @@
+{
+  "lessons": [
+    {
+      "id": "8",
+      "title": "Day 8: Advanced Posture",
+      "description": "Build on your posture foundation with advanced techniques and mindful movement.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Mindful Movement",
+          "text": "Advanced posture isn't just about standing straight—it's about moving with awareness. Every step, every reach, every movement affects your spinal alignment.\n\nKey principles:\n• Move with intention\n• Keep your core engaged\n• Align your head with your spine\n• Breathe deeply and steadily\n\nRemember: Good posture is a habit that becomes natural with practice.",
+          "image": "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?q=80&w=2826&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "timer",
+          "title": "Downward Dog",
+          "duration": 75,
+          "description": "Start on hands and knees, lift hips up and back, forming an inverted V. Press through your hands and lengthen your spine.",
+          "sets": 3,
+          "image": "https://images.squarespace-cdn.com/content/v1/5d31ed671abe780001b2964d/1564525060366-2BFLBPXFP2XDF3WNN0I7/downward+dog+from+side",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Plank Hold",
+          "duration": 60,
+          "description": "Hold a plank position with straight arms, body in one line from head to heels. Engage your core and breathe steadily.",
+          "sets": 2,
+          "image": "https://media.post.rvohealth.io/wp-content/uploads/sites/2/2019/04/PlankFeature-1200x628.png",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "reminder",
+          "title": "Posture Check",
+          "prompt": "Check your posture - shoulders back, head up!",
+          "time": "14:00",
+          "description": "Mid-afternoon posture reminder to maintain good alignment.",
+          "image": "https://images.unsplash.com/photo-1599408995438-e6b71427775c?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "Day 9: Protein Focus",
+      "description": "Learn about the importance of protein for muscle growth and height development.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Protein for Growth",
+          "text": "Protein is the building block of muscles and tissues. For height optimization, aim for 1.2-1.6g of protein per kg of body weight daily.\n\nBest sources:\n• Lean meats and fish\n• Eggs and dairy\n• Legumes and beans\n• Nuts and seeds\n• Plant-based proteins\n\nTiming matters: Spread protein intake throughout the day for optimal muscle building.",
+          "image": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=2053&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "food",
+          "title": "Protein Tracker"
+        },
+        {
+          "type": "timer",
+          "title": "Warrior Pose",
+          "duration": 50,
+          "description": "Step one foot back, bend front knee, arms overhead. Hold and breathe deeply, then switch sides.",
+          "sets": 2,
+          "image": "https://beyogi.com/wp-content/uploads/2015/03/Warrior-2-Pose-Virabhadrasana-II.png",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Tree Pose",
+          "duration": 40,
+          "description": "Stand on one leg, other foot on inner thigh or calf. Hands in prayer position, focus on balance.",
+          "sets": 2,
+          "image": "https://cdn.yogajournal.com/wp-content/uploads/2022/01/Tree-Pose_Alt-1_2400x1350_Andrew-Clark.jpeg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "title": "Day 10: Core Strength",
+      "description": "Strengthen your core to support better posture and spinal alignment.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Core and Height",
+          "text": "A strong core is essential for maintaining good posture and supporting your spine. Weak core muscles can lead to slouching and poor alignment.\n\nBenefits:\n• Better posture support\n• Reduced back pain\n• Improved balance\n• Enhanced stability\n• Better breathing\n\nFocus on deep core muscles, not just abs.",
+          "image": "https://cdn.mos.cms.futurecdn.net/MGFfSgcSYT7Qwow2eKzqiL.jpg"
+        },
+        {
+          "type": "timer",
+          "title": "Bridge Pose",
+          "duration": 55,
+          "description": "Lie on back, knees bent, feet flat. Lift hips up, engage glutes and core. Hold and breathe.",
+          "sets": 3,
+          "image": "https://cdn.yogajournal.com/wp-content/uploads/2021/11/YJ_Bridge-Pose_Andrew-Clark_2400x1350.png",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Boat Pose",
+          "duration": 35,
+          "description": "Sit with knees bent, lift feet off ground, extend arms forward. Balance on your sit bones.",
+          "sets": 2,
+          "image": "https://cdn.mos.cms.futurecdn.net/L5AuKbaqZKwmMGfj2kywrA.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "reminder",
+          "title": "Core Check",
+          "prompt": "Engage your core throughout the day!",
+          "time": "11:00",
+          "description": "Reminder to keep your core engaged for better posture.",
+          "image": "https://hips.hearstapps.com/hmg-prod/images/middle-eastern-man-exercising-at-the-gym-lifting-royalty-free-image-1690294922.jpg?crop=0.538xw:1.00xh;0.171xw,0&resize=1200:*"
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "title": "Day 11: Flexibility Focus",
+      "description": "Improve your flexibility with targeted stretches for better range of motion.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Flexibility Benefits",
+          "text": "Improved flexibility leads to better posture, reduced injury risk, and enhanced movement quality.\n\nKey areas to focus:\n• Hip flexors\n• Hamstrings\n• Shoulders\n• Spine\n• Ankles\n\nStretch regularly but never force movements beyond your comfort level.",
+          "image": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2720&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "timer",
+          "title": "Pigeon Pose",
+          "duration": 70,
+          "description": "From downward dog, bring one knee forward between hands, extend other leg back. Sink into the stretch.",
+          "sets": 2,
+          "image": "https://bodybyyoga.training/wp-content/uploads/2021/06/modification-1-block-scaled.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Butterfly Stretch",
+          "duration": 45,
+          "description": "Sit with soles of feet together, knees bent out. Gently press knees down and lean forward.",
+          "sets": 2,
+          "image": "https://hips.hearstapps.com/hmg-prod/images/african-man-practice-yoga-in-the-butterfly-position-royalty-free-image-1665003186.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "quiz",
+          "title": "Flexibility Check",
+          "prompt": "What's the most important rule for stretching?",
+          "choices": ["Force the stretch", "Listen to your body", "Skip warm-up"],
+          "answer": 1
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "title": "Day 12: Deep Sleep",
+      "description": "Optimize your sleep quality for maximum growth hormone production.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Sleep Optimization",
+          "text": "Quality sleep is crucial for growth hormone production. Create a sleep-friendly environment and routine.\n\nSleep tips:\n• Keep room cool and dark\n• Avoid screens 1 hour before bed\n• Establish consistent bedtime\n• Use relaxation techniques\n• Limit caffeine after 2 PM\n\nAim for 8-9 hours of uninterrupted sleep.",
+          "image": "https://media.post.rvohealth.io/wp-content/uploads/2020/08/woman-tired-sleeping-sleep-bed-732x549-thumbnail-1.jpg"
+        },
+        {
+          "type": "timer",
+          "title": "Legs Up the Wall",
+          "duration": 300,
+          "description": "Lie on your back with legs up against a wall. Relax completely and focus on deep breathing.",
+          "sets": 1,
+          "image": "https://cdn.yogajournal.com/wp-content/uploads/2021/12/Legs-Up-the-Wall-Pose_Andrew-Clark_2400x1350.jpeg",
+          "timeOptions": {
+            "start": 120,
+            "end": 600,
+            "increment": 30
+          }
+        },
+        {
+          "type": "reminder",
+          "title": "Bedtime Routine",
+          "prompt": "Start winding down for quality sleep.",
+          "time": "21:00",
+          "description": "Begin your bedtime routine for optimal sleep.",
+          "image": "https://images.unsplash.com/photo-1599408995438-e6b71427775c?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "title": "Day 13: Cardio Boost",
+      "description": "Enhance your cardiovascular fitness with high-energy exercises.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Cardio for Growth",
+          "text": "Cardiovascular exercise improves circulation, boosts energy, and supports overall health.\n\nBenefits:\n• Better oxygen delivery\n• Improved endurance\n• Enhanced metabolism\n• Stress reduction\n• Better sleep quality\n\nMix high and low intensity for best results.",
+          "image": "https://www.shape.com/thmb/DjCIHGX6cWaIniuqHeBAAreNE08=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/best-cardio-exercises-promo-2000-498cbfb8f07541b78572bf810e7fb600.jpg"
+        },
+        {
+          "type": "timer",
+          "title": "Mountain Climbers",
+          "duration": 80,
+          "description": "Start in plank position, alternate bringing knees to chest rapidly. Keep core engaged throughout.",
+          "sets": 3,
+          "image": "https://i.guim.co.uk/img/media/e7ee4fd3eca4df1346f46d762dbb74b03c61ac6e/1020_1075_3464_2078/500.jpg?quality=85&auto=format&fit=max&s=820135a6cec5fa7397510a0b1add2cca",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Jumping Jacks",
+          "duration": 90,
+          "description": "Jump while raising arms overhead and spreading legs, then return to starting position. Repeat rhythmically.",
+          "sets": 2,
+          "image": "https://experiencelife.lifetime.life/wp-content/uploads/2021/08/bid-jumping-jack.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "reminder",
+          "title": "Cardio Time",
+          "prompt": "Get your heart rate up!",
+          "time": "17:00",
+          "description": "Time for your cardio workout to boost energy and fitness.",
+          "image": "https://cdn.britannica.com/25/214625-050-A37D76CC/heart-rate-monitor-illustration-heartbeat.jpg"
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "title": "Day 14: Week 2 Review",
+      "description": "Check your progress and celebrate completing two weeks of height optimization.",
+      "steps": [
+        {
+          "type": "update",
+          "title": "Two Week Progress Check",
+          "measurement": "height"
+        },
+        {
+          "type": "timer",
+          "title": "Sun Salutation",
+          "duration": 120,
+          "description": "Flow through a gentle sun salutation sequence: mountain pose, forward fold, plank, cobra, downward dog, forward fold, mountain pose.",
+          "sets": 2,
+          "image": "https://omstars.com/blog/wp-content/uploads/2021/04/How-to-do-Surya-Namaskar-A-Sun-Salutation-A.jpg",
+          "timeOptions": {
+            "start": 60,
+            "end": 300,
+            "increment": 30
+          }
+        },
+        {
+          "type": "food",
+          "title": "Nutrition Review"
+        },
+        {
+          "type": "article",
+          "title": "Two Weeks Strong!",
+          "text": "Congratulations on completing two weeks of height optimization! You've built a solid foundation of healthy habits.\n\nYour progress:\n• Consistent daily routines\n• Improved flexibility and strength\n• Better nutrition awareness\n• Enhanced sleep quality\n• Increased fitness levels\n\nKeep going strong! Your dedication is building lasting results."
+        }
+      ]
+    }
+  ]
+} 

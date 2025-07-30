@@ -19,7 +19,7 @@ import { databaseManager } from "../../utils/database";
 import { calculateDreamHeightProbability } from "../../utils/dreamHeightProbability";
 import { calculateHealthGoals } from "../../utils/healthGoals";
 import { calculateHeightProjection } from "../../utils/heightProjection";
-import { convert, parseHeightToCm } from "../../utils/heightUtils";
+import { convert, HeightFormatter } from "../../utils/heightUtils";
 import { useUserData } from "../../utils/UserContext";
 import { useUnits } from "../../utils/useUnits";
 
@@ -74,12 +74,18 @@ export default function Index() {
 
         // Helper to convert projection height (ft/in string) to preferred unit
         const toDisplay = (ftHeight: string) => {
-          const cmVal = parseHeightToCm(ftHeight, "ft");
-          return cmVal ? formatHeight(cmVal) : ftHeight;
+          return HeightFormatter.formatHeightForDisplay(
+            ftHeight,
+            userData.preferredHeightUnit
+          );
         };
 
         setHeightData({
-          currentHeight: toDisplay(projectionData.currentHeight),
+          currentHeight: HeightFormatter.formatHeightForDisplayPreserveOriginal(
+            userData.heightCm,
+            projectionData.currentHeight,
+            userData.preferredHeightUnit
+          ),
           actualHeight: toDisplay(projectionData.actualHeight),
           potentialHeight: toDisplay(projectionData.potentialHeight),
         });

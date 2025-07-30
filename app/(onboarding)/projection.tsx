@@ -10,7 +10,11 @@ import { useOnboarding } from "../../utils/OnboardingContext";
 import { useUserData } from "../../utils/UserContext";
 import { calculateDreamHeightProbability } from "../../utils/dreamHeightProbability";
 import { calculateHeightProjection } from "../../utils/heightProjection";
-import { convert, parseHeightToCm } from "../../utils/heightUtils";
+import {
+  convert,
+  HeightFormatter,
+  parseHeightToCm,
+} from "../../utils/heightUtils";
 
 interface HeightData {
   currentHeight: string;
@@ -47,14 +51,6 @@ const ProjectionScreen = () => {
 
   const isMetric = userData.preferredHeightUnit === "cm";
 
-  const formatHeightForDisplay = (ftHeight: string): string => {
-    if (isMetric) {
-      const cm = parseAnyHeightToCm(ftHeight);
-      return `${cm}cm`;
-    }
-    return ftHeight;
-  };
-
   const calculateProjections = useCallback(() => {
     try {
       setError(null);
@@ -79,9 +75,18 @@ const ProjectionScreen = () => {
       // Convert heights for display based on preferred unit
       const convertedData: HeightData = {
         ...projectionData,
-        currentHeight: formatHeightForDisplay(projectionData.currentHeight),
-        actualHeight: formatHeightForDisplay(projectionData.actualHeight),
-        potentialHeight: formatHeightForDisplay(projectionData.potentialHeight),
+        currentHeight: HeightFormatter.formatHeightForDisplay(
+          projectionData.currentHeight,
+          userData.preferredHeightUnit
+        ),
+        actualHeight: HeightFormatter.formatHeightForDisplay(
+          projectionData.actualHeight,
+          userData.preferredHeightUnit
+        ),
+        potentialHeight: HeightFormatter.formatHeightForDisplay(
+          projectionData.potentialHeight,
+          userData.preferredHeightUnit
+        ),
       };
 
       setHeightData(convertedData);
