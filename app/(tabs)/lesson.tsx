@@ -10,7 +10,7 @@ import Timer from "../../components/lessons/Timer";
 import Update from "../../components/lessons/Update";
 import Video from "../../components/lessons/Video";
 import { databaseManager } from "../../utils/database";
-import { getLessonsForDay } from "../../utils/lessons";
+import { getLessonsForDay, getTotalDays } from "../../utils/lessons";
 import { Step as StepType } from "../../utils/lessonTypes";
 
 export default function LessonStepPage() {
@@ -20,6 +20,7 @@ export default function LessonStepPage() {
   const lessons = getLessonsForDay(dayNum);
   const lesson = lessons[0]; // single lesson for now
   const router = useRouter();
+  const totalDays = getTotalDays();
 
   // Handle navigation side effects in useEffect
   useEffect(() => {
@@ -59,7 +60,7 @@ export default function LessonStepPage() {
         },
       });
     } else {
-      databaseManager.markLessonsUpToDay(lesson.id, dayNum, 30);
+      databaseManager.markLessonsUpToDay(lesson.id, dayNum, totalDays);
       router.push("/(tabs)/roadmap");
     }
   };

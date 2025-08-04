@@ -20,6 +20,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "../../components/Header";
 import RoadmapNode from "../../components/RoadmapNode";
+import { CONFIG } from "../../utils/config";
 import { databaseManager } from "../../utils/database";
 import { getLessonsForDay, getTotalDays } from "../../utils/lessons";
 
@@ -390,7 +391,8 @@ export default function RoadmapScreen() {
                             if (!existingUnlockTime) {
                               newLockStatus[day + 1] = true;
                               const unlockTime = new Date(
-                                Date.now() + 12 * 60 * 60 * 1000
+                                Date.now() +
+                                  CONFIG.LESSON_LOCK_DURATION_SECONDS * 1000
                               );
                               newUnlockTimes[day + 1] = unlockTime;
                             } else {

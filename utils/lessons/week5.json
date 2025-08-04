@@ -1,0 +1,310 @@
+{
+  "lessons": [
+    {
+      "id": "29",
+      "title": "Day 29: Spinal Decompression",
+      "description": "Focus on exercises that decompress and lengthen your spine for maximum height potential.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Spinal Health",
+          "text": "Your spine is the foundation of your height. Decompression exercises help reverse the effects of gravity and daily compression.\n\nBenefits:\n• Increases disc space\n• Improves posture\n• Reduces back pain\n• Enhances flexibility\n• Promotes growth\n\nPractice these exercises daily for best results.",
+          "image": "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?q=80&w=2826&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "timer",
+          "title": "Hanging Exercise",
+          "duration": 60,
+          "description": "Hang from a pull-up bar or sturdy surface. Let your body stretch naturally, feeling the spine decompress.",
+          "sets": 3,
+          "image": "https://media.self.com/photos/6717dcb27ee39c137b7233cc/4:3/w_2560%2Cc_limit/image%2520(1).png",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Cobra Stretch",
+          "duration": 45,
+          "description": "Lie on stomach, hands under shoulders. Lift chest up while keeping hips on ground. Arch back gently.",
+          "sets": 2,
+          "image": "https://cdn.yogajournal.com/wp-content/uploads/2022/06/Upward-Facing-Dog-Mod-1_Andrew-Clark-e1670972827524.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "reminder",
+          "title": "Posture Check",
+          "prompt": "Stand tall and decompress your spine!",
+          "time": "15:00",
+          "description": "Mid-afternoon reminder to maintain good posture and spinal alignment.",
+          "image": "https://images.unsplash.com/photo-1599408995438-e6b71427775c?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    },
+    {
+      "id": "30",
+      "title": "Day 30: Vitamin D & Calcium",
+      "description": "Learn about the crucial role of vitamin D and calcium in bone health and growth.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Bone Building Nutrients",
+          "text": "Vitamin D and calcium work together to build strong bones. Vitamin D helps your body absorb calcium effectively.\n\nBest sources:\n• Vitamin D: Sunlight, fatty fish, eggs\n• Calcium: Dairy, leafy greens, fortified foods\n• Get 15-20 minutes of sun daily\n• Consider supplements if needed\n\nStrong bones support your height potential.",
+          "image": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=2053&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "food",
+          "title": "Calcium Tracker"
+        },
+        {
+          "type": "timer",
+          "title": "Wall Angels",
+          "duration": 90,
+          "description": "Stand with back against wall, feet shoulder-width apart. Slide arms up and down wall in snow angel motion.",
+          "sets": 3,
+          "image": "https://s3.amazonaws.com/prod.skimble/assets/2629405/image_iphone.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Superman Hold",
+          "duration": 40,
+          "description": "Lie on stomach, lift arms and legs off ground simultaneously. Hold and engage back muscles.",
+          "sets": 2,
+          "image": "https://images.ctfassets.net/hjcv6wdwxsdz/79sS2tpNEIFtGYuBfCNxYi/8367923f934c6f2369f50b3f42c57be8/superman-exercise-hold.png?w=1200",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        }
+      ]
+    },
+    {
+      "id": "31",
+      "title": "Day 31: Hip Flexibility",
+      "description": "Improve hip flexibility to enhance posture and reduce lower back strain.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Hip Health",
+          "text": "Tight hips can cause poor posture and back pain. Flexible hips improve your overall alignment and movement quality.\n\nBenefits:\n• Better posture\n• Reduced back pain\n• Improved walking gait\n• Enhanced athletic performance\n• Better balance\n\nFocus on gentle, consistent stretching.",
+          "image": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2720&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "timer",
+          "title": "Lunges",
+          "duration": 70,
+          "description": "Step forward into a lunge, back knee nearly touching ground. Hold and feel the hip stretch, then switch sides.",
+          "sets": 2,
+          "image": "https://images.ctfassets.net/hjcv6wdwxsdz/2bQRCnH8foEemorHTvK44n/be6097a413f930f637e3dd3bf905ce6f/lunge.png",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Hip Circles",
+          "duration": 60,
+          "description": "Stand with hands on hips, make large circles with your hips. Go clockwise then counterclockwise.",
+          "sets": 2,
+          "image": "https://liftmanual.com/wp-content/uploads/2023/04/standing-hip-circle.jpg",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "reminder",
+          "title": "Hip Check",
+          "prompt": "Take a moment to stretch your hips!",
+          "time": "13:00",
+          "description": "Midday reminder to keep your hips flexible and mobile.",
+          "image": "https://images.unsplash.com/photo-1599408995438-e6b71427775c?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    },
+    {
+      "id": "32",
+      "title": "Day 32: Breathing & Growth",
+      "description": "Learn how proper breathing techniques support growth and overall health.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Breath for Growth",
+          "text": "Proper breathing delivers oxygen to your cells and supports growth hormone production. Deep breathing also reduces stress.\n\nBenefits:\n• Better oxygen delivery\n• Reduced stress hormones\n• Improved focus\n• Enhanced recovery\n• Better sleep quality\n\nPractice deep breathing throughout the day.",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQp5VP4LLuOWIOsOzhZy2did9efSluKFn4yYw&s"
+        },
+        {
+          "type": "timer",
+          "title": "Deep Breathing",
+          "duration": 180,
+          "description": "Sit comfortably, inhale deeply for 4 counts, hold for 4, exhale for 6. Focus on expanding your ribcage.",
+          "sets": 1,
+          "image": "https://happiful-magazine.ghost.io/content/images/2021/06/Man-doing-deep-breathing.jpg",
+          "timeOptions": {
+            "start": 60,
+            "end": 600,
+            "increment": 30
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Cat-Cow Breathing",
+          "duration": 50,
+          "description": "On hands and knees, arch back on inhale, round back on exhale. Coordinate movement with breath.",
+          "sets": 2,
+          "image": "https://www.orthoindy.com/wp-content/uploads/cat-cow-stretch-exercise.png",
+          "timeOptions": {
+            "start": 30,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "quiz",
+          "title": "Breathing Check",
+          "prompt": "How long should you exhale in deep breathing?",
+          "choices": ["2 counts", "4 counts", "6 counts", "8 counts"],
+          "answer": 2
+        }
+      ]
+    },
+    {
+      "id": "33",
+      "title": "Day 33: Strength Training",
+      "description": "Build strength to support your posture and overall height optimization goals.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Strength for Height",
+          "text": "Strength training builds muscle that supports your skeleton and improves posture. Strong muscles help maintain proper alignment.\n\nFocus areas:\n• Back muscles\n• Core strength\n• Leg muscles\n• Shoulder stability\n• Glute strength\n\nStart with bodyweight exercises and progress gradually.",
+          "image": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "timer",
+          "title": "Push-ups",
+          "duration": 120,
+          "description": "Start in plank position, lower body to ground, push back up. Keep body in straight line throughout.",
+          "sets": 2,
+          "image": "https://www.muscletech.in/wp-content/uploads/2025/01/push-up-exercises.webp",
+          "timeOptions": {
+            "start": 60,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Squats",
+          "duration": 90,
+          "description": "Stand with feet shoulder-width apart, lower into squat position, thighs parallel to ground, then stand up.",
+          "sets": 3,
+          "image": "https://images.ctfassets.net/hjcv6wdwxsdz/KT4PpNyA0f5BM0u9o6oPH/8bf552d8c327f777e7d9cb28904e7615/squats-claudia-hold.png?w=1200",
+          "timeOptions": {
+            "start": 60,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "reminder",
+          "title": "Strength Time",
+          "prompt": "Time to build some strength!",
+          "time": "18:00",
+          "description": "Evening reminder for your strength training session.",
+          "image": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    },
+    {
+      "id": "34",
+      "title": "Day 34: Recovery & Mobility",
+      "description": "Focus on recovery techniques and mobility work to support your growth journey.",
+      "steps": [
+        {
+          "type": "article",
+          "title": "Recovery Matters",
+          "text": "Recovery is when your body grows and adapts. Proper recovery techniques enhance your results and prevent injury.\n\nRecovery methods:\n• Stretching\n• Foam rolling\n• Rest days\n• Proper nutrition\n• Quality sleep\n• Hydration\n\nListen to your body and prioritize recovery.",
+          "image": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2720&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          "type": "timer",
+          "title": "Foam Rolling",
+          "duration": 150,
+          "description": "Use a foam roller to massage your legs, back, and shoulders. Focus on tight areas and breathe deeply.",
+          "sets": 1,
+          "image": "https://www.athletico.com/wp-content/uploads/2021/09/3-ways-to-use-a-foam-roller-featured.jpg",
+          "timeOptions": {
+            "start": 60,
+            "end": 600,
+            "increment": 30
+          }
+        },
+        {
+          "type": "timer",
+          "title": "Mobility Flow",
+          "duration": 100,
+          "description": "Gentle flowing movements through your full range of motion. Focus on smooth, controlled movements.",
+          "sets": 1,
+          "image": "https://images.squarespace-cdn.com/content/v1/55a9457de4b0e82a7749b6d3/1569439770486-A56Y66GHB8DXHWRFMZJL/PAUSE_0101.png",
+          "timeOptions": {
+            "start": 60,
+            "end": 300,
+            "increment": 15
+          }
+        },
+        {
+          "type": "reminder",
+          "title": "Recovery Time",
+          "prompt": "Take time to recover and recharge!",
+          "time": "20:00",
+          "description": "Evening reminder to focus on recovery and relaxation.",
+          "image": "https://images.unsplash.com/photo-1599408995438-e6b71427775c?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+      ]
+    },
+    {
+      "id": "35",
+      "title": "Day 35: Week 5 Review",
+      "description": "Check your progress and celebrate completing five weeks of height optimization.",
+      "steps": [
+        {
+          "type": "update",
+          "title": "Weekly Progress Check",
+          "measurement": "height"
+        },
+        {
+          "type": "timer",
+          "title": "Full Body Stretch",
+          "duration": 180,
+          "description": "Complete stretching routine covering all major muscle groups. Move slowly and breathe deeply throughout.",
+          "sets": 1,
+          "image": "https://www.realsimple.com/thmb/-Sm0TMzmjqHeAE-cNl-eDt-B0rY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/stretching-exercises-workout-easy-basic-2000-6aec559bf2c54cb99b035bc338992a13.jpg",
+          "timeOptions": {
+            "start": 120,
+            "end": 600,
+            "increment": 30
+          }
+        },
+        {
+          "type": "food",
+          "title": "Nutrition Review"
+        }
+      ]
+    }
+  ]
+} 

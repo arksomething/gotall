@@ -1,11 +1,9 @@
 import * as FileSystem from 'expo-file-system';
 import * as SQLite from 'expo-sqlite';
 import { Platform } from 'react-native';
+import { CONFIG } from './config';
 import { stretches } from './stretches';
 import { dailyTasks } from './tasks';
-
-// Lesson lock duration in seconds (12 hours = 12 * 60 * 60 = 43200 seconds)
-const LESSON_LOCK_DURATION_SECONDS = 43200;
 
 export interface DailyLog {
   id?: number;
@@ -986,14 +984,14 @@ export class DatabaseManager {
     const timeDiff = now.getTime() - lockTime.getTime();
     const secondsDiff = timeDiff / 1000;
     
-    return secondsDiff < LESSON_LOCK_DURATION_SECONDS;
+    return secondsDiff < CONFIG.LESSON_LOCK_DURATION_SECONDS;
   }
 
   async getNextUnlockTime(dayId: number): Promise<Date | null> {
     const lockTime = await this.getLessonLock(dayId);
     if (!lockTime) return null;
     
-    const unlockTime = new Date(lockTime.getTime() + (LESSON_LOCK_DURATION_SECONDS * 1000));
+    const unlockTime = new Date(lockTime.getTime() + (CONFIG.LESSON_LOCK_DURATION_SECONDS * 1000));
     return unlockTime;
   }
 
