@@ -1,6 +1,6 @@
-import { Picker } from "@react-native-picker/picker";
 import React from "react";
 import { Platform, StyleSheet, Switch, Text, View } from "react-native";
+import { SafePicker } from "./SafePicker";
 
 type PickerItem = { label: string; value: string };
 
@@ -43,40 +43,24 @@ export const DualPicker: React.FC<DualPickerProps> = ({
         <View style={styles.pickerColumn}>
           <Text style={styles.label}>{leftLabel}</Text>
           <View style={styles.pickerWrapper}>
-            <Picker
+            <SafePicker
               selectedValue={leftValue}
               onValueChange={onLeftValueChange}
               style={[styles.picker, Platform.OS === "ios" && styles.pickerIOS]}
-            >
-              {leftItems.map((item) => (
-                <Picker.Item
-                  key={item.value}
-                  label={item.label}
-                  value={item.value}
-                  color={Platform.OS === "ios" ? "#fff" : "#9ACD32"}
-                />
-              ))}
-            </Picker>
+              items={leftItems}
+            />
           </View>
         </View>
 
         <View style={styles.pickerColumn}>
           <Text style={styles.label}>{rightLabel}</Text>
           <View style={styles.pickerWrapper}>
-            <Picker
+            <SafePicker
               selectedValue={rightValue}
               onValueChange={onRightValueChange}
               style={[styles.picker, Platform.OS === "ios" && styles.pickerIOS]}
-            >
-              {rightItems.map((item) => (
-                <Picker.Item
-                  key={item.value}
-                  label={item.label}
-                  value={item.value}
-                  color={Platform.OS === "ios" ? "#fff" : "#9ACD32"}
-                />
-              ))}
-            </Picker>
+              items={rightItems}
+            />
           </View>
         </View>
       </View>

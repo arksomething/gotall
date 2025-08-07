@@ -71,15 +71,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="posture"
+        name="utilities"
         options={{
-          title: "Posture",
+          title: "Utilities",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={size}
-              color={color}
-            />
+            <Ionicons name="construct-outline" size={size} color={color} />
           ),
         }}
       />

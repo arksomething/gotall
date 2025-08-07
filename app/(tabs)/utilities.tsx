@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Dimensions,
+  FlatList,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +15,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "../../components/Header";
+
+const { width: screenWidth } = Dimensions.get("window");
 
 // Configure notifications
 Notifications.setNotificationHandler({
@@ -23,10 +28,12 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export default function PostureScreen() {
+export default function UtilitiesScreen() {
   const [reminderActive, setReminderActive] = useState(false);
   const [reminderInterval, setReminderInterval] = useState(20); // minutes
   const [notificationId, setNotificationId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -34,6 +41,19 @@ export default function PostureScreen() {
     { value: 20, label: "20 min" },
     { value: 60, label: "1 hour" },
     { value: 180, label: "3 hours" },
+  ];
+
+  const pages = [
+    {
+      id: "posture",
+      title: "Posture Reminders",
+      icon: "checkmark-circle-outline",
+    },
+    {
+      id: "discord",
+      title: "Community",
+      icon: "people-outline",
+    },
   ];
 
   useEffect(() => {
@@ -128,24 +148,17 @@ export default function PostureScreen() {
     }
   };
 
-  return (
-    <View style={[styles.container]}>
-      <Header
-        title="Posture"
-        rightElement={
-          <TouchableOpacity
-            onPress={() => router.push("/(tabs)/profile")}
-            style={{
-              width: 32,
-              height: 32,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Ionicons name="settings-outline" size={24} color="#fff" />
-          </TouchableOpacity>
-        }
-      />
+  const openDiscord = async () => {
+    const discordUrl = "https://discord.gg/k34yvPtM73";
+    try {
+      await Linking.openURL(discordUrl);
+    } catch (error) {
+      Alert.alert("Error", "Could not open Discord link");
+    }
+  };
+
+  const renderPosturePage = () => (
+    <View style={styles.pageContainer}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Status Card */}
         <View style={styles.card}>
@@ -216,18 +229,145 @@ export default function PostureScreen() {
           </Text>
         </TouchableOpacity>
 
-        {/* Instructions */}
+        
+      </ScrollView>
+    </View>
+  );
+
+  const renderDiscordPage = () => (
+    <View style={styles.pageContainer}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Discord Community Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Ionicons name="information-circle" size={20} color="#666" />
-            <Text style={styles.cardTitle}>How it works</Text>
+            <Ionicons name="logo-discord" size={24} color="#5865F2" />
+            <Text style={styles.cardTitle}>Join Our Community</Text>
           </View>
           <Text style={styles.cardSubtitle}>
-            You'll receive gentle reminders to check your posture throughout the
-            day, even when the app is closed.
+            Connect with fellow learners, share progress, and get support from
+            the GoTall community.
           </Text>
         </View>
+
+        {/* Discord Features */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>What you'll find</Text>
+          <View style={styles.featureList}>
+            <View style={styles.featureItem}>
+              <Ionicons name="people" size={20} color="#9ACD32" />
+              <Text style={styles.featureText}>
+                Community support & motivation
+              </Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Ionicons name="chatbubbles" size={20} color="#9ACD32" />
+              <Text style={styles.featureText}>Tips & tricks from members</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Ionicons name="trophy" size={20} color="#9ACD32" />
+              <Text style={styles.featureText}>Progress celebrations</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Ionicons name="help-circle" size={20} color="#9ACD32" />
+              <Text style={styles.featureText}>Q&A with experts</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Join Button */}
+        <TouchableOpacity style={styles.discordButton} onPress={openDiscord}>
+          <Ionicons name="logo-discord" size={24} color="#fff" />
+          <Text style={styles.discordButtonText}>Join Discord Community</Text>
+        </TouchableOpacity>
+
+        
       </ScrollView>
+    </View>
+  );
+
+  const renderPage = ({ item }: { item: any }) => {
+    switch (item.id) {
+      case "posture":
+        return renderPosturePage();
+      case "discord":
+        return renderDiscordPage();
+      default:
+        return null;
+    }
+  };
+
+  const onViewableItemsChanged = ({ viewableItems }: any) => {
+    if (viewableItems.length > 0) {
+      setCurrentPage(viewableItems[0].index);
+    }
+  };
+
+  const viewabilityConfig = {
+    itemVisiblePercentThreshold: 50,
+  };
+
+  return (
+    <View style={[styles.container]}>
+      <Header
+        title="Utilities"
+        rightElement={
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/profile")}
+            style={{
+              width: 32,
+              height: 32,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons name="settings-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+        }
+      />
+
+      {/* Page Indicators */}
+      <View style={styles.pageIndicatorContainer}>
+        {pages.map((page, index) => (
+          <TouchableOpacity
+            key={page.id}
+            style={[
+              styles.pageIndicator,
+              currentPage === index && styles.activePageIndicator,
+            ]}
+            onPress={() => {
+              flatListRef.current?.scrollToIndex({ index, animated: true });
+            }}
+          >
+            <Ionicons
+              name={page.icon as any}
+              size={16}
+              color={currentPage === index ? "#9ACD32" : "#666"}
+            />
+            <Text
+              style={[
+                styles.pageIndicatorText,
+                currentPage === index && styles.activePageIndicatorText,
+              ]}
+            >
+              {page.title}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Swipable Pages */}
+      <FlatList
+        ref={flatListRef}
+        data={pages}
+        renderItem={renderPage}
+        keyExtractor={(item) => item.id}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        style={styles.flatList}
+      />
     </View>
   );
 }
@@ -236,6 +376,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
+  },
+  pageIndicatorContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    gap: 16,
+  },
+  pageIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "#111",
+    gap: 6,
+  },
+  activePageIndicator: {
+    backgroundColor: "#222",
+  },
+  pageIndicatorText: {
+    color: "#666",
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  activePageIndicatorText: {
+    color: "#9ACD32",
+  },
+  flatList: {
+    flex: 1,
+  },
+  pageContainer: {
+    width: screenWidth,
+    flex: 1,
   },
   content: {
     flex: 1,
@@ -324,6 +498,34 @@ const styles = StyleSheet.create({
   },
   stopButtonText: {
     color: "#000",
+    fontWeight: "600",
+  },
+  featureList: {
+    gap: 16,
+  },
+  featureItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  featureText: {
+    color: "#fff",
+    fontSize: 14,
+    flex: 1,
+  },
+  discordButton: {
+    backgroundColor: "#5865F2",
+    borderRadius: 25,
+    paddingVertical: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 30,
+    gap: 8,
+  },
+  discordButtonText: {
+    color: "#fff",
+    fontSize: 16,
     fontWeight: "600",
   },
 });

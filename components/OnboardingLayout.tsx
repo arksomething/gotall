@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PickerErrorBoundary } from "./PickerErrorBoundary";
 
 const TOTAL_STEPS = 15;
 
@@ -113,7 +114,7 @@ export function OnboardingLayout({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {children}
+          <PickerErrorBoundary>{children}</PickerErrorBoundary>
         </ScrollView>
         {!hideFooter && (
           <View

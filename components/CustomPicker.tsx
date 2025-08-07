@@ -1,6 +1,6 @@
-import { Picker } from "@react-native-picker/picker";
 import React from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
+import { SafePicker } from "./SafePicker";
 
 interface CustomPickerProps {
   label: string;
@@ -21,22 +21,14 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
     <View style={[styles.container, containerStyle]}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.pickerWrapper}>
-        <Picker
+        <SafePicker
           selectedValue={selectedValue}
           onValueChange={(value) => onValueChange(value.toString())}
           dropdownIconColor="#9ACD32"
           mode="dropdown"
           style={[styles.picker, Platform.OS === "ios" && styles.pickerIOS]}
-        >
-          {items.map((item) => (
-            <Picker.Item
-              key={item.value}
-              label={item.label}
-              value={item.value}
-              color={Platform.OS === "ios" ? "#fff" : "#9ACD32"}
-            />
-          ))}
-        </Picker>
+          items={items}
+        />
       </View>
     </View>
   );

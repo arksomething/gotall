@@ -92,10 +92,17 @@ export function findSurroundingPercentiles(heightCm: number, ageYears: number, s
 
   const ageMonths = yearsToMonths(ageYears);
   
-  // Find the data point for the current age
-  const dataPoint = data.find(d => parseInt(d.Agemos) === ageMonths);
+  // Find the closest data point for the current age (exact match or closest)
+  let dataPoint = data.find(d => parseInt(d.Agemos) === ageMonths);
   if (!dataPoint) {
-    throw new Error(`No data found for age ${ageYears} years (${ageMonths} months). Available ages: ${data.map(d => parseInt(d.Agemos)).join(', ')}`);
+    // If no exact match, find the closest age
+    dataPoint = data.reduce((prev, curr) => {
+      const prevDiff = Math.abs(parseInt(prev.Agemos) - ageMonths);
+      const currDiff = Math.abs(parseInt(curr.Agemos) - ageMonths);
+      return currDiff < prevDiff ? curr : prev;
+    });
+    
+    console.warn(`No exact data for age ${ageYears} years (${ageMonths} months). Using closest age: ${parseInt(dataPoint.Agemos)} months`);
   }
 
   // Get all percentile heights for comparison
@@ -258,12 +265,34 @@ export function calculateHeightProjection(userData: UserData): HeightData {
     baseHeightInches = currentHeightInches;
   }
 
-  // Calculate potential height first (base height + 1 inch, but cap at reasonable growth)
-  const maxReasonableGrowth = userData.age < 18 ? 3 : 1; // 3 inches for teens, 1 inch for adults
-  const potentialHeightInches = Math.max(
-    Math.min(baseHeightInches + 1, currentHeightInches + maxReasonableGrowth),
-    currentHeightInches
-  );
+  // Calculate potential height based on age-appropriate growth expectations
+  let potentialHeightInches: number;
+  
+  if (userData.age >= 21) {
+    // Adults: very limited growth potential (max 1 inch)
+    potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 1);
+  } else if (userData.age >= 18) {
+    // Late teens: limited growth potential (max 2 inches)
+    potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 2);
+  } else if (userData.age >= 15) {
+    // Mid-late teens: moderate growth potential (max 3 inches)
+    potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 3);
+  } else if (userData.age >= 13) {
+    // Early-mid teens: significant growth potential (max 5 inches)
+    potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 5);
+  } else if (userData.age >= 11) {
+    // Pre-teens: substantial growth potential (max 8 inches)
+    potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 8);
+  } else if (userData.age >= 8) {
+    // Children: massive growth potential (max 12 inches)
+    potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 12);
+  } else {
+    // Very young children: enormous growth potential (max 18 inches)
+    potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 18);
+  }
+
+  // Ensure potential height is never less than current height
+  potentialHeightInches = Math.max(potentialHeightInches, currentHeightInches);
 
   // Calculate actual height (1 inch less than potential, but never less than current)
   const actualHeightInches = Math.max(potentialHeightInches - 1, currentHeightInches);

@@ -1,4 +1,3 @@
-import { Picker } from "@react-native-picker/picker";
 import React, { useEffect, useMemo, useState } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import {
@@ -6,6 +5,7 @@ import {
   generateMonths,
   generateYears,
 } from "../utils/datePickerData";
+import { SafePicker } from "./SafePicker";
 
 interface DatePickerProps {
   onDateChange: (date: Date) => void;
@@ -64,67 +64,55 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         <View style={[styles.pickerColumn, { flex: 0.9 }]}>
           <Text style={styles.label}>Month</Text>
           <View style={styles.pickerWrapper}>
-            <Picker
+            <SafePicker
               selectedValue={selectedMonth}
-              onValueChange={(value) => setSelectedMonth(value.toString())}
+              onValueChange={(value: string) =>
+                setSelectedMonth(value.toString())
+              }
               dropdownIconColor="#9ACD32"
               mode="dropdown"
               style={[styles.picker, Platform.OS === "ios" && styles.pickerIOS]}
               itemStyle={styles.pickerItem}
-            >
-              {months.map((month) => (
-                <Picker.Item
-                  key={month}
-                  label={month}
-                  value={month}
-                  color={Platform.OS === "ios" ? "#fff" : "#9ACD32"}
-                />
-              ))}
-            </Picker>
+              items={months.map((month) => ({ label: month, value: month }))}
+            />
           </View>
         </View>
         <View style={[styles.pickerColumn, { flex: 0.8 }]}>
           <Text style={styles.label}>Day</Text>
           <View style={styles.pickerWrapper}>
-            <Picker
+            <SafePicker
               selectedValue={selectedDay}
-              onValueChange={(value) => setSelectedDay(value.toString())}
+              onValueChange={(value: string) =>
+                setSelectedDay(value.toString())
+              }
               dropdownIconColor="#9ACD32"
               mode="dropdown"
               style={[styles.picker, Platform.OS === "ios" && styles.pickerIOS]}
               itemStyle={styles.pickerItem}
-            >
-              {days.map((day) => (
-                <Picker.Item
-                  key={day}
-                  label={day}
-                  value={day}
-                  color={Platform.OS === "ios" ? "#fff" : "#9ACD32"}
-                />
-              ))}
-            </Picker>
+              items={days.map((day) => ({
+                label: day.toString(),
+                value: day.toString(),
+              }))}
+            />
           </View>
         </View>
         <View style={[styles.pickerColumn, { flex: 1.4 }]}>
           <Text style={styles.label}>Year</Text>
           <View style={styles.pickerWrapper}>
-            <Picker
+            <SafePicker
               selectedValue={selectedYear}
-              onValueChange={(value) => setSelectedYear(value.toString())}
+              onValueChange={(value: string) =>
+                setSelectedYear(value.toString())
+              }
               dropdownIconColor="#9ACD32"
               mode="dropdown"
               style={[styles.picker, Platform.OS === "ios" && styles.pickerIOS]}
               itemStyle={styles.pickerItem}
-            >
-              {years.map((year) => (
-                <Picker.Item
-                  key={year}
-                  label={year}
-                  value={year}
-                  color={Platform.OS === "ios" ? "#fff" : "#9ACD32"}
-                />
-              ))}
-            </Picker>
+              items={years.map((year) => ({
+                label: year.toString(),
+                value: year.toString(),
+              }))}
+            />
           </View>
         </View>
       </View>
