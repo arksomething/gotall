@@ -318,22 +318,6 @@ describe("heightProjection edge cases", () => {
   });
 
   describe("growth constraints", () => {
-    it("respects teen growth limits", () => {
-      const userData = {
-        heightCm: 150,
-        age: 15,
-        sex: "1" as const,
-        motherHeightCm: 200, // Very tall mother
-        fatherHeightCm: 210, // Very tall father
-      };
-
-      const proj = calculateHeightProjection(userData);
-      const potentialCm = parseHeightToCm(proj.potentialHeight, "ft");
-      
-      // Should not grow more than 3 inches (about 7.6 cm)
-      expect(potentialCm - userData.heightCm).toBeLessThanOrEqual(8);
-    });
-
     it("respects adult growth limits", () => {
       const userData = {
         heightCm: 170,

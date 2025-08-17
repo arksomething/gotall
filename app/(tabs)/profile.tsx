@@ -146,6 +146,20 @@ export default function ProfileScreen() {
       subtitle: "Restore your purchase",
       onPress: handleRestorePurchase,
     },
+    {
+      icon: "logo-discord",
+      title: "Get paid to promote GoTall",
+      subtitle: "Join our UGC program",
+      onPress: () => {
+        Linking.openURL("https://discord.gg/a6j63JVuZ3").catch(() => {
+          Alert.alert(
+            "Discord",
+            "Open this link in your browser:\https://discord.gg/a6j63JVuZ3",
+            [{ text: "OK" }]
+          );
+        });
+      },
+    },
   ];
 
   return (

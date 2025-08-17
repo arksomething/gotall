@@ -274,21 +274,8 @@ export function calculateHeightProjection(userData: UserData): HeightData {
   } else if (userData.age >= 18) {
     // Late teens: limited growth potential (max 2 inches)
     potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 2);
-  } else if (userData.age >= 15) {
-    // Mid-late teens: moderate growth potential (max 3 inches)
-    potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 3);
-  } else if (userData.age >= 13) {
-    // Early-mid teens: significant growth potential (max 5 inches)
-    potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 5);
-  } else if (userData.age >= 11) {
-    // Pre-teens: substantial growth potential (max 8 inches)
-    potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 8);
-  } else if (userData.age >= 8) {
-    // Children: massive growth potential (max 12 inches)
-    potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 12);
   } else {
-    // Very young children: enormous growth potential (max 18 inches)
-    potentialHeightInches = Math.min(baseHeightInches + 1, currentHeightInches + 18);
+    potentialHeightInches = baseHeightInches + 1
   }
 
   // Ensure potential height is never less than current height

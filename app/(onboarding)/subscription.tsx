@@ -212,7 +212,7 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
         <View style={styles.benefitsContainer}>
           <View style={styles.benefitItem}>
             <Text style={styles.benefitText}>
-              Earn genuine respect from women
+              Earn genuine respect from others
             </Text>
           </View>
           <View style={styles.benefitItem}>

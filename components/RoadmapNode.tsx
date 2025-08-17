@@ -171,6 +171,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginLeft: 12,
     fontWeight: "500",
+    fontSize: 16,
   },
   descriptionBox: {
     backgroundColor: "#111",

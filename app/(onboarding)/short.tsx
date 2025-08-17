@@ -46,7 +46,7 @@ function ShortScreen({
   const costItems = [
     "40% fewer dating matches",
     "Ignored in rooms that matter",
-    "Not taken seriously by women",
+    "Not taken seriously by others",
     "59% less likely to be CEO under 5'9\"",
     "Each inch costs $600/year",
     "More social anxiety",
