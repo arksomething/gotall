@@ -1,6 +1,7 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
+import { SelectionList } from "../../components/SelectionList";
 import {
   OnboardingScreenProps,
   withOnboarding,
@@ -28,25 +29,11 @@ function EthnicityScreen({ onNext, onBack }: OnboardingScreenProps) {
       onBack={onBack}
     >
       <View style={styles.stepContent}>
-        {ethnicityOptions.map((option) => (
-          <TouchableOpacity
-            key={option}
-            style={[
-              styles.ethnicityButton,
-              ethnicity === option && styles.ethnicityButtonActive,
-            ]}
-            onPress={() => setEthnicity(option)}
-          >
-            <Text
-              style={[
-                styles.ethnicityText,
-                ethnicity === option && styles.ethnicityTextActive,
-              ]}
-            >
-              {option}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <SelectionList
+          options={ethnicityOptions}
+          selectedValue={ethnicity}
+          onSelect={(value) => setEthnicity(value)}
+        />
       </View>
     </OnboardingLayout>
   );
@@ -59,29 +46,7 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     width: "100%",
   },
-  ethnicityButton: {
-    backgroundColor: "#111",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: "#333",
-    width: "100%",
-    alignItems: "center",
-  },
-  ethnicityButtonActive: {
-    backgroundColor: "#9ACD32",
-    borderColor: "#9ACD32",
-  },
-  ethnicityText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  ethnicityTextActive: {
-    color: "#000",
-  },
+  // Button styles are encapsulated in SelectionList
 });
 
 export default withOnboarding(EthnicityScreen, 3, "ethnicity");

@@ -59,6 +59,7 @@ function ShortScreen({
       onNext={onNext}
       onBack={onBack}
       showBackButton={true}
+      nextButtonText="Analyze Results"
     >
       <View style={styles.container}>
         {costItems.map((text, index) => (

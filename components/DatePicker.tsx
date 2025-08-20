@@ -1,5 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  InteractionManager,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import {
   generateDays,
   generateMonths,
@@ -33,17 +39,39 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
   const years = useMemo(() => generateYears(), []);
   const months = useMemo(() => generateMonths(), []);
-  const days = useMemo(
-    () => generateDays(parseInt(selectedYear), months.indexOf(selectedMonth)),
+  // Keep days list fixed at 31 to avoid remounts during wheel interaction.
+  const DAYS_IN_MONTH_VIEW = 31;
+  const validDaysCount = useMemo(
+    () =>
+      generateDays(parseInt(selectedYear), months.indexOf(selectedMonth))
+        .length,
     [selectedYear, selectedMonth, months]
   );
+  const days = useMemo(
+    () => Array.from({ length: DAYS_IN_MONTH_VIEW }, (_, i) => i + 1),
+    []
+  );
+  const pendingClampRef = useRef<null | { year: string; month: string }>(null);
 
+  // Defer clamping the selected day until after interactions complete
   useEffect(() => {
     const currentDay = parseInt(selectedDay);
-    if (currentDay > days.length) {
-      setSelectedDay(days.length.toString());
+    if (currentDay > validDaysCount) {
+      pendingClampRef.current = { year: selectedYear, month: selectedMonth };
+      InteractionManager.runAfterInteractions(() => {
+        // Only clamp if year/month didn't change again
+        const pending = pendingClampRef.current;
+        if (
+          pending &&
+          pending.year === selectedYear &&
+          pending.month === selectedMonth
+        ) {
+          setSelectedDay(validDaysCount.toString());
+          pendingClampRef.current = null;
+        }
+      });
     }
-  }, [days, selectedDay]);
+  }, [validDaysCount, selectedDay, selectedYear, selectedMonth]);
 
   useEffect(() => {
     const monthIndex = months.indexOf(selectedMonth);
@@ -89,10 +117,19 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               mode="dropdown"
               style={[styles.picker, Platform.OS === "ios" && styles.pickerIOS]}
               itemStyle={styles.pickerItem}
-              items={days.map((day) => ({
-                label: day.toString(),
-                value: day.toString(),
-              }))}
+              items={days.map((day) => {
+                const isValid = day <= validDaysCount;
+                return {
+                  label: day.toString(),
+                  value: day.toString(),
+                  color: isValid
+                    ? Platform.OS === "ios"
+                      ? "#fff"
+                      : "#9ACD32"
+                    : "#555",
+                  enabled: isValid,
+                } as any;
+              })}
             />
           </View>
         </View>

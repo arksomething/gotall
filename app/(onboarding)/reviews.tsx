@@ -1,3 +1,4 @@
+import * as StoreReview from "expo-store-review";
 import React from "react";
 import {
   Image,
@@ -22,6 +23,24 @@ function ReviewsScreen({
   onBack?: () => void;
 }) {
   const { gain } = useUnits();
+
+  // Attempt to show the native in-app review dialog on screen load
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const isAvailable = await StoreReview.isAvailableAsync();
+        if (!cancelled && isAvailable) {
+          await StoreReview.requestReview();
+        }
+      } catch (e) {
+        // Ignore errors; system may rate-limit or block the prompt
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <OnboardingLayout
@@ -116,8 +135,17 @@ function ReviewsScreen({
       <TouchableOpacity
         style={styles.ratingButton}
         activeOpacity={0.8}
-        onPress={() => {
-          // Attempt to open app store rating page; fallback logs
+        onPress={async () => {
+          try {
+            const isAvailable = await StoreReview.isAvailableAsync();
+            if (isAvailable) {
+              await StoreReview.requestReview();
+              return; // Let the system decide whether to show the prompt
+            }
+          } catch (e) {
+            // Ignore and fallback to store page
+          }
+          // Fallback: open store listing
           const url =
             Platform.OS === "ios"
               ? "https://apps.apple.com/us/app/gotall/id6747467975"

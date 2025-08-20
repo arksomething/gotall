@@ -48,6 +48,66 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
     "Finding your height coach...",
   ];
 
+  // Helper to compute a comprehensive analytics payload with both display and canonical values
+  const buildAnalyticsPayload = React.useCallback(() => {
+    const dobIso = dateOfBirth.toISOString().split("T")[0];
+    const heightCm = parseHeightToCm(
+      height,
+      preferredHeightUnit as "ft" | "cm"
+    );
+    const motherHeightCm = parseHeightToCm(
+      motherHeight,
+      preferredHeightUnit as "ft" | "cm"
+    );
+    const fatherHeightCm = parseHeightToCm(
+      fatherHeight,
+      preferredHeightUnit as "ft" | "cm"
+    );
+    const weightValue = parseFloat(weight) || 0;
+    const weightKg =
+      (preferredWeightUnit as "lbs" | "kg") === "lbs"
+        ? Math.round(weightValue * 0.453592)
+        : weightValue;
+    const ageYears = Math.max(
+      0,
+      Math.floor(
+        (Date.now() - dateOfBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25)
+      )
+    );
+
+    return {
+      dob_iso: dobIso,
+      age_years: ageYears,
+      sex,
+      sex_label: sex === "1" ? "male" : sex === "2" ? "female" : "other",
+      height_display: height,
+      height_cm: heightCm,
+      weight_display: weight,
+      weight_value: weightValue,
+      weight_unit_pref: preferredWeightUnit,
+      weight_kg: weightKg,
+      mother_height_display: motherHeight,
+      mother_height_cm: motherHeightCm,
+      father_height_display: fatherHeight,
+      father_height_cm: fatherHeightCm,
+      ethnicity,
+      preferred_units: {
+        height: preferredHeightUnit,
+        weight: preferredWeightUnit,
+      },
+    };
+  }, [
+    dateOfBirth,
+    sex,
+    height,
+    weight,
+    motherHeight,
+    fatherHeight,
+    ethnicity,
+    preferredHeightUnit,
+    preferredWeightUnit,
+  ]);
+
   useEffect(() => {
     if (currentMessageIndex >= messages.length) return;
 
@@ -100,41 +160,50 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
     });
     animation.start();
 
+    // Log start of generating with full context
+    try {
+      logEvent("onboarding_generating_start", buildAnalyticsPayload());
+    } catch (e) {
+      // Swallow analytics errors
+    }
+
     const completeOnboarding = async () => {
       try {
-        const heightInCm = parseHeightToCm(
-          height,
-          preferredHeightUnit as "ft" | "cm"
-        );
+        const payload = buildAnalyticsPayload();
 
         // Wait for the exact same duration as the progress bar
         loadingTimeoutRef.current = setTimeout(async () => {
           // Log gender selection once here
           try {
             logEvent("onboarding_gender_select", {
-              gender: sex === "1" ? "male" : sex === "2" ? "female" : "other",
+              gender: payload.sex_label,
             });
           } catch (e) {
             console.warn("Failed to log gender analytics", e);
           }
 
+          // Log consolidated user-entered onboarding payload just before save
+          try {
+            logEvent("onboarding_submit", payload);
+          } catch {}
+
           await updateUserData({
-            heightCm: heightInCm,
-            dateOfBirth: dateOfBirth.toISOString().split("T")[0],
-            sex,
-            weight: parseFloat(weight) || 0,
-            motherHeightCm: parseHeightToCm(
-              motherHeight,
-              preferredHeightUnit as "ft" | "cm"
-            ),
-            fatherHeightCm: parseHeightToCm(
-              fatherHeight,
-              preferredHeightUnit as "ft" | "cm"
-            ),
-            ethnicity,
+            heightCm: payload.height_cm,
+            dateOfBirth: payload.dob_iso,
+            sex: payload.sex,
+            weight: payload.weight_kg,
+            motherHeightCm: payload.mother_height_cm,
+            fatherHeightCm: payload.father_height_cm,
+            ethnicity: payload.ethnicity,
             preferredWeightUnit: preferredWeightUnit as "lbs" | "kg",
             preferredHeightUnit: preferredHeightUnit as "ft" | "cm",
           });
+
+          try {
+            logEvent("onboarding_generating_complete", {
+              success: true,
+            });
+          } catch {}
 
           // Move to projection screen without invoking onNext (avoids haptic)
           router.push("/(onboarding)/results" as any);
@@ -143,6 +212,13 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
         setIsGenerating(false);
         router.replace("/(onboarding)/short");
         console.error("Onboarding save error:", error);
+        try {
+          logEvent("onboarding_generating_complete", {
+            success: false,
+            error_message:
+              error instanceof Error ? error.message : String(error),
+          });
+        } catch {}
       }
     };
 
@@ -157,6 +233,9 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
   }, []);
 
   const handleBack = () => {
+    try {
+      logEvent("onboarding_generating_cancel", {});
+    } catch {}
     // Clear all timeouts and intervals
     if (typingIntervalRef.current) {
       clearInterval(typingIntervalRef.current);

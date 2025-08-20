@@ -16,6 +16,18 @@ export const ROUTES = [
   "parents",
   "shoe",
   "dream",
+  "puberty",
+  "underarm",
+  "facial",
+  "growth",
+  "shoulders",
+  "odor",
+  "acne",
+  "muscles",
+  "voice",
+  "slower",
+  "shave",
+  "analysis",
   "product",
   "trust",
   "reviews",
@@ -116,6 +128,7 @@ export function withOnboarding<P extends OnboardingScreenProps>(
             partialUserData.usShoeSize = usShoeSize;
             partialUserData.euShoeSize = euShoeSize;
             break;
+          // Puberty routes save immediately on selection via updateUserData
         }
 
         if (Object.keys(partialUserData).length > 0) {

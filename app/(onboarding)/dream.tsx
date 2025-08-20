@@ -1,5 +1,5 @@
 import { Picker } from "@react-native-picker/picker";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Platform, StyleSheet, Switch, Text, View } from "react-native";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import {
@@ -31,24 +31,24 @@ function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
   }, [dreamHeightCm, setDreamHeightCm]);
 
   // Convert heightData to numeric cm values for the dream height picker
-  const heightOptions = heightData.map((item) => {
-    if (isMetric) {
-      // Metric: "170 cm" → 170
-      const cm = parseInt(item.value, 10);
-      return { label: item.label, value: cm };
-    } else {
-      // Imperial: "5 ft 7 in" → cm
-      const match = item.value.match(/(\d+)\s*ft\s*(\d+)\s*in/);
-      if (!match) {
-        return { label: item.label, value: 0 };
+  const heightOptions = useMemo(() => {
+    return heightData.map((item) => {
+      if (isMetric) {
+        const cm = parseInt(item.value, 10);
+        return { label: item.label, value: cm };
+      } else {
+        const match = item.value.match(/(\d+)\s*ft\s*(\d+)\s*in/);
+        if (!match) {
+          return { label: item.label, value: 0 };
+        }
+        const feet = parseInt(match[1], 10);
+        const inches = parseInt(match[2], 10);
+        const totalInches = feet * 12 + inches;
+        const cm = Math.round(totalInches * 2.54);
+        return { label: item.label, value: cm };
       }
-      const feet = parseInt(match[1], 10);
-      const inches = parseInt(match[2], 10);
-      const totalInches = feet * 12 + inches;
-      const cm = Math.round(totalInches * 2.54);
-      return { label: item.label, value: cm };
-    }
-  });
+    });
+  }, [heightData, isMetric]);
 
   const handleHeightChange = (value: number) => {
     setSelectedHeight(value);
@@ -211,4 +211,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(DreamScreen, 7, "dream", "product");
+export default withOnboarding(DreamScreen, 7, "dream", "puberty");

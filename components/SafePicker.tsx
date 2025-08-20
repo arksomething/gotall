@@ -2,10 +2,17 @@ import { Picker } from "@react-native-picker/picker";
 import React, { useEffect, useRef, useState } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 
+interface PickerItemOption {
+  label: string;
+  value: string;
+  color?: string;
+  enabled?: boolean;
+}
+
 interface SafePickerProps {
   selectedValue: string;
   onValueChange: (value: string) => void;
-  items: { label: string; value: string }[];
+  items: PickerItemOption[];
   style?: any;
   itemStyle?: any;
   mode?: "dropdown" | "dialog";
@@ -75,7 +82,8 @@ export const SafePicker: React.FC<SafePickerProps> = ({
             key={item.value}
             label={item.label}
             value={item.value}
-            color={Platform.OS === "ios" ? "#fff" : "#9ACD32"}
+            color={item.color ?? (Platform.OS === "ios" ? "#fff" : "#9ACD32")}
+            enabled={item.enabled}
           />
         ))}
       </Picker>

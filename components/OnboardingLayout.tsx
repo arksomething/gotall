@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PickerErrorBoundary } from "./PickerErrorBoundary";
 
-const TOTAL_STEPS = 15;
+const TOTAL_STEPS = 27;
 
 interface OnboardingLayoutProps {
   children: React.ReactNode;
@@ -30,6 +30,7 @@ interface OnboardingLayoutProps {
   hideFooter?: boolean;
   hideHeader?: boolean;
   containerBgColor?: string;
+  totalStepsOverride?: number; // optional override for progress bar
 }
 
 export function OnboardingLayout({
@@ -46,6 +47,7 @@ export function OnboardingLayout({
   hideFooter = false,
   hideHeader = false,
   containerBgColor = "#000",
+  totalStepsOverride,
 }: OnboardingLayoutProps) {
   const insets = useSafeAreaInsets();
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
@@ -91,7 +93,13 @@ export function OnboardingLayout({
                 <View
                   style={[
                     styles.progressFill,
-                    { width: `${((currentStep + 1) / TOTAL_STEPS) * 100}%` },
+                    {
+                      width: `${
+                        ((currentStep + 1) /
+                          (totalStepsOverride ?? TOTAL_STEPS)) *
+                        100
+                      }%`,
+                    },
                   ]}
                 />
               </View>

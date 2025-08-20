@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useUserData } from "../../utils/UserContext";
 import {
@@ -47,6 +47,15 @@ export default function Update({ step }: Props) {
     }
     return [];
   };
+
+  const options = useMemo(
+    () => getOptions(),
+    [
+      step.measurement,
+      userData.preferredHeightUnit,
+      userData.preferredWeightUnit,
+    ]
+  );
 
   const handleUpdate = async () => {
     if (!selectedValue) {
@@ -114,7 +123,7 @@ export default function Update({ step }: Props) {
           <TimePicker
             selectedValue={selectedValue}
             onValueChange={setSelectedValue}
-            items={getOptions()}
+            items={options}
             containerStyle={styles.picker}
           />
         </View>

@@ -13,6 +13,17 @@ export interface UserData {
   preferredWeightUnit: "lbs" | "kg";
   preferredHeightUnit: "ft" | "cm";
   dreamHeightCm?: number;
+  // Puberty section (optional fields)
+  puberty_underarmHair?: "no" | "yes";
+  puberty_facialHair?: "none" | "faint" | "sometimes" | "regular";
+  puberty_growthLastYear?: "lt2" | "2to5" | "6to9" | "10plus";
+  puberty_shouldersBroadening?: "no" | "starting" | "broader";
+  puberty_bodyOdor?: "no" | "little" | "definitely";
+  puberty_acneSeverity?: "none" | "few" | "regular" | "severe" | "cleared";
+  puberty_muscleDefinition?: "no" | "little" | "clear";
+  puberty_voiceDepth?: "nochange" | "somewhat" | "full";
+  puberty_stillGrowingSlower?: "no" | "yes";
+  puberty_shaveFrequency?: "no" | "sometimes" | "regularly";
 }
 
 interface UserContextType {
@@ -133,6 +144,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         preferredWeightUnit,
         preferredHeightUnit,
         dreamHeight,
+        puberty_underarmHair,
+        puberty_facialHair,
+        puberty_growthLastYear,
+        puberty_shouldersBroadening,
+        puberty_bodyOdor,
+        puberty_acneSeverity,
+        puberty_muscleDefinition,
+        puberty_voiceDepth,
+        puberty_stillGrowingSlower,
+        puberty_shaveFrequency,
       ] = await Promise.all([
         AsyncStorage.getItem("@user_height_cm"),
         AsyncStorage.getItem("@user_date_of_birth"),
@@ -144,6 +165,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         AsyncStorage.getItem("@user_preferred_weight_unit"),
         AsyncStorage.getItem("@user_preferred_height_unit"),
         AsyncStorage.getItem("@user_dream_height_cm"),
+        AsyncStorage.getItem("@user_puberty_underarm_hair"),
+        AsyncStorage.getItem("@user_puberty_facial_hair"),
+        AsyncStorage.getItem("@user_puberty_growth_last_year"),
+        AsyncStorage.getItem("@user_puberty_shoulders_broadening"),
+        AsyncStorage.getItem("@user_puberty_body_odor"),
+        AsyncStorage.getItem("@user_puberty_acne_severity"),
+        AsyncStorage.getItem("@user_puberty_muscle_definition"),
+        AsyncStorage.getItem("@user_puberty_voice_depth"),
+        AsyncStorage.getItem("@user_puberty_still_growing_slower"),
+        AsyncStorage.getItem("@user_puberty_shave_frequency"),
       ]);
 
       setUserData({
@@ -165,6 +196,37 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         dreamHeightCm: dreamHeight
           ? parseFloat(dreamHeight)
           : defaultUserData.dreamHeightCm,
+        // Puberty fields (only include if present)
+        ...(puberty_underarmHair
+          ? { puberty_underarmHair: puberty_underarmHair as any }
+          : {}),
+        ...(puberty_facialHair
+          ? { puberty_facialHair: puberty_facialHair as any }
+          : {}),
+        ...(puberty_growthLastYear
+          ? { puberty_growthLastYear: puberty_growthLastYear as any }
+          : {}),
+        ...(puberty_shouldersBroadening
+          ? { puberty_shouldersBroadening: puberty_shouldersBroadening as any }
+          : {}),
+        ...(puberty_bodyOdor
+          ? { puberty_bodyOdor: puberty_bodyOdor as any }
+          : {}),
+        ...(puberty_acneSeverity
+          ? { puberty_acneSeverity: puberty_acneSeverity as any }
+          : {}),
+        ...(puberty_muscleDefinition
+          ? { puberty_muscleDefinition: puberty_muscleDefinition as any }
+          : {}),
+        ...(puberty_voiceDepth
+          ? { puberty_voiceDepth: puberty_voiceDepth as any }
+          : {}),
+        ...(puberty_stillGrowingSlower
+          ? { puberty_stillGrowingSlower: puberty_stillGrowingSlower as any }
+          : {}),
+        ...(puberty_shaveFrequency
+          ? { puberty_shaveFrequency: puberty_shaveFrequency as any }
+          : {}),
       });
     } catch (error) {
       console.error("Error loading user data:", error);
@@ -235,6 +297,78 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
           AsyncStorage.setItem(
             "@user_dream_height_cm",
             updates.dreamHeightCm.toString()
+          )
+        );
+
+      // Puberty fields
+      if (updates.puberty_underarmHair !== undefined)
+        promises.push(
+          AsyncStorage.setItem(
+            "@user_puberty_underarm_hair",
+            updates.puberty_underarmHair
+          )
+        );
+      if (updates.puberty_facialHair !== undefined)
+        promises.push(
+          AsyncStorage.setItem(
+            "@user_puberty_facial_hair",
+            updates.puberty_facialHair
+          )
+        );
+      if (updates.puberty_growthLastYear !== undefined)
+        promises.push(
+          AsyncStorage.setItem(
+            "@user_puberty_growth_last_year",
+            updates.puberty_growthLastYear
+          )
+        );
+      if (updates.puberty_shouldersBroadening !== undefined)
+        promises.push(
+          AsyncStorage.setItem(
+            "@user_puberty_shoulders_broadening",
+            updates.puberty_shouldersBroadening
+          )
+        );
+      if (updates.puberty_bodyOdor !== undefined)
+        promises.push(
+          AsyncStorage.setItem(
+            "@user_puberty_body_odor",
+            updates.puberty_bodyOdor
+          )
+        );
+      if (updates.puberty_acneSeverity !== undefined)
+        promises.push(
+          AsyncStorage.setItem(
+            "@user_puberty_acne_severity",
+            updates.puberty_acneSeverity
+          )
+        );
+      if (updates.puberty_muscleDefinition !== undefined)
+        promises.push(
+          AsyncStorage.setItem(
+            "@user_puberty_muscle_definition",
+            updates.puberty_muscleDefinition
+          )
+        );
+      if (updates.puberty_voiceDepth !== undefined)
+        promises.push(
+          AsyncStorage.setItem(
+            "@user_puberty_voice_depth",
+            updates.puberty_voiceDepth
+          )
+        );
+      if (updates.puberty_stillGrowingSlower !== undefined)
+        promises.push(
+          AsyncStorage.setItem(
+            "@user_puberty_still_growing_slower",
+            updates.puberty_stillGrowingSlower
+          )
+        );
+      if (updates.puberty_shaveFrequency !== undefined)
+        promises.push(
+          AsyncStorage.setItem(
+            "@user_puberty_shave_frequency",
+            updates.puberty_shaveFrequency
           )
         );
 

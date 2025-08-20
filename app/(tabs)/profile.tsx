@@ -58,6 +58,18 @@ export default function ProfileScreen() {
                 "@user_ethnicity",
                 "@user_preferred_weight_unit",
                 "@user_preferred_height_unit",
+                "@user_dream_height_cm",
+                // Puberty fields
+                "@user_puberty_underarm_hair",
+                "@user_puberty_facial_hair",
+                "@user_puberty_growth_last_year",
+                "@user_puberty_shoulders_broadening",
+                "@user_puberty_body_odor",
+                "@user_puberty_acne_severity",
+                "@user_puberty_muscle_definition",
+                "@user_puberty_voice_depth",
+                "@user_puberty_still_growing_slower",
+                "@user_puberty_shave_frequency",
                 "@promo_access",
                 "@onboarding_completed",
               ]);
@@ -154,7 +166,7 @@ export default function ProfileScreen() {
         Linking.openURL("https://discord.gg/a6j63JVuZ3").catch(() => {
           Alert.alert(
             "Discord",
-            "Open this link in your browser:\https://discord.gg/a6j63JVuZ3",
+            "Open this link in your browser:https://discord.gg/a6j63JVuZ3",
             [{ text: "OK" }]
           );
         });
