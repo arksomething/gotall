@@ -45,7 +45,7 @@ function ReviewsScreen({
   return (
     <OnboardingLayout
       title="Real Results"
-      currentStep={10}
+      currentStep={11}
       onNext={onNext}
       onBack={onBack}
       showBackButton={true}

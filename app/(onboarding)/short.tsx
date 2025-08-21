@@ -55,7 +55,7 @@ function ShortScreen({
   return (
     <OnboardingLayout
       title="The Cost of Being Short"
-      currentStep={11}
+      currentStep={12}
       onNext={onNext}
       onBack={onBack}
       showBackButton={true}

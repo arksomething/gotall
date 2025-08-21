@@ -2,7 +2,7 @@
   "expo": {
     "name": "GoTall",
     "slug": "gotall",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "gotall",
@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.gotall.ios",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to let you take photos for your profile.",
@@ -34,7 +34,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "app.gotall.play",
-      "versionCode": 1,
+      "versionCode": 2,
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.CAMERA",
@@ -94,7 +94,9 @@
         "projectId": "bb43a5e3-9cb1-4555-bab8-d7a323adf786"
       },
       "tiktokAppId": "7524706160773890066",
-      "superwallApiKey": "pk_68548f664dc96cb56802ef3333e141d1be13d6ce620cf190"
+      "superwallApiKey": "pk_68548f664dc96cb56802ef3333e141d1be13d6ce620cf190",
+      "revenuecatApiKeyIos": "appl_mrRrhHvJCPuimGyuQTFdtnFdtmN",
+      "revenuecatApiKeyAndroid": "goog_cvkglMXIorfddxbdOocksIvlqqO"
     },
     "runtimeVersion": "1.0.1",
     "updates": {

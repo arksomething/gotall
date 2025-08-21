@@ -176,7 +176,7 @@ function ResultsScreen({ onNext, onBack }: OnboardingScreenProps) {
   return (
     <OnboardingLayout
       title="Your Results"
-      currentStep={12}
+      currentStep={13}
       onNext={handleNext}
       onBack={onBack}
     >

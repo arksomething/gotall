@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useSegments } from "expo-router";
 import React from "react";
 import {
   Animated,
@@ -14,7 +15,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PickerErrorBoundary } from "./PickerErrorBoundary";
 
-const TOTAL_STEPS = 27;
+// Step counts
+const MAIN_TOTAL_STEPS = 16; // excludes optional (puberty) sub-flow; subscription at step 15 is last
+const PUBERTY_TOTAL_STEPS = 11; // the number of screens inside (puberty)/
 
 interface OnboardingLayoutProps {
   children: React.ReactNode;
@@ -51,6 +54,19 @@ export function OnboardingLayout({
 }: OnboardingLayoutProps) {
   const insets = useSafeAreaInsets();
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const segments = useSegments();
+
+  // Determine which flow we're in for progress bar defaults
+  const isInPubertySubflow = React.useMemo(
+    () =>
+      segments?.some(
+        (s) => typeof s === "string" && s.startsWith("(puberty)")
+      ) ?? false,
+    [segments]
+  );
+  const computedTotalSteps =
+    totalStepsOverride ??
+    (isInPubertySubflow ? PUBERTY_TOTAL_STEPS : MAIN_TOTAL_STEPS);
 
   const animateScale = (toValue: number) => {
     Animated.spring(scaleAnim, {
@@ -95,9 +111,7 @@ export function OnboardingLayout({
                     styles.progressFill,
                     {
                       width: `${
-                        ((currentStep + 1) /
-                          (totalStepsOverride ?? TOTAL_STEPS)) *
-                        100
+                        ((currentStep + 1) / computedTotalSteps) * 100
                       }%`,
                     },
                   ]}

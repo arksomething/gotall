@@ -15,7 +15,7 @@ function TrustScreen({
   return (
     <OnboardingLayout
       title="Expert Opinions"
-      currentStep={9}
+      currentStep={10}
       onNext={onNext}
       onBack={onBack}
       showBackButton={true}

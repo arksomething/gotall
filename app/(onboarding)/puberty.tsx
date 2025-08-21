@@ -6,15 +6,18 @@ import {
   OnboardingScreenProps,
   withOnboarding,
 } from "../../components/withOnboarding";
+import { logEvent } from "../../utils/Analytics";
 
 function PubertyIntroScreen({ onBack, onNext }: OnboardingScreenProps) {
   const router = useRouter();
 
   const handleTake = () => {
+    logEvent("puberty_quiz_take_click", { location: "puberty_intro" });
     router.push("/(onboarding)/(puberty)/underarm" as any);
   };
 
   const handleSkip = () => {
+    logEvent("puberty_quiz_skip_click", { location: "puberty_intro" });
     router.push("/(onboarding)/product" as any);
   };
 

@@ -185,7 +185,7 @@ const ProjectionScreen = () => {
   return (
     <OnboardingLayout
       title="Your Height Projection"
-      currentStep={13}
+      currentStep={14}
       onNext={handleNext}
       onBack={handleBack}
       nextButtonText="Continue"

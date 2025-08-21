@@ -19,24 +19,38 @@ import {
   withOnboarding,
 } from "../../components/withOnboarding";
 import { crashlytics } from "../../utils/crashlytics";
+import { useExperiment } from "../../utils/experiments";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const AUTO_SCROLL_INTERVAL = 3000; // Time between auto-scrolls in milliseconds
 
 const carouselData = [
   {
-    image: require("../../assets/images/onboarding/Index.png"),
-    text: "Track your current height and see your projected growth potential with our advanced prediction model.",
+    image: require("../../assets/images/onboarding/IndexScreenshot.png"),
     aspectRatio: 0.5,
   },
   {
-    image: require("../../assets/images/onboarding/Goals.png"),
-    text: "Set and track daily goals including sleep, nutrition, and stretching exercises to optimize your growth.",
+    image: require("../../assets/images/onboarding/CoachScreenshot.png"),
     aspectRatio: 0.5,
   },
   {
-    image: require("../../assets/images/onboarding/Coach.png"),
-    text: "Get personalized coaching and support from our in-app coach to help you achieve your height goals.",
+    image: require("../../assets/images/onboarding/RoadmapScreenshot.png"),
+    aspectRatio: 0.5,
+  },
+  {
+    image: require("../../assets/images/onboarding/PostureTimerScreenshot.png"),
+    aspectRatio: 0.5,
+  },
+  {
+    image: require("../../assets/images/onboarding/PostureVideoScreenshot.png"),
+    aspectRatio: 0.5,
+  },
+  {
+    image: require("../../assets/images/onboarding/NutritionScreenshot.png"),
+    aspectRatio: 0.5,
+  },
+  {
+    image: require("../../assets/images/onboarding/HabitsScreenshot.png"),
     aspectRatio: 0.5,
   },
 ];
@@ -47,6 +61,14 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
   const autoScrollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const insets = useSafeAreaInsets();
   const HERO_HEIGHT = screenHeight - insets.top - 280; // subtract approximate bottom panel height
+
+  // A/B test: CTA copy on the welcome screen
+  const { variant, isReady, trackConversion } = useExperiment(
+    "onboarding_cta_copy",
+    { logExposureOnMount: true, attributes: { screen: "onboarding_index" } }
+  );
+  const ctaLabel =
+    variant === "variant_get_started" ? "Get started" : "Let's start";
 
   // Add logging for debugging
   useEffect(() => {
@@ -106,6 +128,11 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
       crashlytics.logMessage("User pressed Let's start button");
       crashlytics.setCustomKey("action", "pressed_lets_start");
       crashlytics.setCustomKey("active_slide", activeSlide.toString());
+
+      // Experiment conversion tracking
+      trackConversion("exp_conversion_onboarding_cta", {
+        active_slide: activeSlide,
+      });
 
       // Log current state
       console.log("Navigation state before onNext:", {
@@ -184,7 +211,7 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
         </View>
 
         <TouchableOpacity style={styles.startButton} onPress={handleNextPress}>
-          <Text style={styles.startButtonText}>Let's start</Text>
+          <Text style={styles.startButtonText}>{ctaLabel}</Text>
         </TouchableOpacity>
 
         <View style={styles.linkRow}>

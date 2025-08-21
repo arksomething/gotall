@@ -15,7 +15,7 @@ function ProductScreen({
   return (
     <OnboardingLayout
       title="GoTall builds habits"
-      currentStep={8}
+      currentStep={9}
       onNext={onNext}
       onBack={onBack}
       showBackButton={true}

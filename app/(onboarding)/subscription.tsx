@@ -3,7 +3,10 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   DeviceEventEmitter,
+  Dimensions,
+  Image,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -22,6 +25,7 @@ import { calculateHeightProjection } from "../../utils/heightProjection";
 import { PRODUCTS, useIAP } from "../../utils/products";
 
 function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
+  const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
   const router = useRouter();
   const { userData, getAge } = useUserData();
   const {
@@ -40,6 +44,38 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
   const validPromoCodes = ["GOTALLREVIEW", "PLAYREVIEW"];
   const isAndroid = Platform.OS === "android";
   const [showPromoInput, setShowPromoInput] = useState(false);
+
+  // Reuse onboarding screenshots for a visual carousel
+  const carouselData = [
+    {
+      image: require("../../assets/images/onboarding/IndexScreenshot.png"),
+      aspectRatio: 0.5,
+    },
+    {
+      image: require("../../assets/images/onboarding/CoachScreenshot.png"),
+      aspectRatio: 0.5,
+    },
+    {
+      image: require("../../assets/images/onboarding/RoadmapScreenshot.png"),
+      aspectRatio: 0.5,
+    },
+    {
+      image: require("../../assets/images/onboarding/PostureTimerScreenshot.png"),
+      aspectRatio: 0.5,
+    },
+    {
+      image: require("../../assets/images/onboarding/PostureVideoScreenshot.png"),
+      aspectRatio: 0.5,
+    },
+    {
+      image: require("../../assets/images/onboarding/NutritionScreenshot.png"),
+      aspectRatio: 0.5,
+    },
+    {
+      image: require("../../assets/images/onboarding/HabitsScreenshot.png"),
+      aspectRatio: 0.5,
+    },
+  ];
 
   useEffect(() => {
     if (userData?.heightCm) {
@@ -70,10 +106,13 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
     }
   }, [userData, getAge]);
 
-  // Set initial selected index when products are loaded
+  // Set initial selected index when products are loaded (default to Lifetime/permanent access)
   useEffect(() => {
     if (products.length > 0 && selectedIndex === null) {
-      setSelectedIndex(0);
+      const lifetimeIndex = products.findIndex(
+        (p) => p.productId === PRODUCTS.LIFETIME.id
+      );
+      setSelectedIndex(lifetimeIndex >= 0 ? lifetimeIndex : 0);
     }
   }, [products]);
 
@@ -149,7 +188,7 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
   return (
     <OnboardingLayout
       title="Get GoTall Now"
-      currentStep={14}
+      currentStep={15}
       showBackButton={true}
       onBack={onBack}
       onNext={onPurchase}
@@ -209,30 +248,32 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
         </View>
 
         <Text style={styles.sectionTitle}>Here's what you'll get:</Text>
-        <View style={styles.benefitsContainer}>
-          <View style={styles.benefitItem}>
-            <Text style={styles.benefitText}>
-              Earn genuine respect from others
-            </Text>
-          </View>
-          <View style={styles.benefitItem}>
-            <Text style={styles.benefitText}>Feel secure about yourself</Text>
-          </View>
-          <View style={styles.benefitItem}>
-            <Text style={styles.benefitText}>
-              Walk into any room with real confidence
-            </Text>
-          </View>
-          <View style={styles.benefitItem}>
-            <Text style={styles.benefitText}>
-              Never be underestimated again
-            </Text>
-          </View>
-          <View style={styles.benefitItem}>
-            <Text style={styles.benefitText}>
-              A robust plan of action to achieve your goals
-            </Text>
-          </View>
+        <View
+          style={[
+            styles.carouselWrapper,
+            { height: screenHeight * 0.6, marginHorizontal: -24 },
+          ]}
+        >
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            style={[styles.carousel, { width: screenWidth }]}
+            decelerationRate="fast"
+            snapToInterval={screenWidth}
+          >
+            {carouselData.map((slide, index) => (
+              <View key={index} style={[styles.slide, { width: screenWidth }]}>
+                <View style={[styles.imageContainer, { height: "100%" }]}>
+                  <Image
+                    source={slide.image}
+                    style={[styles.screenshot, { height: "100%" }]}
+                    resizeMode="contain"
+                  />
+                </View>
+              </View>
+            ))}
+          </ScrollView>
         </View>
 
         <View style={styles.bottomActions}>
@@ -358,6 +399,32 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 16,
     textAlign: "center",
+  },
+  carouselWrapper: {
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  carousel: {
+    width: "100%",
+  },
+  carouselContent: {
+    alignItems: "center",
+  },
+  slide: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  imageContainer: {
+    // remove flex to avoid collapsing inside ScrollView
+    marginTop: 0,
+    marginBottom: 0,
+    alignSelf: "stretch",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  screenshot: {
+    width: "100%",
   },
   benefitsContainer: {
     backgroundColor: "#222",
