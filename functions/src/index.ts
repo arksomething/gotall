@@ -16,10 +16,27 @@ import OpenAI from "openai";
 
 const OPENROUTER_API_KEY = defineSecret("OPENROUTER_API_KEY");
 
+type AppRegion = "CN" | "GLOBAL";
+
+function getRequestLocale(req: Request): string {
+  const hdr = (req.headers["x-app-locale"] as string | undefined) || "en";
+  return hdr;
+}
+
+function getRequestRegion(req: Request): AppRegion {
+  const headerRegion = (req.headers["x-app-region"] as string | undefined)?.toUpperCase();
+  if (headerRegion === "CN") return "CN";
+  const locale = getRequestLocale(req).toUpperCase();
+  // Treat zh-*-CN or *-CN as China; otherwise GLOBAL
+  if (/-CN$/.test(locale) || locale === "ZH-CN" || locale === "ZH-HANS-CN") return "CN";
+  return "GLOBAL";
+}
+
 export const heightCoach = onRequest(
   { cors: true, secrets: [OPENROUTER_API_KEY] },
   async (req: Request, res: Response) => {
     const { messages, userData } = req.body;
+    const region = getRequestRegion(req);
 
     const openai = new OpenAI({
       apiKey: OPENROUTER_API_KEY.value(),
@@ -72,15 +89,17 @@ Use this information to provide personalized advice and answer questions in the 
     ];
 
     try {
+      const model = region === "CN" ? "deepseek/deepseek-chat-v3.1" : "openai/gpt-4.1-nano";
       const aiResponse = await openai.chat.completions.create({
-        model: "gpt-4.1-nano",
+        model,
         messages: fullMessages,
       });
 
       res.json({ reply: aiResponse.choices[0].message.content });
     } catch (error) {
       logger.error("OpenAI request failed", error as any);
-      res.status(500).send("Internal server error");
+      const isEmulator = process.env.FUNCTIONS_EMULATOR === "true" || !!process.env.FIREBASE_EMULATOR_HUB;
+      res.status(500).json({ error: "Internal server error", detail: isEmulator ? (error as any)?.message || String(error) : undefined });
     }
   }
 );
@@ -89,6 +108,7 @@ export const foodAnalyzer = onRequest(
   { cors: true, secrets: [OPENROUTER_API_KEY] },
   async (req: Request, res: Response) => {
     const { images, prompt } = req.body; // Expecting { images: string[], prompt: string }
+    const region = getRequestRegion(req);
 
     if (!images || !Array.isArray(images) || images.length === 0 || !prompt) {
       res.status(400).send("Missing images or prompt.");
@@ -120,15 +140,18 @@ export const foodAnalyzer = onRequest(
     ];
 
     try {
+      // Use DeepSeek vision model in CN; use the cheapest OpenAI vision model globally
+      const model = region === "CN" ? "qwen/qwen2.5-vl-72b-instruct" : "openai/gpt-4o-mini";
       const aiResponse = await openai.chat.completions.create({
-        model: "openai/gpt-4o", // Using a model that supports vision
+        model, // Models support vision via OpenRouter's OpenAI-compatible schema
         messages: messages,
       });
 
       res.json({ reply: aiResponse.choices[0].message.content });
     } catch (error) {
       logger.error("OpenAI request failed for food analyzer", error as any);
-      res.status(500).send("Internal server error");
+      const isEmulator = process.env.FUNCTIONS_EMULATOR === "true" || !!process.env.FIREBASE_EMULATOR_HUB;
+      res.status(500).json({ error: "Internal server error", detail: isEmulator ? (error as any)?.message || String(error) : undefined });
     }
   }
 );

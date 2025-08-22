@@ -1,0 +1,62 @@
+# VCS / editors
+.git/
+.github/
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Dependencies (EAS installs them)
+node_modules/
+
+# Expo/RN caches
+.expo/
+.expo-shared/
+.metro-cache/
+
+# Android build outputs
+android/.gradle/
+android/build/
+android/app/build/
+android/app/.cxx/
+android/local.properties
+
+# iOS build outputs
+ios/build/
+ios/DerivedData/
+ios/Pods/
+
+# Generic build outputs
+build/
+dist/
+out/
+web-build/
+coverage/
+
+# Tests and docs
+**/__tests__/**
+**/*.test.*
+**/*.spec.*
+.storybook/
+storybook-static/
+docs/
+
+# Misc
+*.map
+*.tgz
+*.zip
+*.log
+
+# Keep required config
+!app.json
+!eas.json
+!package.json
+!package-lock.json
+!yarn.lock
+!pnpm-lock.yaml
+!android/
+!ios/
+!google-services.json
+!GoogleService-Info.plist

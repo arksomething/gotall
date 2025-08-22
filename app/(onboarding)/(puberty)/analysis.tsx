@@ -26,7 +26,7 @@ function PubertyAnalysisScreen({
     >
       <View style={styles.container}>
         <AnalysisCard
-          endpoint="https://us-central1-gotall.cloudfunctions.net/foodAnalyzer"
+          endpoint="https://foodanalyzer-2og6xa3ima-uc.a.run.app"
           prompt={TANNER_ANALYSIS_PROMPT}
           analyzeButtonText="Analyze Image"
           maxImages={1}

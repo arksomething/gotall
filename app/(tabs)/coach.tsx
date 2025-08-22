@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import * as Localization from "expo-localization";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -18,6 +19,7 @@ import {
   View,
 } from "react-native";
 import { Header } from "../../components/Header";
+import { logEvent } from "../../utils/Analytics";
 import { databaseManager } from "../../utils/database";
 import {
   calculateHeightProjection,
@@ -170,6 +172,11 @@ export default function CoachScreen() {
     setIsLoading(true);
 
     try {
+      logEvent("ai_coach_request", {
+        locale: Localization.getLocales()?.[0]?.languageTag || "en",
+        hasUserContext: !!userContext,
+        messageLength: userMessage.content.length,
+      });
       const contextPayload = userContext
         ? {
             currentHeight: `${userContext.currentHeight}cm (${getHeightForInput(
@@ -203,6 +210,7 @@ export default function CoachScreen() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "X-App-Locale": Localization.getLocales()?.[0]?.languageTag || "en",
           },
           body: JSON.stringify({
             messages: [
@@ -222,6 +230,12 @@ export default function CoachScreen() {
         role: "assistant" as const,
       };
 
+      logEvent("ai_coach_success", {
+        locale: Localization.getLocales()?.[0]?.languageTag || "en",
+        hasUserContext: !!userContext,
+        promptTokensApprox: messages.length + 1,
+      });
+
       // Haptic feedback when a response arrives
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
@@ -230,6 +244,12 @@ export default function CoachScreen() {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Failed to send message:", error);
+      logEvent("ai_coach_error", {
+        locale: Localization.getLocales()?.[0]?.languageTag || "en",
+        hasUserContext: !!userContext,
+        messageLength: userMessage.content.length,
+        error: String(error),
+      });
       // Add error message to chat
       const errorMessage = {
         id: (Date.now() + 1).toString(),

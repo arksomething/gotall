@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
+import * as Localization from "expo-localization";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -11,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { logEvent } from "../utils/Analytics";
 
 interface AnalysisCardProps {
   endpoint: string;
@@ -81,10 +83,7 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
     setImages((prev) => prev.filter((uri) => uri !== uriToRemove));
   };
 
-  const clearImages = () => {
-    setImages([]);
-    setAnalysis("");
-  };
+  // Removed Clear button and handler per design change
 
   const analyzeImages = async () => {
     if (images.length === 0) {
@@ -95,6 +94,11 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
     setAnalysis("");
 
     try {
+      logEvent("ai_analysis_request", {
+        endpoint,
+        locale: Localization.getLocales()?.[0]?.languageTag || "en",
+        imageCount: images.length,
+      });
       const base64Images = await Promise.all(
         images.map((uri) =>
           FileSystem.readAsStringAsync(uri, {
@@ -105,7 +109,10 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
 
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-App-Locale": Localization.getLocales()?.[0]?.languageTag || "en",
+        },
         body: JSON.stringify({ images: base64Images, prompt }),
       });
 
@@ -115,8 +122,19 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
 
       const data = await response.json();
       setAnalysis(data.reply);
+      logEvent("ai_analysis_success", {
+        endpoint,
+        locale: Localization.getLocales()?.[0]?.languageTag || "en",
+        imageCount: images.length,
+      });
     } catch (error) {
       console.error("Analysis request failed:", error);
+      logEvent("ai_analysis_error", {
+        endpoint,
+        locale: Localization.getLocales()?.[0]?.languageTag || "en",
+        imageCount: images.length,
+        error: String(error),
+      });
       alert("Failed to get analysis. Please try again.");
     } finally {
       setIsLoading(false);
@@ -132,11 +150,6 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
         <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
           <Text style={styles.actionButtonText}>Take Photo</Text>
         </TouchableOpacity>
-        {images.length > 0 && (
-          <TouchableOpacity style={styles.actionButton} onPress={clearImages}>
-            <Text style={styles.actionButtonText}>Clear</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       <View style={styles.pickerContainer}>
