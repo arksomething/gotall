@@ -12,7 +12,11 @@
     "build:ios": "eas build --platform ios",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "test:coverage:html": "jest --coverage --coverageReporters=html"
+    "test:coverage:html": "jest --coverage --coverageReporters=html",
+    "release:android": "node scripts/release.js --platform android",
+    "release:ios": "node scripts/release.js --platform ios",
+    "release:both": "node scripts/release.js --platform both",
+    "prebuild:check": "npm test && npx expo-doctor"
   },
   "expo": {
     "doctor": {
