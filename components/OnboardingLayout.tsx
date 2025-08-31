@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PickerErrorBoundary } from "./PickerErrorBoundary";
 
 // Step counts
-const MAIN_TOTAL_STEPS = 16; // excludes optional (puberty) sub-flow; subscription at step 15 is last
+const MAIN_TOTAL_STEPS = 15; // excludes optional (puberty) sub-flow; subscription at step 15 is last
 const PUBERTY_TOTAL_STEPS = 11; // the number of screens inside (puberty)/
 
 interface OnboardingLayoutProps {

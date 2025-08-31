@@ -6,14 +6,13 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { SuperwallProvider } from "expo-superwall";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, DeviceEventEmitter, View } from "react-native";
 import {
-  endConnection,
-  getAvailablePurchases,
-  initConnection,
-  purchaseErrorListener,
-  purchaseUpdatedListener,
-} from "react-native-iap";
+  ActivityIndicator,
+  DeviceEventEmitter,
+  Platform,
+  View,
+} from "react-native";
+import Purchases, { CustomerInfo } from "react-native-purchases";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ErrorBoundary from "../components/ErrorBoundary";
 import { crashlytics } from "../utils/crashlytics";
@@ -35,14 +34,15 @@ function NavigationRoot() {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    const checkPurchaseStatus = async () => {
+    const updateAccessFromCustomerInfo = async (info?: CustomerInfo) => {
       try {
-        const purchases = await getAvailablePurchases();
         const promoAccess = await AsyncStorage.getItem("@promo_access");
-        setHasValidAccess(purchases.length > 0 || promoAccess === "true");
+        const activeCount = info
+          ? Object.keys(info.entitlements.active || {}).length
+          : 0;
+        setHasValidAccess(activeCount > 0 || promoAccess === "true");
       } catch (error) {
-        console.error("Error checking purchase status:", error);
-        // Don't let purchase errors crash the app
+        console.error("Error updating access from customer info:", error);
         setHasValidAccess(false);
       }
     };
@@ -50,20 +50,23 @@ function NavigationRoot() {
     const initializeApp = async () => {
       if (!initialized) {
         try {
-          await initConnection();
-          await checkPurchaseStatus();
+          const apiKey = Platform.select({
+            ios: (Constants?.expoConfig?.extra as any)?.revenuecatApiKeyIos,
+            android: (Constants?.expoConfig?.extra as any)
+              ?.revenuecatApiKeyAndroid,
+          });
+
+          if (apiKey) {
+            await Purchases.configure({ apiKey });
+          }
+
+          const info = await Purchases.getCustomerInfo();
+          await updateAccessFromCustomerInfo(info);
           setInitialized(true);
         } catch (error: any) {
-          console.error("Error initializing app:", error);
-          // If billing is unavailable, still let the app proceed
-          if (error.message?.includes("Billing is unavailable")) {
-            setInitialized(true);
-            setHasValidAccess(false); // Assume no valid access if billing is unavailable
-          } else {
-            // For other errors, still initialize but with no access
-            setInitialized(true);
-            setHasValidAccess(false);
-          }
+          console.error("Error initializing RevenueCat:", error);
+          setInitialized(true);
+          setHasValidAccess(false);
         } finally {
           setIsLoading(false);
         }
@@ -80,28 +83,18 @@ function NavigationRoot() {
       }
     );
 
-    const purchaseUpdate = purchaseUpdatedListener(async () => {
-      try {
-        await checkPurchaseStatus();
-      } catch (error) {
-        console.error("Error in purchase update listener:", error);
-      }
-    });
-
-    const purchaseError = purchaseErrorListener((error) => {
-      console.warn("Purchase error:", error);
-    });
+    // Listen for RevenueCat customer info updates
+    const customerInfoListener = (info: CustomerInfo) => {
+      updateAccessFromCustomerInfo(info);
+    };
+    Purchases.addCustomerInfoUpdateListener(customerInfoListener);
 
     return () => {
       try {
-        purchaseUpdate.remove();
-        purchaseError.remove();
         promoListener.remove();
-        if (initialized) {
-          endConnection();
-        }
+        Purchases.removeCustomerInfoUpdateListener(customerInfoListener);
       } catch (error) {
-        console.error("Error cleaning up purchase listeners:", error);
+        console.error("Error cleaning up listeners:", error);
       }
     };
   }, [initialized]);

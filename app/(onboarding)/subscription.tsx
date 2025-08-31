@@ -13,6 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Purchases from "react-native-purchases";
+import RevenueCatUI from "react-native-purchases-ui";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import {
   OnboardingScreenProps,
@@ -22,19 +24,14 @@ import { logEvent } from "../../utils/Analytics";
 import { useOnboarding } from "../../utils/OnboardingContext";
 import { useUserData } from "../../utils/UserContext";
 import { calculateHeightProjection } from "../../utils/heightProjection";
-import { PRODUCTS, useIAP } from "../../utils/products";
+import { PRODUCTS } from "../../utils/products";
 
 function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
   const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
   const router = useRouter();
   const { userData, getAge } = useUserData();
-  const {
-    products,
-    handlePurchase,
-    handleRestore,
-    isPurchasing,
-    checkAvailablePurchases,
-  } = useIAP();
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [availablePackages, setAvailablePackages] = useState<any[]>([]);
   const { setIsOnboardingComplete } = useOnboarding();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -106,30 +103,62 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
     }
   }, [userData, getAge]);
 
-  // Set initial selected index when products are loaded (default to Lifetime/permanent access)
+  // Load current offering packages from RevenueCat
   useEffect(() => {
-    if (products.length > 0 && selectedIndex === null) {
-      const lifetimeIndex = products.findIndex(
-        (p) => p.productId === PRODUCTS.LIFETIME.id
-      );
-      setSelectedIndex(lifetimeIndex >= 0 ? lifetimeIndex : 0);
-    }
-  }, [products]);
+    const loadOfferings = async () => {
+      try {
+        const offerings = await Purchases.getOfferings();
+        const current = offerings.current;
+        const packages = current?.availablePackages || [];
+        setAvailablePackages(packages);
+        if (packages.length > 0 && selectedIndex === null) {
+          const findIndexBy = (
+            predicate: (id: string, title: string) => boolean
+          ) =>
+            packages.findIndex((p: any) => {
+              const id = (p?.product?.identifier || "").toLowerCase();
+              const title = (p?.product?.title || "").toLowerCase();
+              return predicate(id, title);
+            });
+
+          const yearlyIndex = findIndexBy(
+            (id, title) =>
+              id.includes("year") ||
+              id.includes("annual") ||
+              title.includes("year") ||
+              title.includes("annual") ||
+              title.includes("12 month")
+          );
+          const weeklyIndex = findIndexBy(
+            (id, title) => id.includes("weekly") || title.includes("week")
+          );
+
+          setSelectedIndex(
+            yearlyIndex >= 0 ? yearlyIndex : weeklyIndex >= 0 ? weeklyIndex : 0
+          );
+        }
+      } catch (e) {
+        console.warn("Failed to load offerings", e);
+        setError("Products not available");
+      }
+    };
+    loadOfferings();
+  }, []);
 
   const onPurchase = async () => {
     try {
-      setError(null); // Clear any previous errors
-      logEvent("subscription_purchase_attempt", {
-        productId: products[selectedIndex!].productId,
-      });
+      setError(null);
+      setIsPurchasing(true);
+      logEvent("subscription_purchase_attempt", {});
 
-      await handlePurchase(products[selectedIndex!].productId);
-      // Check if the purchase was actually completed
-      const purchases = await checkAvailablePurchases();
-      if (purchases.length > 0) {
-        logEvent("subscription_purchase_success", {
-          productId: products[selectedIndex!].productId,
-        });
+      // Present the current offering's paywall
+      await RevenueCatUI.presentPaywall({});
+
+      // After dismissal, verify entitlement
+      const info = await Purchases.getCustomerInfo();
+      const isEntitled = Object.keys(info.entitlements.active || {}).length > 0;
+      if (isEntitled) {
+        logEvent("subscription_purchase_success", {});
         await setIsOnboardingComplete(true);
         await AsyncStorage.setItem("@onboarding_completed", "true");
         router.replace("/(tabs)");
@@ -139,15 +168,20 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
     } catch (err: any) {
       console.error("Purchase failed:", err);
       setError(err?.message || "Purchase failed. Please try again.");
+    } finally {
+      setIsPurchasing(false);
     }
   };
 
   const onRestore = async () => {
     try {
-      setError(null); // Clear any previous errors
+      setError(null);
+      setIsPurchasing(true);
       logEvent("restore_purchases_click");
-      const hasValidPurchase = await handleRestore();
-      if (hasValidPurchase) {
+      await Purchases.restorePurchases();
+      const info = await Purchases.getCustomerInfo();
+      const isEntitled = Object.keys(info.entitlements.active || {}).length > 0;
+      if (isEntitled) {
         await setIsOnboardingComplete(true);
         await AsyncStorage.setItem("@onboarding_completed", "true");
         router.replace("/(tabs)");
@@ -159,6 +193,8 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
       setError(
         err?.message || "Failed to restore purchases. Please try again."
       );
+    } finally {
+      setIsPurchasing(false);
     }
   };
 
@@ -198,32 +234,46 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
       <View style={styles.container}>
         <Text style={styles.subtitle}>
           {selectedIndex !== null &&
-            products[selectedIndex] &&
-            PRODUCTS[
-              products[selectedIndex].productId === PRODUCTS.LIFETIME.id
-                ? "LIFETIME"
-                : "WEEKLY"
-            ].description}
+            availablePackages[selectedIndex] &&
+            (() => {
+              const pkg: any = availablePackages[selectedIndex];
+              const product = pkg?.product || {};
+              const id: string = (product.identifier || "").toLowerCase();
+              const title: string = (product.title || "").toLowerCase();
+              const isLifetime =
+                id.includes("perm") || title.includes("lifetime");
+              return PRODUCTS[isLifetime ? "LIFETIME" : "WEEKLY"].description;
+            })()}
         </Text>
 
         <View style={styles.plansContainer}>
-          {products.map((p, idx) => {
-            const isLifetime = p.productId === PRODUCTS.LIFETIME.id;
-            const productType = isLifetime ? "LIFETIME" : "WEEKLY";
-            const cleanTitle = p.title.replace(/ \(.*\)$/, "");
+          {availablePackages.map((pkg: any, idx) => {
+            const product = pkg?.product || {};
+            const id: string = (product.identifier || "").toLowerCase();
+            const title: string = (product.title || "").toLowerCase();
+            const isLifetime =
+              id.includes("perm") || title.includes("lifetime");
+            const isYearly =
+              id.includes("year") ||
+              id.includes("annual") ||
+              title.includes("year") ||
+              title.includes("annual") ||
+              title.includes("12 month");
             const isSelected = selectedIndex === idx;
+
+            const cleanTitle = (product.title || "").replace(/ \(.*\)$/i, "");
 
             return (
               <TouchableOpacity
-                key={p.productId}
+                key={product.identifier || idx}
                 style={[
                   styles.planBox,
-                  isLifetime && styles.planBoxLifetime,
+                  (isYearly || isLifetime) && styles.planBoxLifetime,
                   isSelected && styles.planBoxSelected,
                 ]}
                 onPress={() => {
                   logEvent("subscription_option_select", {
-                    productId: p.productId,
+                    productId: product.identifier,
                   });
                   setSelectedIndex(idx);
                 }}
@@ -234,10 +284,12 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
                     isSelected && styles.planLabelSelected,
                   ]}
                 >
-                  {cleanTitle}
+                  {cleanTitle || (isLifetime ? "Lifetime" : "Weekly")}
                 </Text>
-                <Text style={styles.planPrice}>{p.localizedPrice}</Text>
-                {isLifetime && (
+                <Text style={styles.planPrice}>
+                  {product.priceString || product.price || ""}
+                </Text>
+                {isYearly && (
                   <View style={styles.popularBadge}>
                     <Text style={styles.popularText}>Popular</Text>
                   </View>

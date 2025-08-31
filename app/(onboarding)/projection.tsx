@@ -3,7 +3,8 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, Dimensions, Image, StyleSheet, Text, View } from "react-native";
-import { getAvailablePurchases } from "react-native-iap";
+import Purchases from "react-native-purchases";
+import RevenueCatUI from "react-native-purchases-ui";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { withOnboarding } from "../../components/withOnboarding";
 import { useOnboarding } from "../../utils/OnboardingContext";
@@ -133,31 +134,39 @@ const ProjectionScreen = () => {
   }, [calculateProjections]);
 
   useEffect(() => {
-    const checkPurchases = async () => {
+    const checkEntitlements = async () => {
       try {
-        const purchases = await getAvailablePurchases();
-        setHasPaid(purchases.length > 0);
+        const info = await Purchases.getCustomerInfo();
+        const active = Object.keys(info.entitlements.active || {}).length > 0;
+        setHasPaid(active);
       } catch (e) {
-        console.warn("Error checking purchases:", e);
+        console.warn("Error checking entitlements:", e);
         setHasPaid(false);
       }
     };
-    checkPurchases();
+    checkEntitlements();
   }, []);
 
   const handleNext = async () => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      const purchases = await getAvailablePurchases();
-      if (purchases.length === 0) {
-        router.push("/(onboarding)/subscription" as any);
-      } else {
-        await setIsOnboardingComplete(true);
-        router.replace("/(tabs)");
+      const info = await Purchases.getCustomerInfo();
+      const active = Object.keys(info.entitlements.active || {}).length > 0;
+      if (!active) {
+        await RevenueCatUI.presentPaywall({});
+        const updated = await Purchases.getCustomerInfo();
+        const nowActive =
+          Object.keys(updated.entitlements.active || {}).length > 0;
+        if (nowActive) {
+          await setIsOnboardingComplete(true);
+          router.replace("/(tabs)");
+        }
+        return;
       }
+      await setIsOnboardingComplete(true);
+      router.replace("/(tabs)");
     } catch (e) {
-      console.warn("Error checking purchases before subscription");
-      router.push("/(onboarding)/subscription" as any);
+      console.warn("Error presenting paywall or checking entitlements", e);
     }
   };
 
