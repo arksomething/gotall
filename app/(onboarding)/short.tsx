@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { withOnboarding } from "../../components/withOnboarding";
+import i18n from "../../utils/i18n";
 
 export default withOnboarding(ShortScreen, 11, "short", "generating");
 
@@ -44,22 +45,22 @@ function ShortScreen({
   }, [slideAnims]);
 
   const costItems = [
-    "40% fewer dating matches",
-    "Ignored in rooms that matter",
-    "Not taken seriously by others",
-    "59% less likely to be CEO under 5'9\"",
-    "Each inch costs $600/year",
-    "More social anxiety",
+    i18n.t("onboarding:short_cost_item_1"),
+    i18n.t("onboarding:short_cost_item_2"),
+    i18n.t("onboarding:short_cost_item_3"),
+    i18n.t("onboarding:short_cost_item_4"),
+    i18n.t("onboarding:short_cost_item_5"),
+    i18n.t("onboarding:short_cost_item_6"),
   ];
 
   return (
     <OnboardingLayout
-      title="The Cost of Being Short"
+      title={i18n.t("onboarding:short_title")}
       currentStep={12}
       onNext={onNext}
       onBack={onBack}
       showBackButton={true}
-      nextButtonText="Analyze Results"
+      nextButtonText={i18n.t("onboarding:short_button_next")}
     >
       <View style={styles.container}>
         {costItems.map((text, index) => (

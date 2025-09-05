@@ -4,6 +4,7 @@ import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { SelectionList } from "../../../components/SelectionList";
 import { withOnboarding } from "../../../components/withOnboarding";
 import { CONFIG } from "../../../utils/config";
+import i18n from "../../../utils/i18n";
 import { useUserData } from "../../../utils/UserContext";
 
 function MusclesScreen({
@@ -24,20 +25,28 @@ function MusclesScreen({
 
   return (
     <OnboardingLayout
-      title="Do your muscles look more defined?"
+      title={i18n.t("onboarding:muscles_title")}
       currentStep={6}
       onNext={onNext}
       onBack={onBack}
       disableDefaultNext={!answer}
-      nextButtonText="Continue"
+      nextButtonText={i18n.t("onboarding:subscription_button_continue", {
+        defaultValue: "Continue",
+      })}
       totalStepsOverride={CONFIG.PUBERTY_QUIZ_STEPS}
     >
       <View style={styles.container}>
         <SelectionList
           options={[
-            { label: "No", value: "no" },
-            { label: "A little", value: "little" },
-            { label: "Clearly more defined", value: "clear" },
+            { label: i18n.t("onboarding:muscles_option_no"), value: "no" },
+            {
+              label: i18n.t("onboarding:muscles_option_little"),
+              value: "little",
+            },
+            {
+              label: i18n.t("onboarding:muscles_option_clear"),
+              value: "clear",
+            },
           ]}
           selectedValue={answer ?? undefined}
           onSelect={async (value) => {

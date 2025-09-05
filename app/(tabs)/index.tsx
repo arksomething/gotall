@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Image,
@@ -13,13 +13,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "../../components/Card";
 import Graph from "../../components/Graph";
 import { Header } from "../../components/Header";
-import { HeightModal } from "../../components/modals/HeightModal";
+import { HeightPickerModal } from "../../components/modals/HeightPickerModal";
 import { WeightModal } from "../../components/modals/WeightModal";
+import { CONFIG } from "../../utils/config";
 import { databaseManager } from "../../utils/database";
 import { calculateDreamHeightProbability } from "../../utils/dreamHeightProbability";
 import { calculateHealthGoals } from "../../utils/healthGoals";
 import { calculateHeightProjection } from "../../utils/heightProjection";
 import { convert, HeightFormatter } from "../../utils/heightUtils";
+import i18n from "../../utils/i18n";
+import { logger } from "../../utils/Logger";
 import { useUserData } from "../../utils/UserContext";
 import { useUnits } from "../../utils/useUnits";
 
@@ -56,6 +59,18 @@ export default function Index() {
   } | null>(null);
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [canUpdateHeight, setCanUpdateHeight] = useState(true);
+  const [countdown, setCountdown] = useState<string>("");
+  // Track dwell time for Home tab
+  useFocusEffect(
+    React.useCallback(() => {
+      const key = "screen_home";
+      logger.startTimer(key);
+      return () => {
+        logger.endTimer(key);
+      };
+    }, [])
+  );
 
   // Get live data from UserContext
   const userAge = getAge();
@@ -95,6 +110,41 @@ export default function Index() {
     }
   }, [userData, getAge]);
 
+  // Gate height updates for 7 days after the last change, show countdown
+  useEffect(() => {
+    let timer: any;
+    const updateCountdown = async () => {
+      try {
+        const storage = (
+          await import("@react-native-async-storage/async-storage")
+        ).default;
+        const lastMsStr = await storage.getItem("@last_height_update_ms");
+        const lastMs = lastMsStr ? parseInt(lastMsStr) : 0;
+        const now = Date.now();
+        const windowMs = CONFIG.HEIGHT_UPDATE_COOLDOWN_MS;
+        const remaining = lastMs ? Math.max(0, lastMs + windowMs - now) : 0;
+        const enabled = remaining === 0;
+        setCanUpdateHeight(enabled);
+        if (!enabled) {
+          const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
+          const hours = Math.floor(
+            (remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
+          );
+          const mins = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+          setCountdown(`${days}d ${hours}h ${mins}m`);
+        } else {
+          setCountdown("");
+        }
+      } catch {
+        setCanUpdateHeight(true);
+        setCountdown("");
+      }
+    };
+    updateCountdown();
+    timer = setInterval(updateCountdown, 60 * 1000);
+    return () => timer && clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     if (userData) {
       const goals = calculateHealthGoals(getAge(), userData.sex);
@@ -118,14 +168,14 @@ export default function Index() {
           const diffCm = rawDreamData.heightDifference;
           const heightDifferenceFormatted =
             preferredHeightUnit === "cm"
-              ? `${diffCm}cm to go`
+              ? `${diffCm}cm`
               : (() => {
                   const totalInches = convert(diffCm).from("cm").to("in");
                   const feet = Math.floor(totalInches / 12);
                   const inches = Math.round(totalInches % 12);
-                  if (feet === 0) return `${inches}" to go`;
-                  if (inches === 0) return `${feet}' to go`;
-                  return `${feet}'${inches}" to go`;
+                  if (feet === 0) return `${inches}"`;
+                  if (inches === 0) return `${feet}'`;
+                  return `${feet}'${inches}"`;
                 })();
 
           setDreamHeightData({
@@ -142,14 +192,44 @@ export default function Index() {
     }
   }, [userData, getAge]);
 
+  // Refresh button gating when height is updated or modal closes
+  useEffect(() => {
+    const recompute = async () => {
+      try {
+        const storage = (
+          await import("@react-native-async-storage/async-storage")
+        ).default;
+        const lastMsStr = await storage.getItem("@last_height_update_ms");
+        const lastMs = lastMsStr ? parseInt(lastMsStr) : 0;
+        const now = Date.now();
+        const windowMs = CONFIG.HEIGHT_UPDATE_COOLDOWN_MS;
+        const remaining = lastMs ? Math.max(0, lastMs + windowMs - now) : 0;
+        const enabled = remaining === 0;
+        setCanUpdateHeight(enabled);
+        if (!enabled) {
+          const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
+          const hours = Math.floor(
+            (remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
+          );
+          const mins = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+          setCountdown(`${days}d ${hours}h ${mins}m`);
+        } else {
+          setCountdown("");
+        }
+      } catch {}
+    };
+    recompute();
+  }, [userData.heightCm, heightModalVisible]);
+
   const openWeightModal = () => {
     setTempWeightValue(userData.weight.toString());
     setWeightModalVisible(true);
   };
 
-  const openHeightModal = () => {
+  const openHeightModalFromButton = () => {
     // Set temp value using centralized utility
     setTempHeightValue(formatHeight(userData.heightCm));
+    logger.event("height_update_open", { source: "button" });
     setHeightModalVisible(true);
   };
 
@@ -193,7 +273,7 @@ export default function Index() {
                 marginVertical: 4,
               }}
             >
-              GoTall
+              {i18n.t("tabs:home_app_name")}
             </Text>
             <Image
               source={require("../../assets/images/icon.png")}
@@ -219,13 +299,11 @@ export default function Index() {
         <View style={styles.section}>
           <View style={styles.cardsRowInSection}>
             <Card
-              label="Current Height"
+              label={i18n.t("tabs:home_current_height")}
               value={heightData.currentHeight}
-              onPress={openHeightModal}
-              variant="touchable"
             />
             <Card
-              label="Maximum Height"
+              label={i18n.t("tabs:home_maximum_height")}
               value={heightData.potentialHeight}
               variant="projected"
             />
@@ -235,7 +313,9 @@ export default function Index() {
         {/* Progress Section with Graph */}
         <View style={styles.section}>
           <View style={styles.progressHeader}>
-            <Text style={styles.sectionTitle}>Projected Height</Text>
+            <Text style={styles.sectionTitle}>
+              {i18n.t("tabs:home_projected_height")}
+            </Text>
             <Ionicons
               name="trending-up"
               size={16}
@@ -256,22 +336,54 @@ export default function Index() {
               }
             }}
           />
+
+          {/* Update Height CTA */}
+          <TouchableOpacity
+            style={[
+              styles.updateHeightButton,
+              !canUpdateHeight && styles.updateHeightButtonDisabled,
+            ]}
+            onPress={canUpdateHeight ? openHeightModalFromButton : undefined}
+            activeOpacity={0.8}
+            disabled={!canUpdateHeight}
+          >
+            <Ionicons
+              name="create-outline"
+              size={18}
+              color={canUpdateHeight ? "#000" : "#999"}
+              style={{ marginRight: 6 }}
+            />
+            <Text
+              style={[
+                styles.updateHeightText,
+                !canUpdateHeight && styles.updateHeightTextDisabled,
+              ]}
+            >
+              {canUpdateHeight
+                ? i18n.t("tabs:home_update_height")
+                : `${i18n.t("tabs:home_update_height")} • ${countdown}`}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Dream Height Section */}
         {dreamHeightData && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Dream Height</Text>
+            <Text style={styles.sectionTitle}>
+              {i18n.t("tabs:home_dream_height")}
+            </Text>
             <View style={styles.cardsRowInSection}>
               <Card
-                label="Probability"
-                value={dreamHeightData.probabilityText}
+                label={i18n.t("tabs:home_probability")}
+                value={i18n.t(`tabs:${dreamHeightData.probabilityText}`)}
                 subtext={`${dreamHeightData.probability}%`}
               />
               <Card
-                label="Dream Height"
+                label={i18n.t("tabs:home_dream_height")}
                 value={dreamHeightData.dreamHeightFormatted}
-                subtext={dreamHeightData.heightDifferenceFormatted}
+                subtext={i18n.t("tabs:home_to_go_fmt", {
+                  value: dreamHeightData.heightDifferenceFormatted,
+                })}
               />
             </View>
           </View>
@@ -279,11 +391,18 @@ export default function Index() {
 
         {/* Health Goals Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Health Goals</Text>
+          <Text style={styles.sectionTitle}>
+            {i18n.t("tabs:home_health_goals")}
+          </Text>
           <View style={styles.cardsRowInSection}>
-            <Card label="Sleep Goal" value={`${healthGoals.sleepHours} hrs`} />
             <Card
-              label="Daily Calories"
+              label={i18n.t("tabs:home_sleep_goal")}
+              value={`${healthGoals.sleepHours} ${i18n.t(
+                "tabs:home_hours_abbr"
+              )}`}
+            />
+            <Card
+              label={i18n.t("tabs:home_daily_calories")}
               value={healthGoals.calories.toString()}
             />
           </View>
@@ -297,10 +416,9 @@ export default function Index() {
         initialValue={tempWeightValue}
       />
 
-      <HeightModal
+      <HeightPickerModal
         visible={heightModalVisible}
         onClose={() => setHeightModalVisible(false)}
-        initialValue={tempHeightValue}
       />
     </View>
   );
@@ -348,6 +466,31 @@ const styles = StyleSheet.create({
   },
   progressIcon: {
     marginLeft: 8,
+  },
+  updateHeightButton: {
+    marginTop: 12,
+    alignSelf: "stretch",
+    backgroundColor: "#9ACD32",
+    borderRadius: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+  updateHeightButtonDisabled: {
+    backgroundColor: "#1f1f1f",
+    borderWidth: 1,
+    borderColor: "#333",
+  },
+  updateHeightText: {
+    color: "#000",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  updateHeightTextDisabled: {
+    color: "#999",
   },
   progressSubtext: {
     color: "#666",

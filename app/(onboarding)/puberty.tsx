@@ -7,6 +7,7 @@ import {
   withOnboarding,
 } from "../../components/withOnboarding";
 import { logEvent } from "../../utils/Analytics";
+import i18n from "../../utils/i18n";
 
 function PubertyIntroScreen({ onBack, onNext }: OnboardingScreenProps) {
   const router = useRouter();
@@ -23,25 +24,25 @@ function PubertyIntroScreen({ onBack, onNext }: OnboardingScreenProps) {
 
   return (
     <OnboardingLayout
-      title="Optional Puberty Questionnaire"
+      title={i18n.t("onboarding:puberty_title")}
       currentStep={8}
       onBack={onBack}
-      onNext={onNext}
-      nextButtonText="Take Quiz"
+      onNext={handleTake}
+      nextButtonText={i18n.t("onboarding:puberty_button_take_quiz")}
     >
       <View style={styles.container}>
-        <Text style={styles.subtitle}>About 5 minutes</Text>
+        <Text style={styles.subtitle}>
+          {i18n.t("onboarding:puberty_subtitle_duration")}
+        </Text>
         <Text style={styles.description}>
-          You can take a short, optional questionnaire to help determine whether
-          you've likely entered puberty. This can improve personalization.
+          {i18n.t("onboarding:puberty_description")}
         </Text>
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-            <Text style={styles.skipText}>Skip</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.takeButton} onPress={handleTake}>
-            <Text style={styles.takeText}>Take Quiz</Text>
+            <Text style={styles.skipText}>
+              {i18n.t("onboarding:puberty_button_skip")}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

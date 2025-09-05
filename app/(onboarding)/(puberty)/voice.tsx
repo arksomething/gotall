@@ -4,6 +4,7 @@ import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { SelectionList } from "../../../components/SelectionList";
 import { withOnboarding } from "../../../components/withOnboarding";
 import { CONFIG } from "../../../utils/config";
+import i18n from "../../../utils/i18n";
 import { useUserData } from "../../../utils/UserContext";
 
 function VoiceScreen({
@@ -26,20 +27,28 @@ function VoiceScreen({
 
   return (
     <OnboardingLayout
-      title="Has your voice fully deepened?"
+      title={i18n.t("onboarding:voice_title")}
       currentStep={7}
       onNext={onNext}
       onBack={onBack}
       disableDefaultNext={!answer}
-      nextButtonText="Continue"
+      nextButtonText={i18n.t("onboarding:subscription_button_continue", {
+        defaultValue: "Continue",
+      })}
       totalStepsOverride={CONFIG.PUBERTY_QUIZ_STEPS}
     >
       <View style={styles.container}>
         <SelectionList
           options={[
-            { label: "No change", value: "nochange" },
-            { label: "Somewhat deeper", value: "somewhat" },
-            { label: "Fully deep/stable", value: "full" },
+            {
+              label: i18n.t("onboarding:voice_option_nochange"),
+              value: "nochange",
+            },
+            {
+              label: i18n.t("onboarding:voice_option_somewhat"),
+              value: "somewhat",
+            },
+            { label: i18n.t("onboarding:voice_option_full"), value: "full" },
           ]}
           selectedValue={answer ?? undefined}
           onSelect={async (value) => {

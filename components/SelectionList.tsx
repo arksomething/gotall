@@ -22,13 +22,28 @@ export const SelectionList: React.FC<SelectionListProps> = ({
   onSelect,
   containerStyle,
 }) => {
-  const normalize = (option: Option) =>
-    typeof option === "string" ? { label: option, value: option } : option;
+  const normalize = (
+    option: Option | undefined | null
+  ): { label: string; value: string } | null => {
+    if (option == null) return null;
+    if (typeof option === "string") {
+      const text = option.trim();
+      if (!text) return null;
+      return { label: text, value: text };
+    }
+    const label = (option as any).label;
+    const value = (option as any).value;
+    if (typeof label !== "string" || typeof value !== "string") return null;
+    return { label, value };
+  };
+
+  const safeOptions = (options || [])
+    .map((opt) => normalize(opt))
+    .filter((o): o is { label: string; value: string } => !!o);
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {options.map((opt) => {
-        const { label, value } = normalize(opt);
+      {safeOptions.map(({ label, value }) => {
         const isActive = selectedValue === value;
         return (
           <TouchableOpacity

@@ -1,0 +1,21 @@
+{
+  "header_settings_aria": "Open settings",
+  "datepicker_title": "Select your date of birth",
+  "datepicker_label_month": "Month",
+  "datepicker_label_day": "Day",
+  "datepicker_label_year": "Year",
+
+  "analysis_pick_images": "Pick Images",
+  "analysis_take_photo": "Take Photo",
+  "analysis_placeholder_default": "Max three photos",
+  "analysis_max_selected": "You can only select up to {{max}} photos.",
+  "analysis_max_total": "You can only select up to {{max}} photos total.",
+  "analysis_camera_permission": "Sorry, we need camera permissions to make this work!",
+  "analysis_select_at_least_one": "Please select at least one image.",
+  "analysis_button_analyze": "Analyze",
+  "analysis_button_analyzing": "Analyzing...",
+  "analysis_title": "Analysis:",
+  "analysis_error_failed": "Failed to get analysis. Please try again."
+}
+
+

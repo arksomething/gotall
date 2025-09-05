@@ -4,6 +4,7 @@ import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { SelectionList } from "../../../components/SelectionList";
 import { withOnboarding } from "../../../components/withOnboarding";
 import { CONFIG } from "../../../utils/config";
+import i18n from "../../../utils/i18n";
 import { useUserData } from "../../../utils/UserContext";
 
 function FacialScreen({
@@ -26,21 +27,29 @@ function FacialScreen({
 
   return (
     <OnboardingLayout
-      title="Do you have facial hair?"
+      title={i18n.t("onboarding:facial_title")}
       currentStep={1}
       onNext={onNext}
       onBack={onBack}
       disableDefaultNext={!answer}
-      nextButtonText="Continue"
+      nextButtonText={i18n.t("onboarding:subscription_button_continue", {
+        defaultValue: "Continue",
+      })}
       totalStepsOverride={CONFIG.PUBERTY_QUIZ_STEPS}
     >
       <View style={styles.container}>
         <SelectionList
           options={[
-            { label: "None", value: "none" },
-            { label: "Just faint", value: "faint" },
-            { label: "Shave sometimes", value: "sometimes" },
-            { label: "Shave regularly/full beard", value: "regular" },
+            { label: i18n.t("onboarding:facial_option_none"), value: "none" },
+            { label: i18n.t("onboarding:facial_option_faint"), value: "faint" },
+            {
+              label: i18n.t("onboarding:facial_option_sometimes"),
+              value: "sometimes",
+            },
+            {
+              label: i18n.t("onboarding:facial_option_regular"),
+              value: "regular",
+            },
           ]}
           selectedValue={answer ?? undefined}
           onSelect={async (value) => {

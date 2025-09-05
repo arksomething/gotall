@@ -24,6 +24,7 @@ import { logEvent } from "../../utils/Analytics";
 import { useOnboarding } from "../../utils/OnboardingContext";
 import { useUserData } from "../../utils/UserContext";
 import { calculateHeightProjection } from "../../utils/heightProjection";
+import i18n from "../../utils/i18n";
 import { PRODUCTS } from "../../utils/products";
 
 function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
@@ -139,7 +140,7 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
         }
       } catch (e) {
         console.warn("Failed to load offerings", e);
-        setError("Products not available");
+        setError(i18n.t("onboarding:subscription_error_products_unavailable"));
       }
     };
     loadOfferings();
@@ -163,11 +164,15 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
         await AsyncStorage.setItem("@onboarding_completed", "true");
         router.replace("/(tabs)");
       } else {
-        setError("Purchase was not completed. Please try again.");
+        setError(
+          i18n.t("onboarding:subscription_error_purchase_not_completed")
+        );
       }
     } catch (err: any) {
       console.error("Purchase failed:", err);
-      setError(err?.message || "Purchase failed. Please try again.");
+      setError(
+        err?.message || i18n.t("onboarding:subscription_error_purchase_failed")
+      );
     } finally {
       setIsPurchasing(false);
     }
@@ -186,12 +191,12 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
         await AsyncStorage.setItem("@onboarding_completed", "true");
         router.replace("/(tabs)");
       } else {
-        setError("No valid purchases found");
+        setError(i18n.t("onboarding:subscription_error_no_purchases"));
       }
     } catch (err: any) {
       console.error("Restore failed:", err);
       setError(
-        err?.message || "Failed to restore purchases. Please try again."
+        err?.message || i18n.t("onboarding:subscription_error_restore_failed")
       );
     } finally {
       setIsPurchasing(false);
@@ -203,7 +208,7 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
       setError(null);
       const trimmed = promoCode.trim().toUpperCase();
       if (!validPromoCodes.includes(trimmed)) {
-        setError("Invalid promo code");
+        setError(i18n.t("onboarding:subscription_error_invalid_promo"));
         return;
       }
 
@@ -216,19 +221,23 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
     } catch (err: any) {
       console.error("Promo redeem failed:", err);
       setError(
-        err?.message || "Failed to redeem promo code. Please try again."
+        err?.message || i18n.t("onboarding:subscription_error_restore_failed")
       );
     }
   };
 
   return (
     <OnboardingLayout
-      title="Get GoTall Now"
+      title={i18n.t("onboarding:subscription_title")}
       currentStep={15}
       showBackButton={true}
       onBack={onBack}
       onNext={onPurchase}
-      nextButtonText={isPurchasing ? "Processing..." : "Continue"}
+      nextButtonText={
+        isPurchasing
+          ? i18n.t("onboarding:subscription_button_processing")
+          : i18n.t("onboarding:subscription_button_continue")
+      }
       disableDefaultNext={isPurchasing || selectedIndex === null}
     >
       <View style={styles.container}>
@@ -284,14 +293,19 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
                     isSelected && styles.planLabelSelected,
                   ]}
                 >
-                  {cleanTitle || (isLifetime ? "Lifetime" : "Weekly")}
+                  {cleanTitle ||
+                    (isLifetime
+                      ? i18n.t("onboarding:subscription_label_lifetime")
+                      : i18n.t("onboarding:subscription_label_weekly"))}
                 </Text>
                 <Text style={styles.planPrice}>
                   {product.priceString || product.price || ""}
                 </Text>
                 {isYearly && (
                   <View style={styles.popularBadge}>
-                    <Text style={styles.popularText}>Popular</Text>
+                    <Text style={styles.popularText}>
+                      {i18n.t("onboarding:subscription_badge_popular")}
+                    </Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -299,7 +313,9 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
           })}
         </View>
 
-        <Text style={styles.sectionTitle}>Here's what you'll get:</Text>
+        <Text style={styles.sectionTitle}>
+          {i18n.t("onboarding:subscription_section_benefits_title")}
+        </Text>
         <View
           style={[
             styles.carouselWrapper,
@@ -334,7 +350,9 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
             onPress={onRestore}
             disabled={isPurchasing}
           >
-            <Text style={styles.restoreText}>Restore Purchase</Text>
+            <Text style={styles.restoreText}>
+              {i18n.t("onboarding:subscription_button_restore")}
+            </Text>
           </TouchableOpacity>
 
           {isAndroid &&
@@ -342,7 +360,9 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
               <View style={styles.promoContainer}>
                 <TextInput
                   style={styles.promoInput}
-                  placeholder="Promo Code"
+                  placeholder={i18n.t(
+                    "onboarding:subscription_placeholder_promo_code"
+                  )}
                   placeholderTextColor="#9ACD32"
                   value={promoCode}
                   autoCapitalize="characters"
@@ -353,7 +373,9 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
                   onPress={onRedeemPromo}
                   disabled={promoCode.trim() === ""}
                 >
-                  <Text style={styles.promoApplyText}>Apply</Text>
+                  <Text style={styles.promoApplyText}>
+                    {i18n.t("onboarding:subscription_button_apply")}
+                  </Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -361,7 +383,9 @@ function SubscriptionScreen({ onBack }: OnboardingScreenProps) {
                 style={styles.restoreButton}
                 onPress={() => setShowPromoInput(true)}
               >
-                <Text style={styles.restoreText}>Promo</Text>
+                <Text style={styles.restoreText}>
+                  {i18n.t("onboarding:subscription_button_promo")}
+                </Text>
               </TouchableOpacity>
             ))}
         </View>

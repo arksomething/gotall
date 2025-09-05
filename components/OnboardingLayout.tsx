@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useSegments } from "expo-router";
+import { useFocusEffect, useSegments } from "expo-router";
 import React from "react";
 import {
   Animated,
@@ -13,6 +13,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import i18n from "../utils/i18n";
+import { logger } from "../utils/Logger";
 import { PickerErrorBoundary } from "./PickerErrorBoundary";
 
 // Step counts
@@ -43,7 +45,7 @@ export function OnboardingLayout({
   showBackButton = true,
   onBack,
   onNext,
-  nextButtonText = "Continue",
+  nextButtonText = i18n.t("onboarding:subscription_button_continue"),
   centerContent = false,
   disableDefaultNext = false,
   nextButtonStyle,
@@ -76,6 +78,30 @@ export function OnboardingLayout({
       friction: 10,
     }).start();
   };
+
+  // Track onboarding screen view
+  React.useEffect(() => {
+    logger.trackScreen(title, { group: "onboarding" });
+  }, [title]);
+
+  // Track dwell time per onboarding screen using route segments as a stable id
+  const screenId = React.useMemo(() => {
+    try {
+      return (segments || []).join("/") || "onboarding";
+    } catch {
+      return "onboarding";
+    }
+  }, [segments]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const key = `screen_${screenId}`;
+      logger.startTimer(key, { group: "onboarding", step: currentStep });
+      return () => {
+        logger.endTimer(key, { group: "onboarding", step: currentStep });
+      };
+    }, [screenId])
+  );
 
   return (
     <KeyboardAvoidingView
@@ -150,22 +176,8 @@ export function OnboardingLayout({
             ]}
           >
             <View style={styles.buttonContainer}>
-              {showBackButton && onBack && (
-                <TouchableOpacity
-                  style={styles.bottomBackButton}
-                  onPress={onBack}
-                >
-                  <Ionicons name="chevron-back" size={20} color="#666" />
-                  <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
-              )}
-
               <TouchableOpacity
-                style={[
-                  styles.nextButton,
-                  !showBackButton && styles.nextButtonFullWidth,
-                  nextButtonStyle,
-                ]}
+                style={[styles.nextButton, nextButtonStyle]}
                 onPress={disableDefaultNext ? undefined : onNext}
               >
                 <Text style={styles.nextButtonText}>{nextButtonText}</Text>

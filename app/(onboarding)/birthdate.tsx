@@ -6,6 +6,7 @@ import {
   OnboardingScreenProps,
   withOnboarding,
 } from "../../components/withOnboarding";
+import i18n from "../../utils/i18n";
 import { useOnboarding } from "./_layout";
 
 function BirthdateScreen({ onNext, onBack }: OnboardingScreenProps) {
@@ -13,7 +14,7 @@ function BirthdateScreen({ onNext, onBack }: OnboardingScreenProps) {
 
   return (
     <OnboardingLayout
-      title="When were you born?"
+      title={i18n.t("onboarding:birthdate_title")}
       currentStep={1}
       onNext={onNext}
       onBack={onBack}

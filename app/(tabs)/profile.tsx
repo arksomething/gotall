@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import {
   Alert,
@@ -14,9 +14,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "../../components/Header";
+import { databaseManager } from "../../utils/database";
+import i18n from "../../utils/i18n";
+import { logger } from "../../utils/Logger";
 import { useOnboarding } from "../../utils/OnboardingContext";
 import { useUserData } from "../../utils/UserContext";
-import { databaseManager } from "../../utils/database";
 
 export default function ProfileScreen() {
   const {
@@ -31,6 +33,16 @@ export default function ProfileScreen() {
   const { setIsOnboardingComplete } = useOnboarding();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // Dwell time
+  useFocusEffect(
+    React.useCallback(() => {
+      const key = "screen_profile";
+      logger.startTimer(key);
+      return () => {
+        logger.endTimer(key);
+      };
+    }, [])
+  );
 
   useEffect(() => {
     // Reload user data when profile screen is loaded
@@ -38,15 +50,30 @@ export default function ProfileScreen() {
   }, []);
 
   const resetOnboarding = async () => {
+    // Log entry click to measure how many users open the reset flow
+    try {
+      logger.event("profile_reset_click");
+    } catch {}
     Alert.alert(
-      "Delete Account",
-      "This will clear your profile data and restart the setup process. When prompted to pay, scroll down and click restore purchases.",
+      i18n.t("tabs:profile_delete_account"),
+      i18n.t("tabs:profile_delete_account_confirm"),
       [
-        { text: "Cancel", style: "cancel" },
         {
-          text: "Reset",
+          text: i18n.t("tabs:common_cancel"),
+          style: "cancel",
+          onPress: () => {
+            try {
+              logger.event("profile_reset_cancel");
+            } catch {}
+          },
+        },
+        {
+          text: i18n.t("tabs:common_reset"),
           style: "destructive",
           onPress: async () => {
+            try {
+              logger.event("profile_reset_confirm");
+            } catch {}
             try {
               await AsyncStorage.multiRemove([
                 "@user_height_cm",
@@ -76,7 +103,10 @@ export default function ProfileScreen() {
               await setIsOnboardingComplete(false);
               router.replace("/(onboarding)" as any);
             } catch (error) {
-              Alert.alert("Error", "Failed to reset profile data");
+              Alert.alert(
+                i18n.t("tabs:common_error"),
+                i18n.t("tabs:profile_reset_goals_failed")
+              );
             }
           },
         },
@@ -86,18 +116,19 @@ export default function ProfileScreen() {
 
   const handleHelpSupport = () => {
     Alert.alert(
-      "Contact Us",
-      "DM and follow us on TikTok @gotallapp for support and updates!",
+      i18n.t("tabs:profile_contact_us"),
+      i18n.t("tabs:profile_tiktok_dm"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: i18n.t("tabs:common_cancel"), style: "cancel" },
         {
-          text: "Open TikTok",
+          text: i18n.t("tabs:profile_open_tiktok"),
           onPress: () => {
             Linking.openURL("https://www.tiktok.com/@gotallapp").catch(() => {
-              // If TikTok app/URL fails, show another alert with the handle
-              Alert.alert("TikTok", "Find us on TikTok: @gotallapp", [
-                { text: "OK" },
-              ]);
+              Alert.alert(
+                i18n.t("tabs:profile_tiktok_fallback_title"),
+                i18n.t("tabs:profile_tiktok_fallback_message"),
+                [{ text: i18n.t("tabs:common_ok") }]
+              );
             });
           },
         },
@@ -107,20 +138,20 @@ export default function ProfileScreen() {
 
   const handleRestorePurchase = () => {
     Alert.alert(
-      "Restore Purchase",
-      "Please close and restart the app after tapping OK.",
-      [{ text: "OK" }]
+      i18n.t("tabs:profile_restore_purchase"),
+      i18n.t("tabs:profile_restore_purchase_message"),
+      [{ text: i18n.t("tabs:common_ok") }]
     );
   };
 
   const handleResetGoals = () => {
     Alert.alert(
-      "Reset Goals",
-      "This will delete ALL goals and recreate the default ones. This cannot be undone.",
+      i18n.t("tabs:profile_reset_goals"),
+      i18n.t("tabs:profile_reset_goals_confirm"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: i18n.t("tabs:common_cancel"), style: "cancel" },
         {
-          text: "Reset",
+          text: i18n.t("tabs:common_reset"),
           style: "destructive",
           onPress: async () => {
             try {
@@ -128,10 +159,16 @@ export default function ProfileScreen() {
               await databaseManager.purgeAllGoals();
               // Recreate default goals
               await databaseManager.insertDefaultGoals();
-              Alert.alert("Success", "All goals have been reset to defaults");
+              Alert.alert(
+                i18n.t("tabs:common_success"),
+                i18n.t("tabs:profile_reset_goals_success")
+              );
             } catch (error) {
               console.error("Error resetting goals:", error);
-              Alert.alert("Error", "Failed to reset goals");
+              Alert.alert(
+                i18n.t("tabs:common_error"),
+                i18n.t("tabs:profile_reset_goals_failed")
+              );
             }
           },
         },
@@ -142,32 +179,32 @@ export default function ProfileScreen() {
   const settingsOptions = [
     {
       icon: "help-circle-outline",
-      title: "Help & Support",
-      subtitle: "Get assistance",
+      title: i18n.t("tabs:profile_help_support"),
+      subtitle: i18n.t("tabs:profile_get_assistance"),
       onPress: handleHelpSupport,
     },
     {
       icon: "trash-outline",
-      title: "Reset Goals",
-      subtitle: "Reset all goals to defaults",
+      title: i18n.t("tabs:profile_reset_goals"),
+      subtitle: i18n.t("tabs:profile_reset_goals_sub"),
       onPress: handleResetGoals,
     },
     {
       icon: "refresh-outline",
-      title: "Restore Purchase",
-      subtitle: "Restore your purchase",
+      title: i18n.t("tabs:profile_restore_purchase"),
+      subtitle: i18n.t("tabs:profile_restore_purchase_sub"),
       onPress: handleRestorePurchase,
     },
     {
       icon: "logo-discord",
-      title: "Get paid to promote GoTall",
-      subtitle: "Join our UGC program",
+      title: i18n.t("tabs:profile_promote_title"),
+      subtitle: i18n.t("tabs:profile_promote_sub"),
       onPress: () => {
         Linking.openURL("https://discord.gg/a6j63JVuZ3").catch(() => {
           Alert.alert(
-            "Discord",
-            "Open this link in your browser:https://discord.gg/a6j63JVuZ3",
-            [{ text: "OK" }]
+            i18n.t("tabs:profile_discord_title"),
+            i18n.t("tabs:profile_discord_open_in_browser"),
+            [{ text: i18n.t("tabs:common_ok") }]
           );
         });
       },
@@ -176,7 +213,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.container]}>
-      <Header title="Profile" showBackButton />
+      <Header title={i18n.t("tabs:profile_title")} showBackButton />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* User Info */}
         <View style={styles.userSection}>
@@ -187,42 +224,58 @@ export default function ProfileScreen() {
             <View style={styles.userDetails}>
               <View style={styles.detailRow}>
                 <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Height</Text>
+                  <Text style={styles.detailLabel}>
+                    {i18n.t("tabs:profile_height")}
+                  </Text>
                   <Text style={styles.detailValue}>{getDisplayHeight()}</Text>
                 </View>
                 <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Weight</Text>
+                  <Text style={styles.detailLabel}>
+                    {i18n.t("tabs:profile_weight")}
+                  </Text>
                   <Text style={styles.detailValue}>{getDisplayWeight()}</Text>
                 </View>
               </View>
               <View style={styles.detailRow}>
                 <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Age</Text>
+                  <Text style={styles.detailLabel}>
+                    {i18n.t("tabs:profile_age")}
+                  </Text>
                   <Text style={styles.detailValue}>{getAge()}</Text>
                 </View>
                 <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Sex</Text>
+                  <Text style={styles.detailLabel}>
+                    {i18n.t("tabs:profile_sex")}
+                  </Text>
                   <Text style={styles.detailValue}>
-                    {userData.sex === "1" ? "Male" : "Female"}
+                    {userData.sex === "1"
+                      ? i18n.t("tabs:profile_sex_male")
+                      : i18n.t("tabs:profile_sex_female")}
                   </Text>
                 </View>
               </View>
               <View style={styles.detailRow}>
                 <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Ethnicity</Text>
+                  <Text style={styles.detailLabel}>
+                    {i18n.t("tabs:profile_ethnicity")}
+                  </Text>
                   <Text style={styles.detailValue}>{userData.ethnicity}</Text>
                 </View>
               </View>
             </View>
           </View>
           <TouchableOpacity style={styles.editButton} onPress={resetOnboarding}>
-            <Text style={styles.editButtonText}>Reset Profile</Text>
+            <Text style={styles.editButtonText}>
+              {i18n.t("tabs:profile_reset_profile")}
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* Family Info */}
         <View style={styles.familySection}>
-          <Text style={styles.sectionTitle}>Family Information</Text>
+          <Text style={styles.sectionTitle}>
+            {i18n.t("tabs:profile_family_info")}
+          </Text>
           <View style={styles.familyGrid}>
             <View style={styles.familyCard}>
               <Ionicons name="woman-outline" size={24} color="#9ACD32" />
@@ -239,26 +292,36 @@ export default function ProfileScreen() {
 
         {/* Preferences */}
         <View style={styles.preferencesSection}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
+          <Text style={styles.sectionTitle}>
+            {i18n.t("tabs:profile_preferences")}
+          </Text>
           <View style={styles.preferenceRow}>
-            <Text style={styles.preferenceLabel}>Height Unit:</Text>
+            <Text style={styles.preferenceLabel}>
+              {i18n.t("tabs:profile_height_unit")}
+            </Text>
             <Text style={styles.preferenceValue}>
               {userData.preferredHeightUnit === "ft"
-                ? "Feet & Inches"
-                : "Centimeters"}
+                ? i18n.t("tabs:profile_unit_feet_inches")
+                : i18n.t("tabs:profile_unit_centimeters")}
             </Text>
           </View>
           <View style={styles.preferenceRow}>
-            <Text style={styles.preferenceLabel}>Weight Unit:</Text>
+            <Text style={styles.preferenceLabel}>
+              {i18n.t("tabs:profile_weight_unit")}
+            </Text>
             <Text style={styles.preferenceValue}>
-              {userData.preferredWeightUnit === "lbs" ? "Pounds" : "Kilograms"}
+              {userData.preferredWeightUnit === "lbs"
+                ? i18n.t("tabs:profile_unit_pounds")
+                : i18n.t("tabs:profile_unit_kilograms")}
             </Text>
           </View>
         </View>
 
         {/* Settings */}
         <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+          <Text style={styles.sectionTitle}>
+            {i18n.t("tabs:profile_settings")}
+          </Text>
           {settingsOptions.map((option, index) => (
             <TouchableOpacity
               key={index}
@@ -279,11 +342,17 @@ export default function ProfileScreen() {
 
         {/* App Info */}
         <View style={styles.appInfoSection}>
-          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.sectionTitle}>
+            {i18n.t("tabs:profile_about")}
+          </Text>
           <View style={styles.infoCard}>
-            <Text style={styles.appName}>GoTall</Text>
+            <Text style={styles.appName}>
+              {i18n.t("tabs:profile_app_name")}
+            </Text>
             <Text style={styles.appVersion}>
-              Version {Constants.expoConfig?.version || "1.0.2"}
+              {i18n.t("tabs:profile_version", {
+                version: Constants.expoConfig?.version || "1.0.2",
+              })}
             </Text>
             <TouchableOpacity
               style={styles.privacyLink}
@@ -293,7 +362,9 @@ export default function ProfileScreen() {
                 )
               }
             >
-              <Text style={styles.privacyText}>Privacy Policy</Text>
+              <Text style={styles.privacyText}>
+                {i18n.t("tabs:profile_privacy")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.privacyLink}
@@ -303,7 +374,9 @@ export default function ProfileScreen() {
                 )
               }
             >
-              <Text style={styles.privacyText}>Terms of Use</Text>
+              <Text style={styles.privacyText}>
+                {i18n.t("tabs:profile_terms")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -311,7 +384,9 @@ export default function ProfileScreen() {
         {/* Logout */}
         <TouchableOpacity style={styles.logoutButton} onPress={resetOnboarding}>
           <Ionicons name="log-out-outline" size={20} color="#FF6B6B" />
-          <Text style={styles.logoutText}>Delete Account</Text>
+          <Text style={styles.logoutText}>
+            {i18n.t("tabs:profile_delete_account")}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

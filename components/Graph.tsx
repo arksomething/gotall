@@ -3,6 +3,7 @@ import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import heightData from "../utils/data.json";
 import { getHeightForInput } from "../utils/heightUtils";
+import i18n from "../utils/i18n";
 
 interface GraphProps {
   sex: "1" | "2"; // 1 for male, 2 for female
@@ -163,7 +164,7 @@ const Graph: React.FC<GraphProps> = ({
   if (ageRangeData.length === 0) {
     return (
       <View style={styles.container}>
-        <Text style={styles.noData}>No data available for this age range</Text>
+        <Text style={styles.noData}>{i18n.t("tabs:graph_no_data")}</Text>
       </View>
     );
   }
@@ -321,22 +322,25 @@ const Graph: React.FC<GraphProps> = ({
             />
           </View>
           <Text style={styles.growthText}>
-            {Math.min(100, Math.round((Math.floor(age / 12) / 21) * 100))}% Done
-            Growing
+            {i18n.t("tabs:graph_done_growing", {
+              percent: Math.min(
+                100,
+                Math.round((Math.floor(age / 12) / 21) * 100)
+              ),
+            })}
           </Text>
         </View>
 
         {/* Percentile Comparison */}
         <View style={styles.growthStat}>
           <Text style={styles.percentileText}>
-            Shorter than{" "}
-            <Text style={styles.percentileHighlight}>
-              {percentileNumber
+            {i18n.t("tabs:graph_shorter_than", {
+              percent: percentileNumber
                 ? 100 - parseInt(percentileNumber.display)
-                : "--"}
-              %
-            </Text>
-            {"\n"}of {Math.floor(age / 12)} year olds
+                : "--",
+            })}
+            {"\n"}
+            {i18n.t("tabs:graph_of_year_olds", { years: Math.floor(age / 12) })}
           </Text>
         </View>
       </View>

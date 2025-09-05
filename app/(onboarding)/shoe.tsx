@@ -6,6 +6,7 @@ import {
   OnboardingScreenProps,
   withOnboarding,
 } from "../../components/withOnboarding";
+import i18n from "../../utils/i18n";
 import { useOnboarding } from "./_layout";
 
 // Generate simple US & EU shoe size ranges
@@ -41,16 +42,22 @@ function ShoeScreen({ onNext, onBack }: OnboardingScreenProps) {
 
   return (
     <OnboardingLayout
-      title="What is your shoe size?"
+      title={i18n.t("onboarding:shoe_title")}
       currentStep={6}
       onNext={onNext}
       onBack={onBack}
     >
       <View style={styles.stepContent}>
         <View style={styles.container}>
-          <Text style={styles.title}>Select your shoe size</Text>
+          <Text style={styles.title}>
+            {i18n.t("onboarding:shoe_picker_title")}
+          </Text>
           <View style={styles.pickerColumn}>
-            <Text style={styles.label}>{isMetric ? "EU Size" : "US Size"}</Text>
+            <Text style={styles.label}>
+              {isMetric
+                ? i18n.t("onboarding:shoe_label_eu")
+                : i18n.t("onboarding:shoe_label_us")}
+            </Text>
             <View style={styles.pickerWrapper}>
               <Picker
                 selectedValue={currentSize}
@@ -74,7 +81,7 @@ function ShoeScreen({ onNext, onBack }: OnboardingScreenProps) {
 
           <View style={styles.unitsContainer}>
             <Text style={[styles.unitText, !isMetric && styles.activeUnit]}>
-              US
+              {i18n.t("onboarding:shoe_units_us")}
             </Text>
             <Switch
               value={isMetric}
@@ -85,7 +92,7 @@ function ShoeScreen({ onNext, onBack }: OnboardingScreenProps) {
               style={styles.switch}
             />
             <Text style={[styles.unitText, isMetric && styles.activeUnit]}>
-              EU
+              {i18n.t("onboarding:shoe_units_eu")}
             </Text>
           </View>
         </View>

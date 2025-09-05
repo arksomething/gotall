@@ -12,6 +12,7 @@ import Video from "../../components/lessons/Video";
 import { databaseManager } from "../../utils/database";
 import { getLessonsForDay, getTotalDays } from "../../utils/lessons";
 import { Step as StepType } from "../../utils/lessonTypes";
+import { logger } from "../../utils/Logger";
 
 export default function LessonStepPage() {
   const { day, step } = useLocalSearchParams<{ day: string; step: string }>();
@@ -37,6 +38,26 @@ export default function LessonStepPage() {
       router.back();
       return;
     }
+
+    // Track time spent on lesson step
+    const timerKey = `lesson_day${dayNum}_step${stepNum}`;
+    logger.trackScreen(`lesson_step`, {
+      group: "lesson",
+      params: { day: dayNum, step: stepNum, type: currentStep.type },
+    });
+    logger.startTimer(timerKey, {
+      day: dayNum,
+      step: stepNum,
+      type: currentStep.type,
+    });
+
+    return () => {
+      logger.endTimer(timerKey, {
+        day: dayNum,
+        step: stepNum,
+        type: currentStep.type,
+      });
+    };
   }, [lesson, stepNum, router]);
 
   // Check if lesson exists

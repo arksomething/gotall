@@ -15,10 +15,13 @@ import {
 import Purchases, { CustomerInfo } from "react-native-purchases";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ErrorBoundary from "../components/ErrorBoundary";
+import { enableGlobalCopyOverrides } from "../utils/copy";
 import { crashlytics } from "../utils/crashlytics";
 import { initializeErrorHandling } from "../utils/errorHandler";
+import { initI18n } from "../utils/i18n";
 import { OnboardingProvider, useOnboarding } from "../utils/OnboardingContext";
 import { PRODUCTS } from "../utils/products";
+import { initRemoteConfig } from "../utils/remoteConfig";
 import { UserProvider } from "../utils/UserContext";
 
 const LIFETIME_ACCESS_ID = PRODUCTS.LIFETIME.id;
@@ -50,6 +53,11 @@ function NavigationRoot() {
     const initializeApp = async () => {
       if (!initialized) {
         try {
+          // Initialize Remote Config and i18n before other services
+          await initRemoteConfig();
+          await initI18n();
+          enableGlobalCopyOverrides();
+
           const apiKey = Platform.select({
             ios: (Constants?.expoConfig?.extra as any)?.revenuecatApiKeyIos,
             android: (Constants?.expoConfig?.extra as any)
@@ -57,6 +65,12 @@ function NavigationRoot() {
           });
 
           if (apiKey) {
+            // Reduce RevenueCat SDK logs
+            try {
+              Purchases.setLogLevel(
+                __DEV__ ? Purchases.LOG_LEVEL.WARN : Purchases.LOG_LEVEL.ERROR
+              );
+            } catch {}
             await Purchases.configure({ apiKey });
           }
 

@@ -21,7 +21,10 @@ import { Card } from "../../components/Card";
 import { Header } from "../../components/Header";
 import { databaseManager } from "../../utils/database";
 import { calculateHealthGoals } from "../../utils/healthGoals";
+import i18n from "../../utils/i18n";
+import { logger } from "../../utils/Logger";
 import { Stretch, stretches } from "../../utils/stretches";
+import { dailyTasks } from "../../utils/tasks";
 import { useUserData } from "../../utils/UserContext";
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -78,7 +81,17 @@ export default function ProgressScreen() {
   const router = useRouter();
   const { userData, getAge } = useUserData();
 
-  const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
+  const weekDays = React.useMemo(() => {
+    const base = new Date("2023-01-01T00:00:00Z");
+    const fmt = new Intl.DateTimeFormat((i18n as any)?.language || undefined, {
+      weekday: "short",
+    });
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(base);
+      d.setDate(base.getDate() + i);
+      return fmt.format(d).slice(0, 1);
+    });
+  }, [((i18n as any)?.language as string) || "en"]);
 
   const getYouTubeEmbedUrl = (videoId: string) => {
     return `https://www.youtube.com/embed/${videoId}?autoplay=0&controls=1&showinfo=0&rel=0`;
@@ -106,7 +119,12 @@ export default function ProgressScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      const key = "screen_progress";
+      logger.startTimer(key);
       loadData();
+      return () => {
+        logger.endTimer(key);
+      };
     }, [])
   );
 
@@ -166,7 +184,10 @@ export default function ProgressScreen() {
       setCurrentStreak(streak);
     } catch (error) {
       console.error("Error loading data:", error);
-      Alert.alert("Error", "Failed to load goals data");
+      Alert.alert(
+        i18n.t("tabs:common_error"),
+        i18n.t("tabs:error_failed_load_goals")
+      );
     } finally {
       setIsLoading(false);
       fadeIn();
@@ -200,9 +221,17 @@ export default function ProgressScreen() {
 
       const newStreak = await databaseManager.getStreakCount();
       setCurrentStreak(newStreak);
+      logger.event("progress_toggle_goal", {
+        goal_id: goal.id,
+        title: goal.title,
+        completed: newCompleted,
+      });
     } catch (error) {
       console.error("Error toggling goal:", error);
-      Alert.alert("Error", "Failed to update goal");
+      Alert.alert(
+        i18n.t("tabs:common_error"),
+        i18n.t("tabs:error_failed_update_goal")
+      );
     }
   };
 
@@ -219,7 +248,10 @@ export default function ProgressScreen() {
     if (!editingGoal || !editingGoal.id) return;
 
     if (!editGoalTitle.trim()) {
-      Alert.alert("Validation", "Please enter a goal title");
+      Alert.alert(
+        i18n.t("tabs:validation"),
+        i18n.t("tabs:validation_enter_goal_title")
+      );
       return;
     }
 
@@ -228,8 +260,8 @@ export default function ProgressScreen() {
       (!editGoalValue.trim() || !editGoalUnit.trim())
     ) {
       Alert.alert(
-        "Validation",
-        "Please enter both a target value and unit for numeric goals"
+        i18n.t("tabs:validation"),
+        i18n.t("tabs:validation_enter_both_value_unit")
       );
       return;
     }
@@ -247,29 +279,39 @@ export default function ProgressScreen() {
       await loadData();
     } catch (error) {
       console.error("Error updating goal:", error);
-      Alert.alert("Error", "Failed to update goal");
+      Alert.alert(
+        i18n.t("tabs:common_error"),
+        i18n.t("tabs:error_failed_update_goal")
+      );
     }
   };
 
   const handleDeleteGoal = async () => {
     if (!editingGoal || !editingGoal.id) return;
-    Alert.alert("Delete Goal", "Are you sure you want to delete this goal?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await databaseManager.deleteGoal(editingGoal.id!);
-            setEditModalVisible(false);
-            await loadData();
-          } catch (error) {
-            console.error("Error deleting goal:", error);
-            Alert.alert("Error", "Failed to delete goal");
-          }
+    Alert.alert(
+      i18n.t("tabs:delete_goal"),
+      i18n.t("tabs:delete_goal_confirm"),
+      [
+        { text: i18n.t("tabs:cancel"), style: "cancel" },
+        {
+          text: i18n.t("tabs:delete"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await databaseManager.deleteGoal(editingGoal.id!);
+              setEditModalVisible(false);
+              await loadData();
+            } catch (error) {
+              console.error("Error deleting goal:", error);
+              Alert.alert(
+                i18n.t("tabs:common_error"),
+                i18n.t("tabs:error_failed_delete_goal")
+              );
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   const openAddGoalModal = () => {
@@ -282,7 +324,10 @@ export default function ProgressScreen() {
 
   const saveNewGoal = async () => {
     if (!newGoalTitle.trim()) {
-      Alert.alert("Validation", "Please enter a goal title");
+      Alert.alert(
+        i18n.t("tabs:validation"),
+        i18n.t("tabs:validation_enter_goal_title")
+      );
       return;
     }
 
@@ -291,8 +336,8 @@ export default function ProgressScreen() {
       (!newGoalValue.trim() || !newGoalUnit.trim())
     ) {
       Alert.alert(
-        "Validation",
-        "Please enter both a target value and unit for numeric goals"
+        i18n.t("tabs:validation"),
+        i18n.t("tabs:validation_enter_both_value_unit")
       );
       return;
     }
@@ -308,7 +353,10 @@ export default function ProgressScreen() {
       await loadData();
     } catch (error) {
       console.error("Error creating goal:", error);
-      Alert.alert("Error", "Failed to create goal");
+      Alert.alert(
+        i18n.t("tabs:common_error"),
+        i18n.t("tabs:error_failed_create_goal")
+      );
     }
   };
 
@@ -320,6 +368,38 @@ export default function ProgressScreen() {
       sunny: "sunny",
     };
     return iconMap[iconName] || "checkmark";
+  };
+
+  // Localize default goal titles while keeping custom ones as-is
+  const getLocalizedGoalTitle = (title: string): string => {
+    // Static defaults
+    if (title === "Sleep Goal") return i18n.t("tabs:home_sleep_goal");
+    if (title === "Calorie Goal") return i18n.t("tabs:home_daily_calories");
+
+    const toSlug = (s: string) =>
+      s
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim()
+        .replace(/\s+/g, "_");
+
+    const lower = title.toLowerCase();
+
+    // Stretches
+    const stretch = stretches.find((s) => s.name.toLowerCase() === lower);
+    if (stretch) {
+      const key = `tabs:stretch_names.${toSlug(stretch.name)}`;
+      return i18n.t(key);
+    }
+
+    // Daily tasks
+    const task = dailyTasks.find((t) => t.name.toLowerCase() === lower);
+    if (task) {
+      const key = `tabs:task_names.${toSlug(task.name)}`;
+      return i18n.t(key);
+    }
+
+    return title;
   };
 
   // Function to check if a goal is stretch-related
@@ -396,7 +476,7 @@ export default function ProgressScreen() {
     const today = new Date().toISOString().split("T")[0];
 
     if (selectedDate === today) {
-      return "Today's Progress";
+      return i18n.t("tabs:progress_today");
     } else {
       return date.toLocaleDateString("en-US", {
         weekday: "long",
@@ -443,17 +523,17 @@ export default function ProgressScreen() {
         {/* Streak and Tasks Cards */}
         <View style={styles.cardsSection}>
           <Card
-            label="Streak"
+            label={i18n.t("tabs:streak")}
             value={currentStreak.toString()}
-            subtext="days 🔥"
+            subtext={i18n.t("tabs:days_fire")}
           />
 
           <Card
-            label="Tasks Completed"
+            label={i18n.t("tabs:tasks_completed")}
             value={`${goals.filter((goal) => goal.completed).length}/${
               goals.length
             }`}
-            subtext="completed"
+            subtext={i18n.t("tabs:completed")}
           />
         </View>
 
@@ -483,7 +563,7 @@ export default function ProgressScreen() {
 
         {/* Goals Section */}
         <View style={styles.goalsSection}>
-          <Text style={styles.sectionTitle}>Daily Goals</Text>
+          <Text style={styles.sectionTitle}>{i18n.t("tabs:daily_goals")}</Text>
           {goals.map((goal) => (
             <View key={goal.id} style={styles.goalItem}>
               <TouchableOpacity
@@ -506,7 +586,9 @@ export default function ProgressScreen() {
                 style={styles.goalContent}
                 onPress={() => toggleGoal(goal.id?.toString() || "")}
               >
-                <Text style={styles.goalTitle}>{goal.title}</Text>
+                <Text style={styles.goalTitle}>
+                  {getLocalizedGoalTitle(goal.title)}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -520,7 +602,12 @@ export default function ProgressScreen() {
               {isStretchGoal(goal.title) && (
                 <TouchableOpacity
                   style={styles.infoButton}
-                  onPress={() => openStretchInfo(goal.title)}
+                  onPress={() => {
+                    logger.event("progress_open_stretch_info", {
+                      title: goal.title,
+                    });
+                    openStretchInfo(goal.title);
+                  }}
                 >
                   <Ionicons
                     name="information-circle-outline"
@@ -609,13 +696,13 @@ export default function ProgressScreen() {
               <Ionicons name="trash-outline" size={20} color="#FF6666" />
             </TouchableOpacity>
 
-            <Text style={styles.modalTitle}>Edit Goal</Text>
+            <Text style={styles.modalTitle}>{i18n.t("tabs:edit_goal")}</Text>
 
             <TextInput
               style={styles.modalInput}
               value={editGoalTitle}
               onChangeText={setEditGoalTitle}
-              placeholder="Goal title"
+              placeholder={i18n.t("tabs:goal_title")}
               placeholderTextColor="#666"
             />
 
@@ -625,7 +712,7 @@ export default function ProgressScreen() {
                   style={[styles.modalInputCompact, { flex: 1 }]}
                   value={editGoalValue}
                   onChangeText={setEditGoalValue}
-                  placeholder="Target"
+                  placeholder={i18n.t("tabs:target")}
                   placeholderTextColor="#666"
                   keyboardType="numeric"
                 />
@@ -633,14 +720,16 @@ export default function ProgressScreen() {
                   style={[styles.modalInputCompact, { width: 80 }]}
                   value={editGoalUnit}
                   onChangeText={setEditGoalUnit}
-                  placeholder="Unit"
+                  placeholder={i18n.t("tabs:unit")}
                   placeholderTextColor="#666"
                 />
               </View>
             )}
 
             <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>Numeric goal</Text>
+              <Text style={styles.switchLabel}>
+                {i18n.t("tabs:numeric_goal")}
+              </Text>
               <Switch
                 value={editGoalType === "numeric"}
                 onValueChange={(val) =>
@@ -656,13 +745,17 @@ export default function ProgressScreen() {
                 style={styles.modalButton}
                 onPress={() => setEditModalVisible(false)}
               >
-                <Text style={styles.modalButtonText}>Cancel</Text>
+                <Text style={styles.modalButtonText}>
+                  {i18n.t("tabs:cancel")}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonPrimary]}
                 onPress={saveEditedGoal}
               >
-                <Text style={styles.modalButtonTextPrimary}>Save</Text>
+                <Text style={styles.modalButtonTextPrimary}>
+                  {i18n.t("tabs:save")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -678,12 +771,12 @@ export default function ProgressScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>New Goal</Text>
+            <Text style={styles.modalTitle}>{i18n.t("tabs:new_goal")}</Text>
             <TextInput
               style={styles.modalInput}
               value={newGoalTitle}
               onChangeText={setNewGoalTitle}
-              placeholder="Goal title"
+              placeholder={i18n.t("tabs:goal_title")}
               placeholderTextColor="#666"
             />
 
@@ -693,7 +786,7 @@ export default function ProgressScreen() {
                   style={[styles.modalInputCompact, { flex: 1 }]}
                   value={newGoalValue}
                   onChangeText={setNewGoalValue}
-                  placeholder="Target"
+                  placeholder={i18n.t("tabs:target")}
                   placeholderTextColor="#666"
                   keyboardType="numeric"
                 />
@@ -701,14 +794,16 @@ export default function ProgressScreen() {
                   style={[styles.modalInputCompact, { width: 80 }]}
                   value={newGoalUnit}
                   onChangeText={setNewGoalUnit}
-                  placeholder="Unit"
+                  placeholder={i18n.t("tabs:unit")}
                   placeholderTextColor="#666"
                 />
               </View>
             )}
 
             <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>Numeric goal</Text>
+              <Text style={styles.switchLabel}>
+                {i18n.t("tabs:numeric_goal")}
+              </Text>
               <Switch
                 value={newGoalType === "numeric"}
                 onValueChange={(val) =>
@@ -723,13 +818,17 @@ export default function ProgressScreen() {
                 style={styles.modalButton}
                 onPress={() => setAddGoalModalVisible(false)}
               >
-                <Text style={styles.modalButtonText}>Cancel</Text>
+                <Text style={styles.modalButtonText}>
+                  {i18n.t("tabs:cancel")}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonPrimary]}
                 onPress={saveNewGoal}
               >
-                <Text style={styles.modalButtonTextPrimary}>Add</Text>
+                <Text style={styles.modalButtonTextPrimary}>
+                  {i18n.t("tabs:add")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

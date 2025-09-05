@@ -1,7 +1,9 @@
+import { useRouter } from "expo-router";
 import React from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { withOnboarding } from "../../components/withOnboarding";
+import i18n from "../../utils/i18n";
 
 export default withOnboarding(ProductScreen, 8, "product", "trust");
 
@@ -12,21 +14,19 @@ function ProductScreen({
   onNext?: () => void;
   onBack?: () => void;
 }) {
+  const router = useRouter();
   return (
     <OnboardingLayout
-      title="GoTall builds habits"
+      title={i18n.t("onboarding:product_title")}
       currentStep={9}
       onNext={onNext}
-      onBack={onBack}
+      onBack={() => router.push("/(onboarding)/puberty" as any)}
       showBackButton={true}
     >
       <View style={styles.container}>
         <View style={styles.messageContainer}>
           <Text style={styles.highlightText}>
-            Up to <Text style={styles.accentText}>20%</Text> of your final
-            height is determined by your{" "}
-            <Text style={styles.accentText}>daily habits</Text>.{"\n"}
-            Don't waste it.
+            {i18n.t("onboarding:product_highlight_rich")}
           </Text>
         </View>
 

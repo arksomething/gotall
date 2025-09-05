@@ -14,6 +14,7 @@ import {
 import { withOnboarding } from "../../components/withOnboarding";
 import { logEvent } from "../../utils/Analytics";
 import { parseHeightToCm } from "../../utils/heightUtils";
+import i18n from "../../utils/i18n";
 import { useOnboarding } from "./_layout";
 
 export default withOnboarding(GeneratingScreen, 11, "generating", "projection");
@@ -42,10 +43,10 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
   const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const messages = [
-    "You didn't choose your genetics.",
-    "But you can choose what you do.",
-    "Analyzing the CDC data...",
-    "Finding your height coach...",
+    i18n.t("onboarding:generating_message_1"),
+    i18n.t("onboarding:generating_message_2"),
+    i18n.t("onboarding:generating_message_3"),
+    i18n.t("onboarding:generating_message_4"),
   ];
 
   // Helper to compute a comprehensive analytics payload with both display and canonical values

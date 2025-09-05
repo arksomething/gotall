@@ -4,6 +4,7 @@ import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { SelectionList } from "../../../components/SelectionList";
 import { withOnboarding } from "../../../components/withOnboarding";
 import { CONFIG } from "../../../utils/config";
+import i18n from "../../../utils/i18n";
 import { useUserData } from "../../../utils/UserContext";
 
 function ShouldersScreen({
@@ -26,20 +27,28 @@ function ShouldersScreen({
 
   return (
     <OnboardingLayout
-      title="Have your shoulders gotten broader?"
+      title={i18n.t("onboarding:shoulders_title")}
       currentStep={3}
       onNext={onNext}
       onBack={onBack}
       disableDefaultNext={!answer}
-      nextButtonText="Continue"
+      nextButtonText={i18n.t("onboarding:subscription_button_continue", {
+        defaultValue: "Continue",
+      })}
       totalStepsOverride={CONFIG.PUBERTY_QUIZ_STEPS}
     >
       <View style={styles.container}>
         <SelectionList
           options={[
-            { label: "No", value: "no" },
-            { label: "Yes, starting to", value: "starting" },
-            { label: "Yes, clearly broader", value: "broader" },
+            { label: i18n.t("onboarding:shoulders_option_no"), value: "no" },
+            {
+              label: i18n.t("onboarding:shoulders_option_starting"),
+              value: "starting",
+            },
+            {
+              label: i18n.t("onboarding:shoulders_option_broader"),
+              value: "broader",
+            },
           ]}
           selectedValue={answer ?? undefined}
           onSelect={async (value) => {

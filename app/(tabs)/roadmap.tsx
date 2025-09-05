@@ -20,8 +20,11 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "../../components/Header";
 import RoadmapNode from "../../components/RoadmapNode";
+import { logEvent } from "../../utils/Analytics";
+import { logger } from "../../utils/Logger";
 import { CONFIG } from "../../utils/config";
 import { databaseManager } from "../../utils/database";
+import i18n from "../../utils/i18n";
 import { getLessonsForDay, getTotalDays } from "../../utils/lessons";
 
 // Countdown timer component for locked lessons
@@ -36,7 +39,7 @@ const LockCountdown = ({ unlockTime }: { unlockTime: Date | null }) => {
       const diff = unlockTime.getTime() - now.getTime();
 
       if (diff <= 0) {
-        setTimeLeft("Unlocked!");
+        setTimeLeft(i18n.t("tabs:roadmap_unlocked"));
         return;
       }
 
@@ -52,13 +55,39 @@ const LockCountdown = ({ unlockTime }: { unlockTime: Date | null }) => {
     return () => clearInterval(interval);
   }, [unlockTime]);
 
-  if (!unlockTime || timeLeft === "Unlocked!") return null;
+  if (!unlockTime || timeLeft === i18n.t("tabs:roadmap_unlocked")) return null;
 
-  return <Text style={styles.lockCountdown}>Unlocks in {timeLeft}</Text>;
+  return (
+    <Text style={styles.lockCountdown}>
+      {i18n.t("tabs:roadmap_unlocks_in", { time: timeLeft })}
+    </Text>
+  );
 };
 
 export default function RoadmapScreen() {
   const router = useRouter();
+  // Dwell time tracking
+  const dwellStartRef = useRef<number | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      dwellStartRef.current = Date.now();
+      logger.startTimer("screen_roadmap");
+      return () => {
+        if (dwellStartRef.current) {
+          const ms = Date.now() - dwellStartRef.current;
+          try {
+            logEvent("screen_dwell", {
+              screen_name: "roadmap",
+              dwell_ms: ms,
+              dwell_sec: Math.round(ms / 1000),
+            });
+          } catch {}
+          dwellStartRef.current = null;
+        }
+        logger.endTimer("screen_roadmap");
+      };
+    }, [])
+  );
 
   const insets = useSafeAreaInsets();
 
@@ -186,14 +215,35 @@ export default function RoadmapScreen() {
     };
   }, [progressTarget]);
 
+  // Log progress metric when computed
+  useEffect(() => {
+    try {
+      logEvent("roadmap_progress_rendered", {
+        completed_day_count: completedDayCount,
+        total_days: TOTAL_DAYS,
+        completion_pct: Math.round((completedDayCount / TOTAL_DAYS) * 100),
+      });
+    } catch {}
+  }, [completedDayCount, TOTAL_DAYS]);
+
   const handleDayPress = (day: number) => {
-    setExpandedDay((prev) => (prev === day ? null : day));
+    setExpandedDay((prev) => {
+      const next = prev === day ? null : day;
+      try {
+        logEvent("roadmap_day_expand", {
+          day,
+          expanded: next === day,
+        });
+        logger.event("roadmap_day_expand", { day, expanded: next === day });
+      } catch {}
+      return next;
+    });
   };
 
   return (
     <View style={styles.container}>
       <Header
-        title="Roadmap"
+        title={i18n.t("tabs:roadmap_title")}
         showBackButton={false}
         rightElement={
           <TouchableOpacity
@@ -352,6 +402,14 @@ export default function RoadmapScreen() {
                       }
                     }
 
+                    try {
+                      logEvent("roadmap_toggle_complete", {
+                        day,
+                        completed_before: isCompleted,
+                        completed_after: !isCompleted,
+                      });
+                    } catch {}
+
                     // Manually update local state for immediate feedback
                     const newCompletionStatus = { ...lessonCompletion };
                     const newLockStatus = { ...lessonLocks };
@@ -440,6 +498,9 @@ export default function RoadmapScreen() {
                   onMeasure={handleMeasure}
                   onStartLessons={() => {
                     if (isUnlocked) {
+                      try {
+                        logEvent("roadmap_start_lessons", { day });
+                      } catch {}
                       router.push({
                         pathname: "/(tabs)/lesson",
                         params: { day: String(day), step: "0" },

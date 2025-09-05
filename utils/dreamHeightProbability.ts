@@ -227,7 +227,7 @@ function formatHeight(heightCm: number): string {
 
 function formatHeightDifference(differenceCm: number): string {
   if (differenceCm <= 0) {
-    return "Already achieved";
+    return "";
   }
   
   const totalInches = convert(differenceCm).from("cm").to("in");
@@ -235,26 +235,21 @@ function formatHeightDifference(differenceCm: number): string {
   const inches = Math.round(totalInches % 12);
   
   if (feet === 0) {
-    return `${inches}" to go`;
+    return `${inches}"`;
   }
   
   if (inches === 0) {
-    return `${feet}' to go`;
+    return `${feet}'`;
   }
   
-  return `${feet}'${inches}" to go`;
+  return `${feet}'${inches}"`;
 }
 
 function formatProbabilityText(probability: number): string {
-  if (probability >= 90) {
-    return "Very High";
-  } else if (probability >= 75) {
-    return "High";
-  } else if (probability >= 50) {
-    return "Moderate";
-  } else if (probability >= 25) {
-    return "Low";
-  } else {
-    return "Very Low";
-  }
-} 
+  // Return an empty bucket so UI can supply localized strings
+  if (probability >= 90) return "prob_very_high";
+  if (probability >= 75) return "prob_high";
+  if (probability >= 50) return "prob_moderate";
+  if (probability >= 25) return "prob_low";
+  return "prob_very_low";
+}

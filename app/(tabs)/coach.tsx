@@ -26,6 +26,7 @@ import {
   calculatePercentile,
 } from "../../utils/heightProjection";
 import { getHeightForInput } from "../../utils/heightUtils";
+import i18n from "../../utils/i18n";
 import { useUserData } from "../../utils/UserContext";
 
 type Message = {
@@ -48,11 +49,12 @@ interface UserContext {
   ethnicity: string;
 }
 
-const SUGGESTED_PROMPTS = [
-  "How tall will I be?",
-  "What stretches help posture?",
-  "How much sleep should I get?",
-  "Best foods for growth?",
+// Local list of i18n keys for suggested prompts
+const SUGGESTED_PROMPT_KEYS: string[] = [
+  "tabs:coach_prompt_how_tall",
+  "tabs:coach_prompt_posture_stretches",
+  "tabs:coach_prompt_sleep_hours",
+  "tabs:coach_prompt_best_foods",
 ];
 
 export default function CoachScreen() {
@@ -139,20 +141,24 @@ export default function CoachScreen() {
   };
 
   const clearChat = () => {
-    Alert.alert("Clear Chat", "Are you sure you want to clear all messages?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Clear",
-        style: "destructive",
-        onPress: () => {
-          LayoutAnimation.easeInEaseOut();
-          setMessages([]);
+    Alert.alert(
+      i18n.t("tabs:coach_clear_chat_title"),
+      i18n.t("tabs:coach_clear_chat_confirm"),
+      [
+        {
+          text: i18n.t("tabs:cancel") || "Cancel",
+          style: "cancel",
         },
-      },
-    ]);
+        {
+          text: i18n.t("tabs:delete") || "Clear",
+          style: "destructive",
+          onPress: () => {
+            LayoutAnimation.easeInEaseOut();
+            setMessages([]);
+          },
+        },
+      ]
+    );
   };
 
   const sendMessage = async (contentOverride?: string) => {
@@ -253,7 +259,7 @@ export default function CoachScreen() {
       // Add error message to chat
       const errorMessage = {
         id: (Date.now() + 1).toString(),
-        content: "Sorry, I'm having trouble connecting. Please try again.",
+        content: i18n.t("tabs:coach_error_reply"),
         role: "assistant" as const,
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -292,7 +298,7 @@ export default function CoachScreen() {
       style={styles.container}
     >
       <Header
-        title="Coach"
+        title={i18n.t("tabs:coach_title")}
         showBackButton={false}
         rightElement={
           messages.length > 0 ? (
@@ -308,20 +314,22 @@ export default function CoachScreen() {
           {messages.length === 0 ? (
             <View style={styles.welcomeContainer}>
               <Ionicons name="school" size={64} color="#9ACD32" />
-              <Text style={styles.title}>Meet Andy, your height coach</Text>
+              <Text style={styles.title}>
+                {i18n.t("tabs:coach_welcome_title")}
+              </Text>
               <Text style={styles.subtitle}>
-                Ask me anything about height, growth, or your journey!
+                {i18n.t("tabs:coach_welcome_sub")}
               </Text>
 
               {/* Suggested Prompts */}
               <View style={styles.suggestionsContainer}>
-                {SUGGESTED_PROMPTS.map((prompt) => (
+                {SUGGESTED_PROMPT_KEYS.map((key) => (
                   <Pressable
-                    key={prompt}
+                    key={key}
                     style={styles.suggestionChip}
-                    onPress={() => handleSuggestedPrompt(prompt)}
+                    onPress={() => handleSuggestedPrompt(i18n.t(key))}
                   >
-                    <Text style={styles.suggestionText}>{prompt}</Text>
+                    <Text style={styles.suggestionText}>{i18n.t(key)}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -347,7 +355,7 @@ export default function CoachScreen() {
             style={styles.input}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Ask your coach something..."
+            placeholder={i18n.t("tabs:coach_placeholder")}
             placeholderTextColor="#666"
             multiline
             maxLength={500}

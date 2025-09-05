@@ -19,7 +19,8 @@ import {
   withOnboarding,
 } from "../../components/withOnboarding";
 import { crashlytics } from "../../utils/crashlytics";
-import { useExperiment } from "../../utils/experiments";
+import i18n from "../../utils/i18n";
+import { getCopy } from "../../utils/remoteConfig";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const AUTO_SCROLL_INTERVAL = 3000; // Time between auto-scrolls in milliseconds
@@ -62,13 +63,11 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
   const insets = useSafeAreaInsets();
   const HERO_HEIGHT = screenHeight - insets.top - 280; // subtract approximate bottom panel height
 
-  // A/B test: CTA copy on the welcome screen
-  const { variant, isReady, trackConversion } = useExperiment(
-    "onboarding_cta_copy",
-    { logExposureOnMount: true, attributes: { screen: "onboarding_index" } }
+  // Generic server-driven copy from Remote Config JSON
+  const ctaLabel = getCopy(
+    "onboarding.index.cta_label",
+    i18n.t("onboarding:index_button_cta_text")
   );
-  const ctaLabel =
-    variant === "variant_get_started" ? "Get started" : "Let's start";
 
   // Add logging for debugging
   useEffect(() => {
@@ -129,10 +128,14 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
       crashlytics.setCustomKey("action", "pressed_lets_start");
       crashlytics.setCustomKey("active_slide", activeSlide.toString());
 
-      // Experiment conversion tracking
-      trackConversion("exp_conversion_onboarding_cta", {
-        active_slide: activeSlide,
-      });
+      // Log conversion with chosen CTA text
+      try {
+        const { logEvent } = require("../../utils/Analytics");
+        logEvent("exp_conversion_onboarding_cta", {
+          cta_label: ctaLabel,
+          active_slide: activeSlide,
+        });
+      } catch {}
 
       // Log current state
       console.log("Navigation state before onNext:", {
@@ -193,9 +196,11 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
 
       {/* Black Bottom Panel */}
       <View style={styles.bottomPanel}>
-        <Text style={styles.headline}>Predict your height</Text>
+        <Text style={styles.headline}>
+          {i18n.t("onboarding:index_headline")}
+        </Text>
         <Text style={styles.subtitleText}>
-          Input your details to discover your future height and potential
+          {i18n.t("onboarding:index_subtitle")}
         </Text>
 
         <View style={styles.paginationBottom}>
@@ -222,7 +227,11 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
               )
             }
           >
-            <Text style={styles.privacyText}>Privacy Policy</Text>
+            <Text style={styles.privacyText}>
+              {i18n.t("onboarding_common_privacy", {
+                defaultValue: "Privacy Policy",
+              })}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() =>
@@ -231,7 +240,11 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
               )
             }
           >
-            <Text style={styles.privacyText}>Terms of Use</Text>
+            <Text style={styles.privacyText}>
+              {i18n.t("onboarding_common_terms", {
+                defaultValue: "Terms of Use",
+              })}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

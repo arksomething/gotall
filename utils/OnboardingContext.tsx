@@ -33,6 +33,14 @@ export function OnboardingProvider({
     try {
       await AsyncStorage.setItem("@onboarding_completed", String(value));
       setIsOnboardingCompleteState(value);
+      if (value) {
+        // Initialize the last height update timestamp so users must wait
+        // seven days after finishing onboarding before updating height.
+        await AsyncStorage.setItem(
+          "@last_height_update_ms",
+          Date.now().toString()
+        );
+      }
     } catch (error) {
       console.error("Error saving onboarding status:", error);
     }

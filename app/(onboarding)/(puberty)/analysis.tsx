@@ -4,6 +4,7 @@ import { AnalysisCard } from "../../../components/AnalysisCard";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { withOnboarding } from "../../../components/withOnboarding";
 import { CONFIG } from "../../../utils/config";
+import i18n from "../../../utils/i18n";
 
 const TANNER_ANALYSIS_PROMPT =
   "Analyze this image to estimate the Tanner stage. Respond with a short, plain text explanation and likely stage.";
@@ -17,20 +18,22 @@ function PubertyAnalysisScreen({
 }) {
   return (
     <OnboardingLayout
-      title="Optional Tanner Stage Analysis"
+      title={i18n.t("onboarding:analysis_title")}
       currentStep={10}
       onNext={onNext}
       onBack={onBack}
-      nextButtonText="Continue"
+      nextButtonText={i18n.t("onboarding:subscription_button_continue", {
+        defaultValue: "Continue",
+      })}
       totalStepsOverride={CONFIG.PUBERTY_QUIZ_STEPS}
     >
       <View style={styles.container}>
         <AnalysisCard
           endpoint="https://foodanalyzer-2og6xa3ima-uc.a.run.app"
           prompt={TANNER_ANALYSIS_PROMPT}
-          analyzeButtonText="Analyze Image"
+          analyzeButtonText={i18n.t("onboarding:analysis_button_analyze_image")}
           maxImages={1}
-          placeholderText="Upload one photo"
+          placeholderText={i18n.t("onboarding:analysis_placeholder_upload_one")}
         />
       </View>
     </OnboardingLayout>

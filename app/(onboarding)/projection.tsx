@@ -16,6 +16,7 @@ import {
   HeightFormatter,
   parseHeightToCm,
 } from "../../utils/heightUtils";
+import i18n from "../../utils/i18n";
 
 interface HeightData {
   currentHeight: string;
@@ -108,7 +109,7 @@ const ProjectionScreen = () => {
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? error.message : "Unknown error";
       console.error("Error calculating height projections:", {
         error: errorMessage,
         userData: {
@@ -119,12 +120,8 @@ const ProjectionScreen = () => {
       });
       setError(errorMessage);
       Alert.alert(
-        "Height Projection Error",
-        "There was an error calculating your height projection. This might be because:\n\n" +
-          "• Your age is outside our data range\n" +
-          "• There was an issue with the growth data\n\n" +
-          "Technical details: " +
-          errorMessage
+        i18n.t("onboarding:projection_error_title"),
+        i18n.t("onboarding:projection_error_body", { details: errorMessage })
       );
     }
   }, [userData, getAge]);
@@ -189,21 +186,23 @@ const ProjectionScreen = () => {
       })()
     : 0;
 
-  const unitLabel = isMetric ? "cm" : "inch(es)";
+  const unitLabel = isMetric
+    ? "cm"
+    : i18n.t("onboarding:projection_unit_inches_suffix");
 
   return (
     <OnboardingLayout
-      title="Your Height Projection"
+      title={i18n.t("onboarding:projection_title")}
       currentStep={14}
       onNext={handleNext}
       onBack={handleBack}
-      nextButtonText="Continue"
+      nextButtonText={i18n.t("onboarding:projection_button_unlock")}
     >
       <View style={styles.container}>
         {error ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>
-              Sorry, we couldn't calculate your height projection.
+              {i18n.t("onboarding:projection_error_message")}
             </Text>
             <Text style={styles.errorDetail}>{error}</Text>
           </View>
@@ -211,7 +210,9 @@ const ProjectionScreen = () => {
           <>
             <View style={styles.metricsContainer}>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>On track to be:</Text>
+                <Text style={styles.metricLabel}>
+                  {i18n.t("onboarding:projection_label_on_track")}
+                </Text>
                 <View style={[styles.heightBox, styles.heightBoxLarge]}>
                   <Text style={[styles.metricValue, styles.heightValue]}>
                     {heightData.actualHeight}
@@ -220,7 +221,9 @@ const ProjectionScreen = () => {
               </View>
 
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>True potential:</Text>
+                <Text style={styles.metricLabel}>
+                  {i18n.t("onboarding:projection_label_true_potential")}
+                </Text>
                 <View style={[styles.lockedMetric, styles.heightBoxLarge]}>
                   {!hasPaid && (
                     <BlurView
@@ -240,12 +243,14 @@ const ProjectionScreen = () => {
               <Text style={styles.optimizeText}>
                 {hasPaid ? (
                   <>
-                    Optimize up to{" "}
+                    {i18n.t("onboarding:projection_label_optimize_prefix")}{" "}
                     <Text style={styles.highlight}>{heightGain}</Text>{" "}
                     {unitLabel}
                   </>
                 ) : (
-                  `Optimize up to 🔒 ${unitLabel}`
+                  `${i18n.t(
+                    "onboarding:projection_label_optimize_prefix"
+                  )} 🔒 ${unitLabel}`
                 )}
               </Text>
             </View>
@@ -289,7 +294,9 @@ const ProjectionScreen = () => {
 
               {dreamData && (
                 <View style={[styles.metricBox, styles.smallMetricBox]}>
-                  <Text style={styles.metricLabel}>Dream Odds</Text>
+                  <Text style={styles.metricLabel}>
+                    {i18n.t("onboarding:projection_label_dream_odds")}
+                  </Text>
                   <View style={styles.heightBox}>
                     {!hasPaid && (
                       <BlurView
@@ -312,14 +319,18 @@ const ProjectionScreen = () => {
               <Text style={styles.optimizeText}>
                 {hasPaid ? (
                   <>
-                    Taller than{" "}
+                    {i18n.t("onboarding:projection_label_taller_than_prefix")}{" "}
                     <Text style={styles.highlight}>
                       {heightData.percentileRank || 50}%
                     </Text>{" "}
-                    of your age
+                    {i18n.t("onboarding:projection_label_of_your_age_suffix")}
                   </>
                 ) : (
-                  "Taller than 🔒 of your age"
+                  `${i18n.t(
+                    "onboarding:projection_label_taller_than_prefix"
+                  )} 🔒 ${i18n.t(
+                    "onboarding:projection_label_of_your_age_suffix"
+                  )}`
                 )}
               </Text>
             </View>

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Notifications from "expo-notifications";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -15,6 +15,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "../../components/Header";
+import i18n from "../../utils/i18n";
+import { logger } from "../../utils/Logger";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -36,22 +38,32 @@ export default function UtilitiesScreen() {
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  // Dwell time per page id
+  useFocusEffect(
+    React.useCallback(() => {
+      const key = "screen_utilities";
+      logger.startTimer(key, { page: pages[currentPage]?.id });
+      return () => {
+        logger.endTimer(key, { page: pages[currentPage]?.id });
+      };
+    }, [currentPage])
+  );
 
   const intervalOptions = [
-    { value: 20, label: "20 min" },
-    { value: 60, label: "1 hour" },
-    { value: 180, label: "3 hours" },
+    { value: 20, label: i18n.t("utils:time_min", { count: 20 }) },
+    { value: 60, label: i18n.t("utils:time_hour") },
+    { value: 180, label: i18n.t("utils:time_hours", { count: 3 }) },
   ];
 
   const pages = [
     {
       id: "posture",
-      title: "Posture Reminders",
+      title: i18n.t("tabs:utilities_posture_title"),
       icon: "checkmark-circle-outline",
     },
     {
       id: "discord",
-      title: "Community",
+      title: i18n.t("tabs:utilities_community_title"),
       icon: "people-outline",
     },
   ];
@@ -76,9 +88,9 @@ export default function UtilitiesScreen() {
     const { status } = await Notifications.requestPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
-        "Permission Required",
-        "Please enable notifications to receive posture reminders.",
-        [{ text: "OK" }]
+        i18n.t("tabs:utilities_permission_required"),
+        i18n.t("tabs:utilities_permission_message"),
+        [{ text: i18n.t("tabs:common_ok") }]
       );
     }
   };
@@ -109,13 +121,18 @@ export default function UtilitiesScreen() {
       setReminderActive(true);
 
       Alert.alert(
-        "Reminder Started! ✅",
-        `You'll receive posture reminders every ${reminderInterval} minutes, even when the app is closed.`,
-        [{ text: "OK" }]
+        i18n.t("tabs:utilities_reminder_started_title"),
+        i18n.t("tabs:utilities_reminder_started_message", {
+          minutes: reminderInterval,
+        }),
+        [{ text: i18n.t("tabs:common_ok") }]
       );
     } catch (error) {
       console.error("Error starting reminder:", error);
-      Alert.alert("Error", "Failed to start reminder");
+      Alert.alert(
+        i18n.t("tabs:utilities_error"),
+        i18n.t("tabs:utilities_failed_start")
+      );
     }
   };
 
@@ -127,9 +144,9 @@ export default function UtilitiesScreen() {
       setReminderActive(false);
 
       Alert.alert(
-        "All Reminders Killed ⏹️",
-        "All posture reminders have been completely disabled.",
-        [{ text: "OK" }]
+        i18n.t("tabs:utilities_all_killed_title"),
+        i18n.t("tabs:utilities_all_killed_message"),
+        [{ text: i18n.t("tabs:common_ok") }]
       );
     } catch (error) {
       console.error("Error stopping reminders:", error);
@@ -153,7 +170,10 @@ export default function UtilitiesScreen() {
     try {
       await Linking.openURL(discordUrl);
     } catch (error) {
-      Alert.alert("Error", "Could not open Discord link");
+      Alert.alert(
+        i18n.t("tabs:utilities_error"),
+        i18n.t("tabs:utilities_could_not_open_discord")
+      );
     }
   };
 
@@ -171,19 +191,25 @@ export default function UtilitiesScreen() {
             <Text
               style={[styles.cardTitle, reminderActive && styles.activeText]}
             >
-              {reminderActive ? "Reminders Active" : "Reminders Disabled"}
+              {reminderActive
+                ? i18n.t("tabs:utilities_reminders_active")
+                : i18n.t("tabs:utilities_reminders_disabled")}
             </Text>
           </View>
           {reminderActive && (
             <Text style={styles.cardSubtitle}>
-              Checking every {reminderInterval} minutes
+              {i18n.t("tabs:utilities_checking_every", {
+                minutes: reminderInterval,
+              })}
             </Text>
           )}
         </View>
 
         {/* Interval Selection */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Reminder Frequency</Text>
+          <Text style={styles.sectionTitle}>
+            {i18n.t("tabs:utilities_frequency")}
+          </Text>
           <View style={styles.intervalGrid}>
             {intervalOptions.map((option) => (
               <TouchableOpacity
@@ -225,11 +251,11 @@ export default function UtilitiesScreen() {
               reminderActive && styles.stopButtonText,
             ]}
           >
-            {reminderActive ? "Stop Reminders" : "Start Reminders"}
+            {reminderActive
+              ? i18n.t("tabs:utilities_stop_reminders")
+              : i18n.t("tabs:utilities_start_reminders")}
           </Text>
         </TouchableOpacity>
-
-        
       </ScrollView>
     </View>
   );
@@ -241,35 +267,47 @@ export default function UtilitiesScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Ionicons name="logo-discord" size={24} color="#5865F2" />
-            <Text style={styles.cardTitle}>Join Our Community</Text>
+            <Text style={styles.cardTitle}>
+              {i18n.t("tabs:utilities_join_community")}
+            </Text>
           </View>
           <Text style={styles.cardSubtitle}>
-            Connect with fellow learners, share progress, and get support from
-            the GoTall community.
+            {i18n.t("tabs:utilities_join_community_sub", {
+              defaultValue:
+                "Connect with fellow learners, share progress, and get support from the GoTall community.",
+            })}
           </Text>
         </View>
 
         {/* Discord Features */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>What you'll find</Text>
+          <Text style={styles.sectionTitle}>
+            {i18n.t("tabs:utilities_features_title")}
+          </Text>
           <View style={styles.featureList}>
             <View style={styles.featureItem}>
               <Ionicons name="people" size={20} color="#9ACD32" />
               <Text style={styles.featureText}>
-                Community support & motivation
+                {i18n.t("tabs:utilities_feature_support")}
               </Text>
             </View>
             <View style={styles.featureItem}>
               <Ionicons name="chatbubbles" size={20} color="#9ACD32" />
-              <Text style={styles.featureText}>Tips & tricks from members</Text>
+              <Text style={styles.featureText}>
+                {i18n.t("tabs:utilities_feature_tips")}
+              </Text>
             </View>
             <View style={styles.featureItem}>
               <Ionicons name="trophy" size={20} color="#9ACD32" />
-              <Text style={styles.featureText}>Progress celebrations</Text>
+              <Text style={styles.featureText}>
+                {i18n.t("tabs:utilities_feature_celebrations")}
+              </Text>
             </View>
             <View style={styles.featureItem}>
               <Ionicons name="help-circle" size={20} color="#9ACD32" />
-              <Text style={styles.featureText}>Q&A with experts</Text>
+              <Text style={styles.featureText}>
+                {i18n.t("tabs:utilities_feature_qa")}
+              </Text>
             </View>
           </View>
         </View>
@@ -277,10 +315,10 @@ export default function UtilitiesScreen() {
         {/* Join Button */}
         <TouchableOpacity style={styles.discordButton} onPress={openDiscord}>
           <Ionicons name="logo-discord" size={24} color="#fff" />
-          <Text style={styles.discordButtonText}>Join Discord Community</Text>
+          <Text style={styles.discordButtonText}>
+            {i18n.t("tabs:utilities_join_discord")}
+          </Text>
         </TouchableOpacity>
-
-        
       </ScrollView>
     </View>
   );
@@ -298,7 +336,9 @@ export default function UtilitiesScreen() {
 
   const onViewableItemsChanged = ({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
-      setCurrentPage(viewableItems[0].index);
+      const nextIndex = viewableItems[0].index;
+      setCurrentPage(nextIndex);
+      logger.event("utilities_page_view", { page: pages[nextIndex]?.id });
     }
   };
 
@@ -309,7 +349,7 @@ export default function UtilitiesScreen() {
   return (
     <View style={[styles.container]}>
       <Header
-        title="Utilities"
+        title={i18n.t("tabs:utilities_title")}
         rightElement={
           <TouchableOpacity
             onPress={() => router.push("/(tabs)/profile")}

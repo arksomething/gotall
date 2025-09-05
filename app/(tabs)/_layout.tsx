@@ -1,11 +1,29 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Tabs, usePathname } from "expo-router";
 import React from "react";
 import { Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { logScreenView } from "../../utils/FirebaseAnalytics";
+import { logger } from "../../utils/Logger";
+import i18n from "../../utils/i18n";
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const pathname = usePathname();
+
+  React.useEffect(() => {
+    if (!pathname) return;
+    const name = pathname.split("/").filter(Boolean).pop() || "tabs";
+    logScreenView(name);
+    // Track tab and screen context
+    const tab = ["index", "coach", "roadmap", "progress", "utilities"].includes(
+      name
+    )
+      ? name
+      : undefined;
+    if (tab) logger.trackTab(tab);
+    logger.trackScreen(name, { group: "tabs", tab });
+  }, [pathname]);
 
   return (
     <Tabs
@@ -37,7 +55,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: i18n.t("tabs:home_title"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -46,7 +64,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="coach"
         options={{
-          title: "Andy",
+          title: i18n.t("tabs:coach_title"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="school" size={size} color={color} />
           ),
@@ -55,7 +73,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="roadmap"
         options={{
-          title: "Roadmap",
+          title: i18n.t("tabs:roadmap_title"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="map" size={size} color={color} />
           ),
@@ -64,7 +82,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="progress"
         options={{
-          title: "Progress",
+          title: i18n.t("tabs:progress_title"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="trending-up" size={size} color={color} />
           ),
@@ -73,7 +91,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="utilities"
         options={{
-          title: "Utilities",
+          title: i18n.t("tabs:utilities_title"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="construct-outline" size={size} color={color} />
           ),

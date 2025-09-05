@@ -6,6 +6,7 @@ import {
   OnboardingScreenProps,
   withOnboarding,
 } from "../../components/withOnboarding";
+import i18n from "../../utils/i18n";
 import { useUserData } from "../../utils/UserContext";
 import { useOnboarding } from "./_layout";
 
@@ -90,17 +91,21 @@ function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
 
   return (
     <OnboardingLayout
-      title="What's your dream height?"
+      title={i18n.t("onboarding:dream_title")}
       currentStep={7}
       onNext={onNext}
       onBack={onBack}
     >
       <View style={styles.stepContent}>
         <View style={styles.container}>
-          <Text style={styles.title}>Select your dream height</Text>
+          <Text style={styles.title}>
+            {i18n.t("onboarding:dream_picker_title")}
+          </Text>
           <View style={styles.pickerColumn}>
             <Text style={styles.label}>
-              {isMetric ? "Centimeters" : "Feet & Inches"}
+              {isMetric
+                ? i18n.t("onboarding:dream_label_metric")
+                : i18n.t("onboarding:dream_label_imperial")}
             </Text>
             <View style={styles.pickerWrapper}>
               <Picker
@@ -125,7 +130,7 @@ function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
 
           <View style={styles.unitsContainer}>
             <Text style={[styles.unitText, !isMetric && styles.activeUnit]}>
-              Imperial
+              {i18n.t("onboarding:dream_units_imperial")}
             </Text>
             <Switch
               value={isMetric}
@@ -136,7 +141,7 @@ function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
               style={styles.switch}
             />
             <Text style={[styles.unitText, isMetric && styles.activeUnit]}>
-              Metric
+              {i18n.t("onboarding:dream_units_metric")}
             </Text>
           </View>
         </View>

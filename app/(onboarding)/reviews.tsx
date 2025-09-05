@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { withOnboarding } from "../../components/withOnboarding";
+import i18n from "../../utils/i18n";
 import { useUnits } from "../../utils/useUnits";
 
 export default withOnboarding(ReviewsScreen, 10, "reviews", "short");
@@ -44,7 +45,7 @@ function ReviewsScreen({
 
   return (
     <OnboardingLayout
-      title="Real Results"
+      title={i18n.t("onboarding:reviews_title")}
       currentStep={11}
       onNext={onNext}
       onBack={onBack}
@@ -53,8 +54,12 @@ function ReviewsScreen({
       <View style={styles.container}>
         <View style={styles.statsBanner}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>10,000+</Text>
-            <Text style={styles.statLabel}>Community</Text>
+            <Text style={styles.statNumber}>
+              {i18n.t("onboarding:reviews_stat_number_community")}
+            </Text>
+            <Text style={styles.statLabel}>
+              {i18n.t("onboarding:reviews_stat_label_community")}
+            </Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
@@ -80,8 +85,7 @@ function ReviewsScreen({
             </View>
           </View>
           <Text style={styles.reviewText}>
-            "Grew an inch since following the app's instructions. Looking
-            forward to more results!"
+            {i18n.t("onboarding:reviews_review_1_text")}
           </Text>
         </View>
 
@@ -102,9 +106,7 @@ function ReviewsScreen({
             </View>
           </View>
           <Text style={styles.reviewText}>
-            "The thing is that I knew it was possible to grow taller, but I
-            didn't know how - until this app just provided the structure I
-            needed."
+            {i18n.t("onboarding:reviews_review_2_text")}
           </Text>
         </View>
 
@@ -125,8 +127,7 @@ function ReviewsScreen({
             </View>
           </View>
           <Text style={styles.reviewText}>
-            "I thought I was stuck with my height, but this app gave me new hope
-            and now I'm excited to have the potential of growing."
+            {i18n.t("onboarding:reviews_review_3_text")}
           </Text>
         </View>
       </View>
@@ -155,7 +156,9 @@ function ReviewsScreen({
           );
         }}
       >
-        <Text style={styles.ratingButtonText}>Leave a Rating</Text>
+        <Text style={styles.ratingButtonText}>
+          {i18n.t("onboarding:reviews_button_leave_rating")}
+        </Text>
       </TouchableOpacity>
     </OnboardingLayout>
   );

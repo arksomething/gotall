@@ -6,6 +6,7 @@ import {
   OnboardingScreenProps,
   withOnboarding,
 } from "../../components/withOnboarding";
+import i18n from "../../utils/i18n";
 import { useOnboarding } from "./_layout";
 
 function SexScreen({ onNext, onBack }: OnboardingScreenProps) {
@@ -13,7 +14,7 @@ function SexScreen({ onNext, onBack }: OnboardingScreenProps) {
 
   return (
     <OnboardingLayout
-      title="What is your sex?"
+      title={i18n.t("onboarding:sex_title")}
       currentStep={2}
       onNext={onNext}
       onBack={onBack}
@@ -33,7 +34,7 @@ function SexScreen({ onNext, onBack }: OnboardingScreenProps) {
               color={sex === "1" ? "#000" : "#9ACD32"}
             />
             <Text style={[styles.sexText, sex === "1" && styles.sexTextActive]}>
-              Male
+              {i18n.t("onboarding:sex_option_male")}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -46,7 +47,7 @@ function SexScreen({ onNext, onBack }: OnboardingScreenProps) {
               color={sex === "2" ? "#000" : "#9ACD32"}
             />
             <Text style={[styles.sexText, sex === "2" && styles.sexTextActive]}>
-              Female
+              {i18n.t("onboarding:sex_option_female")}
             </Text>
           </TouchableOpacity>
         </View>

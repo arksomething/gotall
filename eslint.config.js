@@ -13,5 +13,16 @@ module.exports = defineConfig([
       'ios/**',
       'web-build/**',
     ],
+    rules: {
+      // Flag bare text inside JSX to catch hardcoded copy
+      'react/jsx-no-literals': [
+        'warn',
+        {
+          noStrings: true,
+          ignoreProps: true,
+          allowedStrings: ['🔥', '✅', '⏹️'],
+        },
+      ],
+    },
   },
 ]);

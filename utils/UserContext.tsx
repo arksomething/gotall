@@ -237,10 +237,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const promises: Promise<void>[] = [];
 
-      if (updates.heightCm !== undefined)
+      if (updates.heightCm !== undefined) {
         promises.push(
           AsyncStorage.setItem("@user_height_cm", updates.heightCm.toString())
         );
+        // Track last height update time for gating updates in UI
+        promises.push(
+          AsyncStorage.setItem("@last_height_update_ms", Date.now().toString())
+        );
+      }
 
       if (updates.dateOfBirth !== undefined)
         promises.push(

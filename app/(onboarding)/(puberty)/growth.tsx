@@ -4,6 +4,7 @@ import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { SelectionList } from "../../../components/SelectionList";
 import { withOnboarding } from "../../../components/withOnboarding";
 import { CONFIG } from "../../../utils/config";
+import i18n from "../../../utils/i18n";
 import { useUserData } from "../../../utils/UserContext";
 
 function GrowthScreen({
@@ -26,21 +27,26 @@ function GrowthScreen({
 
   return (
     <OnboardingLayout
-      title="How much taller did you grow in the last year?"
+      title={i18n.t("onboarding:growth_title")}
       currentStep={2}
       onNext={onNext}
       onBack={onBack}
       disableDefaultNext={!answer}
-      nextButtonText="Continue"
+      nextButtonText={i18n.t("onboarding:subscription_button_continue", {
+        defaultValue: "Continue",
+      })}
       totalStepsOverride={CONFIG.PUBERTY_QUIZ_STEPS}
     >
       <View style={styles.container}>
         <SelectionList
           options={[
-            { label: "< 2 cm", value: "lt2" },
-            { label: "2–5 cm", value: "2to5" },
-            { label: "6–9 cm", value: "6to9" },
-            { label: "10+ cm", value: "10plus" },
+            { label: i18n.t("onboarding:growth_option_lt2"), value: "lt2" },
+            { label: i18n.t("onboarding:growth_option_2to5"), value: "2to5" },
+            { label: i18n.t("onboarding:growth_option_6to9"), value: "6to9" },
+            {
+              label: i18n.t("onboarding:growth_option_10plus"),
+              value: "10plus",
+            },
           ]}
           selectedValue={answer ?? undefined}
           onSelect={async (value) => {

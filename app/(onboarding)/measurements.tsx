@@ -6,6 +6,7 @@ import {
   OnboardingScreenProps,
   withOnboarding,
 } from "../../components/withOnboarding";
+import i18n from "../../utils/i18n";
 import { useOnboarding } from "./_layout";
 
 function MeasurementsScreen({ onNext, onBack }: OnboardingScreenProps) {
@@ -29,16 +30,16 @@ function MeasurementsScreen({ onNext, onBack }: OnboardingScreenProps) {
 
   return (
     <OnboardingLayout
-      title="What are your measurements?"
+      title={i18n.t("onboarding:measurements_title")}
       currentStep={4}
       onNext={onNext}
       onBack={onBack}
     >
       <View style={styles.stepContent}>
         <DualPicker
-          title="Select your height and weight"
-          leftLabel="Height"
-          rightLabel="Weight"
+          title={i18n.t("onboarding:measurements_picker_title")}
+          leftLabel={i18n.t("onboarding:measurements_label_height")}
+          rightLabel={i18n.t("onboarding:measurements_label_weight")}
           leftValue={height}
           rightValue={weight}
           onLeftValueChange={setHeight}

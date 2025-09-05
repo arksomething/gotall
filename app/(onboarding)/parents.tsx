@@ -6,6 +6,7 @@ import {
   OnboardingScreenProps,
   withOnboarding,
 } from "../../components/withOnboarding";
+import i18n from "../../utils/i18n";
 import { useOnboarding } from "./_layout";
 
 function ParentsScreen({ onNext, onBack }: OnboardingScreenProps) {
@@ -21,16 +22,16 @@ function ParentsScreen({ onNext, onBack }: OnboardingScreenProps) {
 
   return (
     <OnboardingLayout
-      title="How tall are your parents?"
+      title={i18n.t("onboarding:parents_title")}
       currentStep={5}
       onNext={onNext}
       onBack={onBack}
     >
       <View style={styles.stepContent}>
         <DualPicker
-          title="Select your parents height"
-          leftLabel="Dad"
-          rightLabel="Mom"
+          title={i18n.t("onboarding:parents_picker_title")}
+          leftLabel={i18n.t("onboarding:parents_label_father")}
+          rightLabel={i18n.t("onboarding:parents_label_mother")}
           leftValue={fatherHeight}
           rightValue={motherHeight}
           onLeftValueChange={setFatherHeight}

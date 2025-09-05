@@ -4,6 +4,7 @@ import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { SelectionList } from "../../../components/SelectionList";
 import { withOnboarding } from "../../../components/withOnboarding";
 import { CONFIG } from "../../../utils/config";
+import i18n from "../../../utils/i18n";
 import { useUserData } from "../../../utils/UserContext";
 
 function OdorScreen({
@@ -26,20 +27,25 @@ function OdorScreen({
 
   return (
     <OnboardingLayout
-      title="Have you noticed more body odor?"
+      title={i18n.t("onboarding:odor_title")}
       currentStep={4}
       onNext={onNext}
       onBack={onBack}
       disableDefaultNext={!answer}
-      nextButtonText="Continue"
+      nextButtonText={i18n.t("onboarding:subscription_button_continue", {
+        defaultValue: "Continue",
+      })}
       totalStepsOverride={CONFIG.PUBERTY_QUIZ_STEPS}
     >
       <View style={styles.container}>
         <SelectionList
           options={[
-            { label: "No", value: "no" },
-            { label: "A little", value: "little" },
-            { label: "Definitely stronger", value: "definitely" },
+            { label: i18n.t("onboarding:odor_option_no"), value: "no" },
+            { label: i18n.t("onboarding:odor_option_little"), value: "little" },
+            {
+              label: i18n.t("onboarding:odor_option_definitely"),
+              value: "definitely",
+            },
           ]}
           selectedValue={answer ?? undefined}
           onSelect={async (value) => {

@@ -11,6 +11,7 @@ import {
   generateMonths,
   generateYears,
 } from "../utils/datePickerData";
+import i18n from "../utils/i18n";
 import { SafePicker } from "./SafePicker";
 
 interface DatePickerProps {
@@ -27,11 +28,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   onDateChange,
   initialDate = new Date(2004, 0, 1),
 }) => {
+  const currentLang = (i18n as any)?.language || "en";
   const [selectedYear, setSelectedYear] = useState(
     initialDate.getFullYear().toString()
   );
   const [selectedMonth, setSelectedMonth] = useState(
-    initialDate.toLocaleString("default", { month: "short" })
+    initialDate.toLocaleString(currentLang, { month: "short" })
   );
   const [selectedDay, setSelectedDay] = useState(
     initialDate.getDate().toString()
@@ -87,10 +89,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Select your date of birth</Text>
+      <Text style={styles.title}>{i18n.t("components:datepicker_title")}</Text>
       <View style={styles.pickerContainer}>
         <View style={[styles.pickerColumn, { flex: 0.9 }]}>
-          <Text style={styles.label}>Month</Text>
+          <Text style={styles.label}>
+            {i18n.t("components:datepicker_label_month")}
+          </Text>
           <View style={styles.pickerWrapper}>
             <SafePicker
               selectedValue={selectedMonth}
@@ -106,7 +110,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           </View>
         </View>
         <View style={[styles.pickerColumn, { flex: 0.8 }]}>
-          <Text style={styles.label}>Day</Text>
+          <Text style={styles.label}>
+            {i18n.t("components:datepicker_label_day")}
+          </Text>
           <View style={styles.pickerWrapper}>
             <SafePicker
               selectedValue={selectedDay}
@@ -134,7 +140,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           </View>
         </View>
         <View style={[styles.pickerColumn, { flex: 1.4 }]}>
-          <Text style={styles.label}>Year</Text>
+          <Text style={styles.label}>
+            {i18n.t("components:datepicker_label_year")}
+          </Text>
           <View style={styles.pickerWrapper}>
             <SafePicker
               selectedValue={selectedYear}

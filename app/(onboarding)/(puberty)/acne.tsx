@@ -4,6 +4,7 @@ import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { SelectionList } from "../../../components/SelectionList";
 import { withOnboarding } from "../../../components/withOnboarding";
 import { CONFIG } from "../../../utils/config";
+import i18n from "../../../utils/i18n";
 import { useUserData } from "../../../utils/UserContext";
 
 function AcneScreen({
@@ -26,22 +27,30 @@ function AcneScreen({
 
   return (
     <OnboardingLayout
-      title="Do you get acne?"
+      title={i18n.t("onboarding:acne_title")}
       currentStep={5}
       onNext={onNext}
       onBack={onBack}
       disableDefaultNext={!answer}
-      nextButtonText="Continue"
+      nextButtonText={i18n.t("onboarding:subscription_button_continue", {
+        defaultValue: "Continue",
+      })}
       totalStepsOverride={CONFIG.PUBERTY_QUIZ_STEPS}
     >
       <View style={styles.container}>
         <SelectionList
           options={[
-            { label: "None", value: "none" },
-            { label: "Just a few sometimes", value: "few" },
-            { label: "Regular acne", value: "regular" },
-            { label: "Frequent/severe acne", value: "severe" },
-            { label: "Mostly cleared", value: "cleared" },
+            { label: i18n.t("onboarding:acne_option_none"), value: "none" },
+            { label: i18n.t("onboarding:acne_option_few"), value: "few" },
+            {
+              label: i18n.t("onboarding:acne_option_regular"),
+              value: "regular",
+            },
+            { label: i18n.t("onboarding:acne_option_severe"), value: "severe" },
+            {
+              label: i18n.t("onboarding:acne_option_cleared"),
+              value: "cleared",
+            },
           ]}
           selectedValue={answer ?? undefined}
           onSelect={async (value) => {

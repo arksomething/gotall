@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { logEvent } from "../utils/Analytics";
+import i18n from "../utils/i18n";
 
 interface AnalysisCardProps {
   endpoint: string;
@@ -25,9 +26,9 @@ interface AnalysisCardProps {
 export const AnalysisCard: React.FC<AnalysisCardProps> = ({
   endpoint,
   prompt,
-  analyzeButtonText = "Analyze",
+  analyzeButtonText = i18n.t("components:analysis_button_analyze"),
   maxImages = 3,
-  placeholderText = "Max three photos",
+  placeholderText = i18n.t("components:analysis_placeholder_default"),
 }) => {
   const [images, setImages] = useState<string[]>([]);
   const [analysis, setAnalysis] = useState("");
@@ -35,7 +36,7 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
 
   const pickImage = async () => {
     if (images.length >= maxImages) {
-      alert(`You can only select up to ${maxImages} photos.`);
+      alert(i18n.t("components:analysis_max_selected", { max: maxImages }));
       return;
     }
 
@@ -50,7 +51,7 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
       const newImages = result.assets.map((asset) => asset.uri);
       const totalImages = images.length + newImages.length;
       if (totalImages > maxImages) {
-        alert(`You can only select up to ${maxImages} photos total.`);
+        alert(i18n.t("components:analysis_max_total", { max: maxImages }));
         return;
       }
       setImages((prev) => [...prev, ...newImages]);
@@ -59,13 +60,13 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
 
   const takePhoto = async () => {
     if (images.length >= maxImages) {
-      alert(`You can only select up to ${maxImages} photos.`);
+      alert(i18n.t("components:analysis_max_selected", { max: maxImages }));
       return;
     }
 
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      alert("Sorry, we need camera permissions to make this work!");
+      alert(i18n.t("components:analysis_camera_permission"));
       return;
     }
 
@@ -87,7 +88,7 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
 
   const analyzeImages = async () => {
     if (images.length === 0) {
-      alert("Please select at least one image.");
+      alert(i18n.t("components:analysis_select_at_least_one"));
       return;
     }
     setIsLoading(true);
@@ -135,7 +136,7 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
         imageCount: images.length,
         error: String(error),
       });
-      alert("Failed to get analysis. Please try again.");
+      alert(i18n.t("components:analysis_error_failed"));
     } finally {
       setIsLoading(false);
     }
@@ -145,10 +146,14 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
     <View style={styles.cardStyle}>
       <View style={styles.buttonsContainer}>
         <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
-          <Text style={styles.actionButtonText}>Pick Images</Text>
+          <Text style={styles.actionButtonText}>
+            {i18n.t("components:analysis_pick_images")}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
-          <Text style={styles.actionButtonText}>Take Photo</Text>
+          <Text style={styles.actionButtonText}>
+            {i18n.t("components:analysis_take_photo")}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -184,7 +189,9 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
       >
         <Ionicons name="analytics-outline" size={24} color="#000" />
         <Text style={styles.updateButtonText}>
-          {isLoading ? "Analyzing..." : analyzeButtonText}
+          {isLoading
+            ? i18n.t("components:analysis_button_analyzing")
+            : analyzeButtonText}
         </Text>
       </TouchableOpacity>
 
@@ -194,7 +201,9 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({
 
       {analysis ? (
         <View style={styles.analysisContainer}>
-          <Text style={styles.analysisTitle}>Analysis:</Text>
+          <Text style={styles.analysisTitle}>
+            {i18n.t("components:analysis_title")}
+          </Text>
           <Text style={styles.analysisText}>{analysis}</Text>
         </View>
       ) : null}

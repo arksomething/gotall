@@ -8,6 +8,7 @@ import {
   withOnboarding,
 } from "../../components/withOnboarding";
 import { findSurroundingPercentiles } from "../../utils/heightProjection";
+import i18n from "../../utils/i18n";
 import { useOnboarding } from "./_layout";
 
 function ResultsScreen({ onNext, onBack }: OnboardingScreenProps) {
@@ -50,72 +51,36 @@ function ResultsScreen({ onNext, onBack }: OnboardingScreenProps) {
           (result.upperPercentile && result.upperPercentile < 50)
         ) {
           resultMessages = [
-            "Your results are in!",
-            "It turns out...",
-            "You're not growing at your potential.",
-            "But that's about to change.",
-            "We've found Andy, your personal height coach.",
+            i18n.t("onboarding:results_intro_1"),
+            i18n.t("onboarding:results_intro_2"),
+            i18n.t("onboarding:results_path_low"),
           ];
         } else if (
           (result.exactPercentile && result.exactPercentile > 90) ||
           (result.lowerPercentile && result.lowerPercentile > 90)
         ) {
           resultMessages = [
-            "Your results are in!",
-            "It turns out...",
-            "You're growing well!",
-            "We've found Andy, your personal height coach.",
+            i18n.t("onboarding:results_intro_1"),
+            i18n.t("onboarding:results_intro_2"),
+            i18n.t("onboarding:results_path_high"),
           ];
         } else {
           resultMessages = [
-            "Your results are in!",
-            "It turns out...",
-            "You're right where you need to be.",
-            "We've found Andy, your personal height coach.",
+            i18n.t("onboarding:results_intro_1"),
+            i18n.t("onboarding:results_intro_2"),
+            i18n.t("onboarding:results_path_mid"),
           ];
         }
 
-        // Personalised final line
-        const ageInt = Math.floor(ageYears);
-        const sexText = sex === "1" ? "males" : "females";
-        const normalizeEthnicity = (val: string): string => {
-          switch (val.toLowerCase()) {
-            case "caucasian":
-              return "caucasians";
-            case "african american":
-              return "african americans";
-            case "hispanic/latino":
-              return "latinos";
-            case "asian":
-              return "asians";
-            case "native american":
-              return "native americans";
-            case "pacific islander":
-              return "pacific islanders";
-            case "mixed/other":
-              return "mixed backgrounds";
-            default:
-              return val.toLowerCase();
-          }
-        };
-
-        const ethnicitySegment = ethnicity
-          ? normalizeEthnicity(ethnicity)
-          : sexText;
-        resultMessages.push(
-          `Andy has helped other ${ageInt} year old ${ethnicitySegment} maximize their height.`
-        );
+        // Remove coach and personalized follow-up lines per request
 
         setMessages(resultMessages);
       } catch (error) {
         console.error("Error calculating percentile:", error);
         setMessages([
-          "Your results are in!",
-          "It turns out...",
-          "You're not growing at your potential.",
-          "But that's about to change.",
-          "We've found Andy, your personal height coach.",
-          "He'll help you maximize your height potential.",
+          i18n.t("onboarding:results_intro_1"),
+          i18n.t("onboarding:results_intro_2"),
+          i18n.t("onboarding:results_path_low"),
         ]);
       }
     }
@@ -175,7 +140,7 @@ function ResultsScreen({ onNext, onBack }: OnboardingScreenProps) {
 
   return (
     <OnboardingLayout
-      title="Your Results"
+      title={i18n.t("onboarding:results_title")}
       currentStep={13}
       onNext={handleNext}
       onBack={onBack}
