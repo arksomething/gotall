@@ -93,8 +93,8 @@ missingDimensionStrategy "store", "play"
         applicationId 'app.gotall.play'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "2.2.1"
+        versionCode 4
+        versionName "2.4.0"
     }
     flavorDimensions "store"
     productFlavors {

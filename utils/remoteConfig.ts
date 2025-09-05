@@ -116,6 +116,19 @@ export function getCopy(path: string, fallback: string, lang?: string): string {
 // Looks under language-scoped "$i18n" mapping. If not found, falls back to provided string.
 export function getCopyI18n(i18nKey: string, fallback: string, lang?: string): string {
   try {
+    // 1) Direct per-key Remote Config parameter (preferred for A/B tests)
+    // Sanitize i18n key into a valid RC parameter name, e.g.,
+    //   "onboarding:projection_button_unlock" -> "i18n_onboarding_projection_button_unlock"
+    const rc = getRemoteConfig();
+    const rcParamKey = `i18n_${i18nKey.replace(/[^A-Za-z0-9]/g, "_")}`;
+    try {
+      const directValue = rcGetValue(rc, rcParamKey).asString();
+      if (typeof directValue === "string" && directValue.trim().length > 0) {
+        return directValue;
+      }
+    } catch {}
+
+    // 2) JSON-based overrides bucket (back-compat)
     const copyObj = getParsedCopyObject();
     const language = getCurrentLanguageCode(lang);
     const byLang = (copyObj?.[language] as Record<string, any>) || {};

@@ -2,7 +2,7 @@
   "expo": {
     "name": "GoTall",
     "slug": "gotall",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "gotall",
@@ -34,7 +34,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "app.gotall.play",
-      "versionCode": 1,
+      "versionCode": 4,
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.CAMERA",

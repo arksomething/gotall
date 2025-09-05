@@ -6,5 +6,5 @@ export const CONFIG = {
   PUBERTY_QUIZ_STEPS: 11,
   // Height update cooldown window in milliseconds
   // For testing, set to 1 minute; adjust to 7 days for production (7 * 24 * 60 * 60 * 1000)
-  HEIGHT_UPDATE_COOLDOWN_MS: 60 * 1000,
+  HEIGHT_UPDATE_COOLDOWN_MS: 7 * 24 * 60 * 60 * 1000,
 } as const; 
