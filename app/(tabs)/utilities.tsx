@@ -34,7 +34,7 @@ export default function UtilitiesScreen() {
   const [reminderActive, setReminderActive] = useState(false);
   const [reminderInterval, setReminderInterval] = useState(20); // minutes
   const [notificationId, setNotificationId] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -401,6 +401,12 @@ export default function UtilitiesScreen() {
         data={pages}
         renderItem={renderPage}
         keyExtractor={(item) => item.id}
+        initialScrollIndex={1}
+        getItemLayout={(_data, index) => ({
+          length: screenWidth,
+          offset: screenWidth * index,
+          index,
+        })}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}

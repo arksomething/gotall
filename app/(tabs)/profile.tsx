@@ -178,6 +178,20 @@ export default function ProfileScreen() {
 
   const settingsOptions = [
     {
+      icon: "logo-discord",
+      title: i18n.t("tabs:profile_promote_title"),
+      subtitle: i18n.t("tabs:profile_promote_sub"),
+      onPress: () => {
+        Linking.openURL("https://discord.gg/a6j63JVuZ3").catch(() => {
+          Alert.alert(
+            i18n.t("tabs:profile_discord_title"),
+            i18n.t("tabs:profile_discord_open_in_browser"),
+            [{ text: i18n.t("tabs:common_ok") }]
+          );
+        });
+      },
+    },
+    {
       icon: "help-circle-outline",
       title: i18n.t("tabs:profile_help_support"),
       subtitle: i18n.t("tabs:profile_get_assistance"),
@@ -194,20 +208,6 @@ export default function ProfileScreen() {
       title: i18n.t("tabs:profile_restore_purchase"),
       subtitle: i18n.t("tabs:profile_restore_purchase_sub"),
       onPress: handleRestorePurchase,
-    },
-    {
-      icon: "logo-discord",
-      title: i18n.t("tabs:profile_promote_title"),
-      subtitle: i18n.t("tabs:profile_promote_sub"),
-      onPress: () => {
-        Linking.openURL("https://discord.gg/a6j63JVuZ3").catch(() => {
-          Alert.alert(
-            i18n.t("tabs:profile_discord_title"),
-            i18n.t("tabs:profile_discord_open_in_browser"),
-            [{ text: i18n.t("tabs:common_ok") }]
-          );
-        });
-      },
     },
   ];
 

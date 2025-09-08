@@ -13,6 +13,7 @@
   "home_sleep_goal": "Meta de sueño",
   "home_daily_calories": "Calorías diarias",
   "home_update_height": "Actualizar altura",
+  "home_next_update_in": "Próxima actualización en: {{time}}",
   "home_hours_abbr": "h",
   "home_to_go": "restantes",
   "home_to_go_fmt": "{{value}} restantes",

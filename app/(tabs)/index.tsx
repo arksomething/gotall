@@ -131,7 +131,8 @@ export default function Index() {
             (remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
           );
           const mins = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-          setCountdown(`${days}d ${hours}h ${mins}m`);
+          const secs = Math.floor((remaining % (60 * 1000)) / 1000);
+          setCountdown(`${days}d ${hours}h ${mins}m ${secs}s`);
         } else {
           setCountdown("");
         }
@@ -141,7 +142,7 @@ export default function Index() {
       }
     };
     updateCountdown();
-    timer = setInterval(updateCountdown, 60 * 1000);
+    timer = setInterval(updateCountdown, 1000);
     return () => timer && clearInterval(timer);
   }, []);
 
@@ -212,7 +213,8 @@ export default function Index() {
             (remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
           );
           const mins = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-          setCountdown(`${days}d ${hours}h ${mins}m`);
+          const secs = Math.floor((remaining % (60 * 1000)) / 1000);
+          setCountdown(`${days}d ${hours}h ${mins}m ${secs}s`);
         } else {
           setCountdown("");
         }
@@ -347,12 +349,6 @@ export default function Index() {
             activeOpacity={0.8}
             disabled={!canUpdateHeight}
           >
-            <Ionicons
-              name="create-outline"
-              size={18}
-              color={canUpdateHeight ? "#000" : "#999"}
-              style={{ marginRight: 6 }}
-            />
             <Text
               style={[
                 styles.updateHeightText,
@@ -361,7 +357,7 @@ export default function Index() {
             >
               {canUpdateHeight
                 ? i18n.t("tabs:home_update_height")
-                : `${i18n.t("tabs:home_update_height")} • ${countdown}`}
+                : `${i18n.t("tabs:home_next_update_in", { time: countdown })}`}
             </Text>
           </TouchableOpacity>
         </View>

@@ -24,6 +24,7 @@
   "home_sleep_goal": "Sleep Goal",
   "home_daily_calories": "Daily Calories",
   "home_update_height": "Update Height",
+  "home_next_update_in": "Next update in: {{time}}",
   "home_hours_abbr": "hrs",
   "home_to_go": "to go",
   "home_to_go_fmt": "{{value}} to go",
