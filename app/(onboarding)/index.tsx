@@ -20,7 +20,6 @@ import {
 } from "../../components/withOnboarding";
 import { crashlytics } from "../../utils/crashlytics";
 import i18n from "../../utils/i18n";
-import { getCopy } from "../../utils/remoteConfig";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const AUTO_SCROLL_INTERVAL = 3000; // Time between auto-scrolls in milliseconds
@@ -63,11 +62,8 @@ function WelcomeScreen({ onNext }: OnboardingScreenProps) {
   const insets = useSafeAreaInsets();
   const HERO_HEIGHT = screenHeight - insets.top - 280; // subtract approximate bottom panel height
 
-  // Generic server-driven copy from Remote Config JSON
-  const ctaLabel = getCopy(
-    "onboarding.index.cta_label",
-    i18n.t("onboarding:index_button_cta_text")
-  );
+  // Use i18n.t; Remote Config A/B per-key overrides handled via enableGlobalCopyOverrides
+  const ctaLabel = i18n.t("onboarding:index_button_cta_text");
 
   // Add logging for debugging
   useEffect(() => {
@@ -378,4 +374,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(WelcomeScreen, 0, "index");
+export default withOnboarding(WelcomeScreen, "index");

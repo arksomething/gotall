@@ -3,7 +3,6 @@ import { StyleSheet, View } from "react-native";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { SelectionList } from "../../../components/SelectionList";
 import { withOnboarding } from "../../../components/withOnboarding";
-import { CONFIG } from "../../../utils/config";
 import i18n from "../../../utils/i18n";
 import { useUserData } from "../../../utils/UserContext";
 
@@ -28,14 +27,12 @@ function VoiceScreen({
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:voice_title")}
-      currentStep={7}
       onNext={onNext}
       onBack={onBack}
       disableDefaultNext={!answer}
       nextButtonText={i18n.t("onboarding:subscription_button_continue", {
         defaultValue: "Continue",
       })}
-      totalStepsOverride={CONFIG.PUBERTY_QUIZ_STEPS}
     >
       <View style={styles.container}>
         <SelectionList
@@ -70,4 +67,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(VoiceScreen, 15, "voice", "slower");
+export default withOnboarding(VoiceScreen, "voice");

@@ -18,6 +18,7 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import { enableGlobalCopyOverrides } from "../utils/copy";
 import { crashlytics } from "../utils/crashlytics";
 import { initializeErrorHandling } from "../utils/errorHandler";
+import { setUserProperty } from "../utils/FirebaseAnalytics";
 import { initI18n } from "../utils/i18n";
 import { OnboardingProvider, useOnboarding } from "../utils/OnboardingContext";
 import { PRODUCTS } from "../utils/products";
@@ -50,6 +51,48 @@ function NavigationRoot() {
       }
     };
 
+    const setSubscriptionUserProps = async (info?: CustomerInfo) => {
+      try {
+        const entitlements = info?.entitlements?.active || {};
+        const activeIds = Object.keys(entitlements);
+        const isPaid = activeIds.length > 0;
+
+        const first = isPaid ? (entitlements as any)[activeIds[0]] : undefined;
+        const productId = first?.productIdentifier || null;
+        const periodType = first?.periodType || null; // NORMAL | INTRO | TRIAL
+        const store = first?.store || null; // APP_STORE | PLAY_STORE | STRIPE etc.
+        const expDate = first?.expirationDate
+          ? String(new Date(first.expirationDate).getTime())
+          : null;
+
+        await setUserProperty("is_paid", isPaid ? "true" : "false");
+        await setUserProperty("subscription_id", productId);
+        await setUserProperty(
+          "subscription_period",
+          productId?.toLowerCase().includes("weekly")
+            ? "weekly"
+            : productId?.toLowerCase().includes("monthly")
+            ? "monthly"
+            : productId?.toLowerCase().includes("yearly")
+            ? "yearly"
+            : productId?.toLowerCase().includes("lifetime")
+            ? "lifetime"
+            : productId?.toLowerCase().includes("permanent")
+            ? "permanent"
+            : null
+        );
+        await setUserProperty(
+          "subscription_platform",
+          store ? String(store).toLowerCase() : null
+        );
+        await setUserProperty("subscription_expiration_ms", expDate);
+        await setUserProperty(
+          "trial_active",
+          periodType === "TRIAL" ? "true" : "false"
+        );
+      } catch {}
+    };
+
     const initializeApp = async () => {
       if (!initialized) {
         try {
@@ -76,6 +119,7 @@ function NavigationRoot() {
 
           const info = await Purchases.getCustomerInfo();
           await updateAccessFromCustomerInfo(info);
+          await setSubscriptionUserProps(info);
           setInitialized(true);
         } catch (error: any) {
           console.error("Error initializing RevenueCat:", error);
@@ -100,6 +144,7 @@ function NavigationRoot() {
     // Listen for RevenueCat customer info updates
     const customerInfoListener = (info: CustomerInfo) => {
       updateAccessFromCustomerInfo(info);
+      setSubscriptionUserProps(info);
     };
     Purchases.addCustomerInfoUpdateListener(customerInfoListener);
 

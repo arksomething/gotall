@@ -6,6 +6,7 @@ export interface UserData {
   heightCm: number;
   dateOfBirth: string;
   sex: "1" | "2";
+  attribution?: string;
   weight: number;
   motherHeightCm: number;
   fatherHeightCm: number;
@@ -41,6 +42,7 @@ const defaultUserData: UserData = {
   heightCm: 170,
   dateOfBirth: "2008-01-01",
   sex: "1",
+  attribution: "",
   weight: 150,
   motherHeightCm: 165,
   fatherHeightCm: 178,
@@ -137,6 +139,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         height,
         dateOfBirth,
         sex,
+        attribution,
         weight,
         motherHeight,
         fatherHeight,
@@ -158,6 +161,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         AsyncStorage.getItem("@user_height_cm"),
         AsyncStorage.getItem("@user_date_of_birth"),
         AsyncStorage.getItem("@user_sex"),
+        AsyncStorage.getItem("@user_attribution"),
         AsyncStorage.getItem("@user_weight"),
         AsyncStorage.getItem("@user_mother_height_cm"),
         AsyncStorage.getItem("@user_father_height_cm"),
@@ -181,6 +185,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         heightCm: parseFloat(height || "") || defaultUserData.heightCm,
         dateOfBirth: dateOfBirth || defaultUserData.dateOfBirth,
         sex: (sex as "1" | "2") || defaultUserData.sex,
+        attribution: attribution || defaultUserData.attribution,
         weight: parseFloat(weight || "") || defaultUserData.weight,
         motherHeightCm:
           parseFloat(motherHeight || "") || defaultUserData.motherHeightCm,
@@ -254,6 +259,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (updates.sex !== undefined)
         promises.push(AsyncStorage.setItem("@user_sex", updates.sex));
+
+      if (updates.attribution !== undefined)
+        promises.push(
+          AsyncStorage.setItem("@user_attribution", updates.attribution)
+        );
 
       if (updates.weight !== undefined)
         promises.push(

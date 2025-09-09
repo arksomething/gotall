@@ -3,11 +3,10 @@ import { StyleSheet, View } from "react-native";
 import { AnalysisCard } from "../../../components/AnalysisCard";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { withOnboarding } from "../../../components/withOnboarding";
-import { CONFIG } from "../../../utils/config";
 import i18n from "../../../utils/i18n";
 
 const TANNER_ANALYSIS_PROMPT =
-  "Analyze this image to estimate the Tanner stage. Respond with a short, plain text explanation and likely stage.";
+  "Analyze this image to estimate the user's age. Even if you can't accurately determine their age, just try your best and provide a rough estimate. Respond with a short, plain text explanation.";
 
 function PubertyAnalysisScreen({
   onNext,
@@ -19,13 +18,11 @@ function PubertyAnalysisScreen({
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:analysis_title")}
-      currentStep={10}
       onNext={onNext}
       onBack={onBack}
       nextButtonText={i18n.t("onboarding:subscription_button_continue", {
         defaultValue: "Continue",
       })}
-      totalStepsOverride={CONFIG.PUBERTY_QUIZ_STEPS}
     >
       <View style={styles.container}>
         <AnalysisCard
@@ -46,4 +43,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(PubertyAnalysisScreen, 18, "analysis", "product");
+export default withOnboarding(PubertyAnalysisScreen, "analysis");

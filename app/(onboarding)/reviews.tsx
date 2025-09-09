@@ -14,7 +14,7 @@ import { withOnboarding } from "../../components/withOnboarding";
 import i18n from "../../utils/i18n";
 import { useUnits } from "../../utils/useUnits";
 
-export default withOnboarding(ReviewsScreen, 10, "reviews", "short");
+export default withOnboarding(ReviewsScreen, "reviews");
 
 function ReviewsScreen({
   onNext,
@@ -46,7 +46,6 @@ function ReviewsScreen({
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:reviews_title")}
-      currentStep={11}
       onNext={onNext}
       onBack={onBack}
       showBackButton={true}

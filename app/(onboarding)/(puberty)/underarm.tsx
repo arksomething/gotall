@@ -3,7 +3,6 @@ import { StyleSheet, View } from "react-native";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { SelectionList } from "../../../components/SelectionList";
 import { withOnboarding } from "../../../components/withOnboarding";
-import { CONFIG } from "../../../utils/config";
 import i18n from "../../../utils/i18n";
 import { useUserData } from "../../../utils/UserContext";
 
@@ -26,14 +25,12 @@ function UnderarmScreen({
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:underarm_title")}
-      currentStep={0}
       onNext={onNext}
       onBack={onBack}
       disableDefaultNext={!answer}
       nextButtonText={i18n.t("onboarding:subscription_button_continue", {
         defaultValue: "Continue",
       })}
-      totalStepsOverride={CONFIG.PUBERTY_QUIZ_STEPS}
     >
       <View style={styles.container}>
         <SelectionList
@@ -62,4 +59,4 @@ const styles = StyleSheet.create({
   // Button styles are encapsulated in SelectionList
 });
 
-export default withOnboarding(UnderarmScreen, 8, "underarm", "facial");
+export default withOnboarding(UnderarmScreen, "underarm");

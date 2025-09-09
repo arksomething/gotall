@@ -43,7 +43,6 @@ function ShoeScreen({ onNext, onBack }: OnboardingScreenProps) {
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:shoe_title")}
-      currentStep={6}
       onNext={onNext}
       onBack={onBack}
     >
@@ -169,4 +168,4 @@ const styles = StyleSheet.create({
 
 // NOTE: Using "shoe" as a placeholder route key since "shoe" is not yet
 // included in the ROUTES union. Adjust when integrating into navigation.
-export default withOnboarding(ShoeScreen, 6, "shoe", "dream");
+export default withOnboarding(ShoeScreen, "shoe");

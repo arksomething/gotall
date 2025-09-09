@@ -15,7 +15,6 @@ function BirthdateScreen({ onNext, onBack }: OnboardingScreenProps) {
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:birthdate_title")}
-      currentStep={1}
       onNext={onNext}
       onBack={onBack}
     >
@@ -35,4 +34,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(BirthdateScreen, 1, "birthdate");
+export default withOnboarding(BirthdateScreen, "birthdate");

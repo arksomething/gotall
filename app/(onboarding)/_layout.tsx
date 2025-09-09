@@ -15,11 +15,13 @@ interface PickerItem {
 }
 
 // Define the context type
-interface OnboardingContextType {
+export interface OnboardingContextType {
   dateOfBirth: Date;
   setDateOfBirth: (date: Date) => void;
   sex: "1" | "2";
   setSex: (sex: "1" | "2") => void;
+  attribution: string;
+  setAttribution: (value: string) => void;
   height: string;
   setHeight: (height: string) => void;
   weight: string;
@@ -70,6 +72,7 @@ export default function OnboardingLayout() {
   // Form state
   const [dateOfBirth, setDateOfBirth] = useState(new Date(2004, 0, 1));
   const [sex, setSex] = useState<"1" | "2">("1");
+  const [attribution, setAttribution] = useState("");
   const [height, setHeight] = useState("5 ft 7 in");
   const [weight, setWeight] = useState("150 lb");
   const [motherHeight, setMotherHeight] = useState("5 ft 7 in");
@@ -131,6 +134,8 @@ export default function OnboardingLayout() {
         setDateOfBirth,
         sex,
         setSex,
+        attribution,
+        setAttribution,
         height,
         setHeight,
         weight,
@@ -185,6 +190,7 @@ export default function OnboardingLayout() {
           }}
         />
         <Stack.Screen name="sex" />
+        <Stack.Screen name="attribution" />
         <Stack.Screen name="ethnicity" />
         <Stack.Screen name="measurements" />
         <Stack.Screen name="parents" />
@@ -208,7 +214,6 @@ export default function OnboardingLayout() {
         <Stack.Screen name="generating" />
         <Stack.Screen name="results" />
         <Stack.Screen name="projection" />
-        <Stack.Screen name="subscription" />
       </Stack>
     </OnboardingContext.Provider>
   );

@@ -15,7 +15,6 @@ function SexScreen({ onNext, onBack }: OnboardingScreenProps) {
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:sex_title")}
-      currentStep={2}
       onNext={onNext}
       onBack={onBack}
     >
@@ -96,4 +95,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(SexScreen, 2, "sex");
+export default withOnboarding(SexScreen, "sex");

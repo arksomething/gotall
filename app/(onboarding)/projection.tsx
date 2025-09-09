@@ -193,7 +193,6 @@ const ProjectionScreen = () => {
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:projection_title")}
-      currentStep={14}
       onNext={handleNext}
       onBack={handleBack}
       nextButtonText={i18n.t("onboarding:projection_button_unlock")}
@@ -486,4 +485,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(ProjectionScreen, 7, "projection");
+export default withOnboarding(ProjectionScreen, "projection");

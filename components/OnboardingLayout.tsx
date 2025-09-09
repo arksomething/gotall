@@ -13,18 +13,17 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useOnboarding } from "../app/(onboarding)/_layout";
 import i18n from "../utils/i18n";
 import { logger } from "../utils/Logger";
+import { getProgressTotals, OnboardingRoute } from "../utils/onboardingFlow";
 import { PickerErrorBoundary } from "./PickerErrorBoundary";
 
-// Step counts
-const MAIN_TOTAL_STEPS = 15; // excludes optional (puberty) sub-flow; subscription at step 15 is last
-const PUBERTY_TOTAL_STEPS = 11; // the number of screens inside (puberty)/
+// Progress derived from manifest
 
 interface OnboardingLayoutProps {
   children: React.ReactNode;
   title: string;
-  currentStep: number;
   showBackButton?: boolean;
   onBack?: () => void;
   onNext?: () => void;
@@ -35,13 +34,11 @@ interface OnboardingLayoutProps {
   hideFooter?: boolean;
   hideHeader?: boolean;
   containerBgColor?: string;
-  totalStepsOverride?: number; // optional override for progress bar
 }
 
 export function OnboardingLayout({
   children,
   title,
-  currentStep,
   showBackButton = true,
   onBack,
   onNext,
@@ -52,23 +49,40 @@ export function OnboardingLayout({
   hideFooter = false,
   hideHeader = false,
   containerBgColor = "#000",
-  totalStepsOverride,
 }: OnboardingLayoutProps) {
   const insets = useSafeAreaInsets();
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const segments = useSegments();
+  const onboarding = useOnboarding();
 
   // Determine which flow we're in for progress bar defaults
-  const isInPubertySubflow = React.useMemo(
-    () =>
-      segments?.some(
-        (s) => typeof s === "string" && s.startsWith("(puberty)")
-      ) ?? false,
-    [segments]
-  );
-  const computedTotalSteps =
-    totalStepsOverride ??
-    (isInPubertySubflow ? PUBERTY_TOTAL_STEPS : MAIN_TOTAL_STEPS);
+  // Derive current route name from segments (last non-group segment)
+  const currentRoute: OnboardingRoute | undefined = React.useMemo(() => {
+    try {
+      const list = (segments || []).filter(
+        (s) => typeof s === "string" && !String(s).startsWith("(")
+      ) as string[];
+      const name = list[list.length - 1];
+      return name as OnboardingRoute | undefined;
+    } catch {
+      return undefined;
+    }
+  }, [segments]);
+
+  // Compute progress percent and index strictly from manifest
+  const { percent: manifestPercent, index: manifestIndex } =
+    React.useMemo(() => {
+      try {
+        if (currentRoute) {
+          const { percent, index } = getProgressTotals(
+            currentRoute,
+            onboarding as any
+          );
+          return { percent, index };
+        }
+      } catch {}
+      return { percent: 0, index: 0 } as any;
+    }, [currentRoute, onboarding]);
 
   const animateScale = (toValue: number) => {
     Animated.spring(scaleAnim, {
@@ -96,11 +110,11 @@ export function OnboardingLayout({
   useFocusEffect(
     React.useCallback(() => {
       const key = `screen_${screenId}`;
-      logger.startTimer(key, { group: "onboarding", step: currentStep });
+      logger.startTimer(key, { group: "onboarding", step: manifestIndex });
       return () => {
-        logger.endTimer(key, { group: "onboarding", step: currentStep });
+        logger.endTimer(key, { group: "onboarding", step: manifestIndex });
       };
-    }, [screenId])
+    }, [screenId, manifestIndex])
   );
 
   return (
@@ -136,9 +150,7 @@ export function OnboardingLayout({
                   style={[
                     styles.progressFill,
                     {
-                      width: `${
-                        ((currentStep + 1) / computedTotalSteps) * 100
-                      }%`,
+                      width: `${manifestPercent || 0}%`,
                     },
                   ]}
                 />

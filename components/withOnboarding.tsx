@@ -3,64 +3,39 @@ import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { Alert } from "react-native";
 import { useOnboarding } from "../app/(onboarding)/_layout";
-import { logScreenView } from "../utils/FirebaseAnalytics";
+import { logScreenView, setUserProperty } from "../utils/FirebaseAnalytics";
 import { validateHeightInput } from "../utils/heightUtils";
+import {
+  getNextRoute,
+  getPrevRoute,
+  OnboardingRoute,
+} from "../utils/onboardingFlow";
 import { useUserData } from "../utils/UserContext";
 
-export const ROUTES = [
-  "index",
-  "birthdate",
-  "sex",
-  "ethnicity",
-  "measurements",
-  "parents",
-  "shoe",
-  "dream",
-  "puberty",
-  "underarm",
-  "facial",
-  "growth",
-  "shoulders",
-  "odor",
-  "acne",
-  "muscles",
-  "voice",
-  "slower",
-  "shave",
-  "analysis",
-  "product",
-  "trust",
-  "reviews",
-  "short",
-  "generating",
-  "results",
-  "projection",
-  "subscription",
-] as const;
+export const ROUTES = [] as const; // deprecated: use manifest in onboardingFlow
 
 export interface OnboardingScreenProps {
   onNext?: () => void;
   onBack?: () => void;
 }
 
-type Route = (typeof ROUTES)[number];
 type HeightUnit = "ft" | "cm";
 
 export function withOnboarding<P extends OnboardingScreenProps>(
   WrappedComponent: React.ComponentType<P>,
-  currentStep: number,
-  route: Route,
-  nextRoute?: Route
+  route: OnboardingRoute
 ) {
   return function WithOnboardingComponent(
     props: Omit<P, keyof OnboardingScreenProps>
   ) {
     const router = useRouter();
     const { updateUserData } = useUserData();
+    const onboarding = useOnboarding();
     const {
       setCurrentStep,
       dateOfBirth,
       sex,
+      attribution,
       height,
       weight,
       motherHeight,
@@ -71,12 +46,12 @@ export function withOnboarding<P extends OnboardingScreenProps>(
       usShoeSize,
       euShoeSize,
       dreamHeightCm,
-    } = useOnboarding();
+    } = onboarding;
 
     // Log screen view when component mounts
     useEffect(() => {
       logScreenView(route);
-    }, []);
+    }, [route]);
 
     const handleNext = async () => {
       // Validation logic based on current step
@@ -119,6 +94,9 @@ export function withOnboarding<P extends OnboardingScreenProps>(
           case "sex":
             partialUserData.sex = sex;
             break;
+          case "attribution":
+            partialUserData.attribution = attribution;
+            break;
           case "dream":
             if (dreamHeightCm !== null) {
               partialUserData.dreamHeightCm = dreamHeightCm;
@@ -133,14 +111,36 @@ export function withOnboarding<P extends OnboardingScreenProps>(
 
         if (Object.keys(partialUserData).length > 0) {
           await updateUserData(partialUserData);
+          // Update user properties for analytics to enable user-level filtering
+          try {
+            if (route === "sex") {
+              await setUserProperty(
+                "sex_label",
+                sex === "1" ? "male" : sex === "2" ? "female" : "other"
+              );
+            }
+            if (route === "attribution") {
+              await setUserProperty("attribution", attribution || null);
+            }
+            if (route === "birthdate") {
+              // Derive age years and set as string
+              const ageYears = Math.max(
+                0,
+                Math.floor(
+                  (Date.now() - dateOfBirth.getTime()) /
+                    (1000 * 60 * 60 * 24 * 365.25)
+                )
+              );
+              await setUserProperty("age_years", String(ageYears));
+            }
+          } catch {}
         }
 
-        // Navigate to next screen
-        const defaultNextRoute = ROUTES[ROUTES.indexOf(route) + 1];
-        const targetRoute = nextRoute || defaultNextRoute;
-        if (targetRoute) {
-          setCurrentStep(currentStep + 1);
-          router.push(`/(onboarding)/${targetRoute}` as any);
+        const target = getNextRoute(route, onboarding as any);
+        if (target) {
+          // Maintain numeric step for legacy consumers
+          setCurrentStep((onboarding.currentStep || 0) + 1);
+          router.push(`/(onboarding)/${target}` as any);
         }
       } catch (error) {
         console.error("Error updating user data:", error);
@@ -149,15 +149,13 @@ export function withOnboarding<P extends OnboardingScreenProps>(
 
     const handleBack = async () => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      if (currentStep > 0) {
-        const prevRoute = ROUTES[ROUTES.indexOf(route) - 1];
-        if (prevRoute) {
-          setCurrentStep(currentStep - 1);
-          if (prevRoute == "index") {
-            router.replace("/(onboarding)" as any);
-          } else {
-            router.replace(`/(onboarding)/${prevRoute}` as any);
-          }
+      const prev = getPrevRoute(route, onboarding as any);
+      if (prev) {
+        setCurrentStep(Math.max(0, (onboarding.currentStep || 0) - 1));
+        if (prev === "index") {
+          router.replace("/(onboarding)" as any);
+        } else {
+          router.replace(`/(onboarding)/${prev}` as any);
         }
       }
     };

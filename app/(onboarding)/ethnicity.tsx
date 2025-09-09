@@ -26,7 +26,6 @@ function EthnicityScreen({ onNext, onBack }: OnboardingScreenProps) {
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:ethnicity_title")}
-      currentStep={3}
       onNext={onNext}
       onBack={onBack}
     >
@@ -51,4 +50,4 @@ const styles = StyleSheet.create({
   // Button styles are encapsulated in SelectionList
 });
 
-export default withOnboarding(EthnicityScreen, 3, "ethnicity");
+export default withOnboarding(EthnicityScreen, "ethnicity");

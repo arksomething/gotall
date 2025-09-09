@@ -17,14 +17,24 @@ export interface SubscriptionProduct {
 // Define all product configurations
 export const PRODUCTS: Record<string, ProductConfig> = {
   LIFETIME: {
-    id: "gotall.perm.access.nonc",
-    title: "Permanent Access",
-    description: "Get unlimited access to all features forever, including height tracking, posture reminders, and fitness goals. Great value!"
+    id: "gotall.lifetime.access.nonc",
+    title: "Lifetime Access",
+    description: "One-time purchase. Unlimited access to all features forever."
   },
   WEEKLY: {
     id: "gotall.weekly.access.nonc",
     title: "Weekly Access",
-    description: "Get temporary access to all features, billed weekly. Includes height tracking, posture reminders, and fitness goals. Great to test the app!"
+    description: "Full access billed weekly. Great for trying the app."
+  },
+  YEARLY: {
+    id: "gotall.yearly.access.nonc",
+    title: "Yearly Access",
+    description: "Best value annual plan with full access."
+  },
+  PERMANENT: {
+    id: "gotall.perm.access.nonc",
+    title: "Permanent Access",
+    description: "Permanent access entitlement (alternate lifetime SKU)."
   }
 };
 

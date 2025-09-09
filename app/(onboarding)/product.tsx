@@ -5,7 +5,7 @@ import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { withOnboarding } from "../../components/withOnboarding";
 import i18n from "../../utils/i18n";
 
-export default withOnboarding(ProductScreen, 8, "product", "trust");
+export default withOnboarding(ProductScreen, "product");
 
 function ProductScreen({
   onNext,
@@ -18,9 +18,8 @@ function ProductScreen({
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:product_title")}
-      currentStep={9}
       onNext={onNext}
-      onBack={() => router.push("/(onboarding)/puberty" as any)}
+      onBack={onBack}
       showBackButton={true}
     >
       <View style={styles.container}>

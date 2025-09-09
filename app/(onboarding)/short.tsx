@@ -12,7 +12,7 @@ import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { withOnboarding } from "../../components/withOnboarding";
 import i18n from "../../utils/i18n";
 
-export default withOnboarding(ShortScreen, 11, "short", "generating");
+export default withOnboarding(ShortScreen, "short");
 
 function ShortScreen({
   onNext,
@@ -56,7 +56,6 @@ function ShortScreen({
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:short_title")}
-      currentStep={12}
       onNext={onNext}
       onBack={onBack}
       showBackButton={true}

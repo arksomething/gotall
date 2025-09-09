@@ -141,7 +141,6 @@ function ResultsScreen({ onNext, onBack }: OnboardingScreenProps) {
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:results_title")}
-      currentStep={13}
       onNext={handleNext}
       onBack={onBack}
     >
@@ -186,4 +185,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(ResultsScreen, 11, "results");
+export default withOnboarding(ResultsScreen, "results");

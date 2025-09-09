@@ -31,7 +31,6 @@ function MeasurementsScreen({ onNext, onBack }: OnboardingScreenProps) {
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:measurements_title")}
-      currentStep={4}
       onNext={onNext}
       onBack={onBack}
     >
@@ -63,4 +62,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(MeasurementsScreen, 4, "measurements");
+export default withOnboarding(MeasurementsScreen, "measurements");

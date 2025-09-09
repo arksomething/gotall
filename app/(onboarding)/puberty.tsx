@@ -25,7 +25,6 @@ function PubertyIntroScreen({ onBack, onNext }: OnboardingScreenProps) {
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:puberty_title")}
-      currentStep={8}
       onBack={onBack}
       onNext={handleTake}
       nextButtonText={i18n.t("onboarding:puberty_button_take_quiz")}
@@ -102,4 +101,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(PubertyIntroScreen, 8, "puberty", "underarm");
+export default withOnboarding(PubertyIntroScreen as any, "puberty");

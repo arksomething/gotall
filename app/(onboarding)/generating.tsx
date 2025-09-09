@@ -13,17 +13,19 @@ import {
 } from "react-native";
 import { withOnboarding } from "../../components/withOnboarding";
 import { logEvent } from "../../utils/Analytics";
+import { setUserProperty } from "../../utils/FirebaseAnalytics";
 import { parseHeightToCm } from "../../utils/heightUtils";
 import i18n from "../../utils/i18n";
 import { useOnboarding } from "./_layout";
 
-export default withOnboarding(GeneratingScreen, 11, "generating", "projection");
+export default withOnboarding(GeneratingScreen, "generating");
 
 function GeneratingScreen({ onNext }: { onNext?: () => void }) {
   const router = useRouter();
   const {
     dateOfBirth,
     sex,
+    attribution,
     height,
     weight,
     motherHeight,
@@ -81,6 +83,7 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
       age_years: ageYears,
       sex,
       sex_label: sex === "1" ? "male" : sex === "2" ? "female" : "other",
+      attribution,
       height_display: height,
       height_cm: heightCm,
       weight_display: weight,
@@ -192,6 +195,7 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
             heightCm: payload.height_cm,
             dateOfBirth: payload.dob_iso,
             sex: payload.sex,
+            attribution: payload.attribution,
             weight: payload.weight_kg,
             motherHeightCm: payload.mother_height_cm,
             fatherHeightCm: payload.father_height_cm,
@@ -199,6 +203,17 @@ function GeneratingScreen({ onNext }: { onNext?: () => void }) {
             preferredWeightUnit: preferredWeightUnit as "lbs" | "kg",
             preferredHeightUnit: preferredHeightUnit as "ft" | "cm",
           });
+
+          // Set consolidated user properties
+          try {
+            await setUserProperty("sex_label", payload.sex_label || null);
+            await setUserProperty("attribution", payload.attribution || null);
+            await setUserProperty("height_cm", String(payload.height_cm));
+            await setUserProperty("ethnicity", payload.ethnicity || null);
+            await setUserProperty("units_height", String(preferredHeightUnit));
+            await setUserProperty("units_weight", String(preferredWeightUnit));
+            await setUserProperty("age_years", String(payload.age_years));
+          } catch {}
 
           try {
             logEvent("onboarding_generating_complete", {

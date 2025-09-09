@@ -23,7 +23,6 @@ function ParentsScreen({ onNext, onBack }: OnboardingScreenProps) {
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:parents_title")}
-      currentStep={5}
       onNext={onNext}
       onBack={onBack}
     >
@@ -55,4 +54,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(ParentsScreen, 5, "parents", "shoe");
+export default withOnboarding(ParentsScreen, "parents");

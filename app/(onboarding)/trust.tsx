@@ -4,7 +4,7 @@ import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { withOnboarding } from "../../components/withOnboarding";
 import i18n from "../../utils/i18n";
 
-export default withOnboarding(TrustScreen, 8, "trust", "reviews");
+export default withOnboarding(TrustScreen, "trust");
 
 function TrustScreen({
   onNext,
@@ -16,7 +16,6 @@ function TrustScreen({
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:trust_title")}
-      currentStep={10}
       onNext={onNext}
       onBack={onBack}
       showBackButton={true}

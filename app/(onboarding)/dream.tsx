@@ -92,7 +92,6 @@ function DreamScreen({ onNext, onBack }: OnboardingScreenProps) {
   return (
     <OnboardingLayout
       title={i18n.t("onboarding:dream_title")}
-      currentStep={7}
       onNext={onNext}
       onBack={onBack}
     >
@@ -216,4 +215,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withOnboarding(DreamScreen, 7, "dream", "puberty");
+export default withOnboarding(DreamScreen, "dream");
